@@ -1,0 +1,95 @@
+BASIC IDEA:
+    There are two parts for this project:
+    1. Website
+    2. A desktop app
+Let us have 2 roles for now:
+    1. Ghost User - who controls others computers via the website
+    2. Ghosted User - who is controlled by the Ghost User via the website(He has to install the desktop app on his computer)
+
+Ghost User who wants to control other computers remotely can first signup into the website with his credentials.
+Ghosted User who wants to be controlled by the Ghost User can first intall the desktop app from the website's home page.
+
+For a Ghosted user to be controlled by the Ghost User, he has to give his computer's unique id to the Ghost User.
+And ghosted user can even allow different permissions that the ghost user can get depending on which ghost user will be able to perform only limited operation on ghosted user.
+The Ghost User can then control the Ghosted User's computer via the website.
+
+Ghost User logs into the website and initially there are 2 sections visible to him:
+    where he can see list of ghosted users  who gave ascess to him to control their computer
+    1. Devices for which control ascess isn't expired yet.
+    2. Devices for which he has ascess in the past but it has expired.
+    The Control Section and MyGhosts section are similar to whatsapp's chats section on the left of whatsappweb with search functionality.
+
+
+
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+ Hacker Theme Color Palette
+🌑 Base (Backgrounds)
+#0f0f0f – Jet Black
+
+#121212 – Deep Dark Gray (main background)
+
+#1e1e1e – Dark Panel/Sidebar
+
+💚 Accent (Primary hacker color)
+#00ff41 – Classic Matrix Green (bright neon)
+
+#0aff9d – Cyan green (modern hacker neon)
+
+#39ff14 – Vivid Lime Green (for glows)
+
+🧊 Secondary Accent
+#00c3ff – Electric Blue
+
+#ff3c70 – Glitchy Pink
+
+#ffb400 – Gold (for active elements)
+
+🔠 Text
+#e0e0e0 – Light gray (main readable text)
+
+#a3f7bf – For code/logs/terminal outputs
+
+#8f8f8f – Muted gray for placeholders
+
+✅ Bonus Styling Tips
+🖥️ Fonts
+Use monospace fonts like:
+
+'Fira Code', 'Source Code Pro', or 'JetBrains Mono'
+
+Gives terminal, coder feel
+
+💡 Effects
+Use glow effects:
+
+css
+Copy
+Edit
+text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
+Add typing animation for command-line text
+
+Subtle glitches or flickers on hover (CSS or Framer Motion)
+
+🧩 UI Patterns
+Terminal-style panels
+
+Toggle dark terminal vs GUI view
+
+Command palette at top (like VS Code or Spotlight)
+
+🎨 Live Palette Example
+Role	Color	Hex Code
+Background	Jet Black	#0f0f0f
+Primary Text	Soft Gray	#e0e0e0
+Accent Glow	Hacker Green	#00ff41
+Highlight	Electric Blue	#00c3ff
+Error/Alert	Glitch Pink	#ff3c70
+
+
+
+
+
+
+
