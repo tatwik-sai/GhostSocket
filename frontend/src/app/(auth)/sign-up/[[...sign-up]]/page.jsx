@@ -18,7 +18,7 @@ export default function SignUpPage() {
           <h1 className="text-3xl font-bold text-gray-500">Ghost</h1>
           <h1 className="text-3xl font-bold text-red-500">Socket</h1>
         </div>
-        <SignUp 
+        <SignUp redirectUrl={{ afterSignUp: "/post-signup" }}
         appearance={{
           layout: {
             socialButtonsVariant: "block", // MUST be block for full width

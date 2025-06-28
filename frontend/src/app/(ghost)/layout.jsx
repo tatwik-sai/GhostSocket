@@ -1,8 +1,12 @@
+import { SocketProvider } from "@/context/SocketContext";
 
 export default function ConsoleLayout({ children }) {
   return (
-    <div>
-        Console Layout
-    </div>
+    <SocketProvider>
+        <div>
+            Console Layout
+            {children}
+        </div>
+    </SocketProvider>
   );
 }
