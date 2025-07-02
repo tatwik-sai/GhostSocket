@@ -26,8 +26,7 @@ function Navbar() {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-[1px] ml-0 sm:ml-10">
           <Image src="/logo.svg" alt="GhostSocket" width={50} height={50} />
-          <h1 className="text-2xl font-bold text-gray-500">Ghost</h1>
-          <h1 className="text-2xl font-bold text-red-500">Socket</h1>
+          <h1 className="text-2xl font-bold text-white">GhostSocket</h1>
         </div>
         <div className="flex items-center gap-2 mr-0 sm:mr-10">
           <Button asChild

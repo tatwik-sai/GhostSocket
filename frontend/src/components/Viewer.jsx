@@ -14,7 +14,6 @@ export default function Viewer() {
     const offer = await pc.current.createOffer();
     await pc.current.setLocalDescription(offer);
 
-    // ✅ Wait until ICE gathering is complete
     await new Promise((resolve) => {
       if (pc.current.iceGatheringState === "complete") {
         resolve();
@@ -57,7 +56,6 @@ export default function Viewer() {
     };
 
     return () => {
-      // Clean up on unmount
       if (pc.current) {
         pc.current.close();
       }

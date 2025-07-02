@@ -1,5 +1,6 @@
 {
-  "/(auth)/sign-in/[[...sign-in]]/page": "app/(auth)/sign-in/[[...sign-in]]/page.js",
   "/(ghost)/console/page": "app/(ghost)/console/page.js",
-  "/page": "app/page.js"
+  "/(ghost)/console/sessions/page": "app/(ghost)/console/sessions/page.js",
+  "/(ghost)/device/[deviceId]/page": "app/(ghost)/device/[deviceId]/page.js",
+  "/_not-found/page": "app/_not-found/page.js"
 }

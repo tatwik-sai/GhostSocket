@@ -23,11 +23,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: false,
     },
-    myDevices: {
-        type: Array,
-        required: false,
-        default: [],
-    }
 })
 
 const DBUser = mongoose.model("Users", userSchema);

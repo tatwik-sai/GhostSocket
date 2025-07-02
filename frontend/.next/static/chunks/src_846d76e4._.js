@@ -58,7 +58,6 @@ const SocketProvider = ({ children })=>{
                         type: "user"
                     }
                 });
-                console.log("hi2");
                 socket.current.on("connect", {
                     "SocketProvider.useEffect": ()=>{
                         console.log("Connected to socket server");
@@ -74,7 +73,7 @@ const SocketProvider = ({ children })=>{
         children: children
     }, void 0, false, {
         fileName: "[project]/src/context/SocketContext.jsx",
-        lineNumber: 32,
+        lineNumber: 31,
         columnNumber: 9
     }, this);
 };

@@ -6,8 +6,11 @@ from storage import Storage
 import asyncio
 import aiohttp
 import threading
-from PIL import Image
+from PIL import Image, ImageDraw, ImageTk
 from config import *
+from web import uuid
+import os
+import requests
 
 async def post_data(url, payload):
     async with aiohttp.ClientSession() as session:
@@ -30,43 +33,50 @@ class AsyncLoopThread:
 
 async_loop = AsyncLoopThread()
 storeage = Storage("ghost_socket")
-
+stored_data = storeage.get_data()
 
 class Toast:
     def __init__(self, parent):
         self.parent = parent
         self._toast_widget = None
 
-    def show(self, message: str, duration: int = 2500, type: str = "error"):
+    def show(self, message: str, duration: int = 2500, type: str = "info"):
         if self._toast_widget and self._toast_widget.winfo_exists():
             self._toast_widget.destroy()
 
-        # Color mapping
-        colors = {
-            "error": "#e74c3c",   # red
-            "success": "#2ecc71", # green
-            "warning": "#f39c12", # orange
-            "info":   "#2c3e50" #dark gray
+        # Unified background color
+        fg_color = "#2b2b2b"  # dark theme neutral
+
+        # Icon mapping
+        icon_paths = {
+            "success": "assets/success.png",
+            "error": "assets/error.png",
+            "warning": "assets/warning.png",
+            "info": "assets/info.png"
         }
 
-        fg_color = colors.get(type, "#2c3e50")  # default gray
+        # Load icon image
+        icon_path = icon_paths.get(type, icon_paths["info"])
+        image = Image.open(icon_path).resize((20, 20), Image.Resampling.LANCZOS)
+        icon = ctk.CTkImage(light_image=image, dark_image=image, size=(20, 20))
+        # Toast frame
+        frame = ctk.CTkFrame(self.parent, fg_color=fg_color, corner_radius=12)
+        self._toast_widget = frame
+        # Icon + Label
+        icon_label = ctk.CTkLabel(frame, image=icon, text="")
+        icon_label.pack(side="left", padx=(10, 6))
 
-        # Create toast widget
-        toast = ctk.CTkLabel(
-            self.parent,
+        msg_label = ctk.CTkLabel(
+            frame,
             text=message,
-            font=ctk.CTkFont(size=14),
-            text_color="white",
-            fg_color=fg_color,
-            corner_radius=12,
-            width=300,
-            height=40
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="white"
         )
-        self._toast_widget = toast
-        toast.place(relx=0.5, y=-50, anchor="n")  # off-screen top
+        msg_label.pack(side="left", padx=6, pady=10)
 
-        self._slide_in(toast, target_y=30)
-        toast.after(duration, lambda: self._slide_out(toast))
+        frame.place(relx=0.5, y=-50, anchor="n")  # start off-screen
+        self._slide_in(frame, target_y=30)
+        frame.after(duration, lambda: self._slide_out(frame))
 
     def _slide_in(self, toast, y=-50, target_y=30, step=5):
         if y < target_y:
@@ -78,7 +88,6 @@ class Toast:
     def _slide_out(self, toast, y=None, step=5):
         if y is None:
             y = int(toast.winfo_y())
-
         if y > -50:
             toast.place_configure(y=y)
             toast.after(10, lambda: self._slide_out(toast, y - step))
@@ -86,11 +95,12 @@ class Toast:
             toast.destroy()
 
 class App(ctk.CTk):
-    def __init__(self, is_logged_in: bool = False):
+    def __init__(self, is_logged_in: bool = False, show_home_page=None):
         super().__init__()
         self.title("Ghost Socket")
         self.geometry("800x600")
         self.resizable(False, False)
+        self.show_home_page = show_home_page
 
         # Container to hold all pages
         self.container = ctk.CTkFrame(self)
@@ -103,19 +113,54 @@ class App(ctk.CTk):
         # Dictionary to store pages
         self.pages = {}
 
-        for Page in (LoginPage, HomePage, OtpPage, PasswordPage):
+        for Page in (LoginPage, HomePage, OtpPage, PasswordPage, LoadingPage):
             page = Page(self.container, self)
             self.pages[Page] = page
             page.grid(row=0, column=0, sticky="nsew")  # fills container
 
         if is_logged_in:
-            self.show_page(HomePage)
+            self.show_page(LoadingPage)
+            async_loop.run_coroutine(show_home_page(self))
         else:
             self.show_page(LoginPage)
 
     def show_page(self, page_class):
         page = self.pages[page_class]
         page.tkraise()
+
+class LoadingPage(ctk.CTkFrame):
+    def __init__(self, parent, controller=None):
+        super().__init__(parent)
+        self.controller = controller
+        self.toast = Toast(self)
+        self.dot_labels = []
+        self.current_index = 0
+
+        # Main container
+        container = ctk.CTkFrame(self, fg_color="transparent")
+        container.pack(expand=True)
+
+        # "Loading" text
+        title = ctk.CTkLabel(container, text="Loading...", font=ctk.CTkFont(size=22, weight="bold"))
+        title.pack(pady=20)
+
+        # Dot animation container
+        dot_frame = ctk.CTkFrame(container, fg_color="transparent")
+        dot_frame.pack()
+
+        for i in range(3):
+            lbl = ctk.CTkLabel(dot_frame, text="●", font=ctk.CTkFont(size=28), text_color="#555555")
+            lbl.pack(side="left", padx=6)
+            self.dot_labels.append(lbl)
+
+        self.animate_dots()
+
+    def animate_dots(self):
+        for i, label in enumerate(self.dot_labels):
+            label.configure(text_color="#d63031" if i == self.current_index else "#555555")
+
+        self.current_index = (self.current_index + 1) % 3
+        self.after(300, self.animate_dots)
 
 class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -187,13 +232,21 @@ class LoginPage(ctk.CTkFrame):
             self.login_button.configure(state="normal", text="Login")
             return
 
-        # Replace with your actual login logic
-        status, data = await post_data(CHECK_USER_URL, {"email": email})
+        status, data = None, None
+        try:
+            status, data = await post_data(CHECK_USER_URL, {"email": email})
+        except Exception as e:
+            self.toast.show("Error checking user", type="error")
+            self.login_button.configure(state="normal", text="Login")
+            return
+        
         if status == 200:
             if data["type"] == "otp":
+                self.email_entry.delete(0, "end")
                 OtpPage.email = email
                 self.controller.show_page(OtpPage)
             elif data["type"] == "email_password":
+                self.email_entry.delete(0, "end")
                 PasswordPage.email = email
                 self.controller.show_page(PasswordPage)
         else:
@@ -306,12 +359,20 @@ class OtpPage(ctk.CTkFrame):
             self.submit_button.configure(state="normal", text="Verify OTP")
             return
 
-        print("OTP Entered:", otp)
-        status, data = await post_data(VERIFY_OTP_URL, {"email": self.email, "otp": otp})
+        status, data = None, None
+        try:
+            status, data = await post_data(VERIFY_OTP_URL, {"email": self.email, "otp": otp, "deviceId": uuid})
+        except Exception as e:
+            self.toast.show("Error verifying OTP", type="error")
+            self.submit_button.configure(state="normal", text="Verify OTP")
+            return
         if status == 200:
             self.toast.show("OTP Verified!", type="success")
-            storeage.add_data({"deviceId": data["deviceId"]})
-            self.controller.show_page(HomePage)
+            storeage.add_data({"loggedIn": True})
+            for box in self.otp_boxes:
+                box.delete(0, "end")
+            self.controller.show_page(LoadingPage)
+            async_loop.run_coroutine(self.controller.show_home_page(self.controller))
         else:
             self.toast.show(data["message"], type="error")
         self.submit_button.configure(state="normal", text="Verify OTP")
@@ -416,25 +477,224 @@ class PasswordPage(ctk.CTkFrame):
             self.toast.show("Please enter your password.", type="error")
             self.sign_in_button.configure(state="normal", text="Sign In")
             return
-        status, data = await post_data(VERIFY_PASSWORD_URL, {"email": self.email, "password": password})
+        status, data = None, None
+        try:
+            status, data = await post_data(VERIFY_PASSWORD_URL, {"email": self.email, "password": password, "deviceId": uuid})
+        except Exception as e:
+            self.toast.show("Error verifying password", type="error")
+            self.sign_in_button.configure(state="normal", text="Sign In")
+            return
         if status == 200:
             self.toast.show(data["message"], type="success")
-            storeage.add_data({"deviceId": data["deviceId"]})
-            self.controller.show_page(HomePage)
+            storeage.add_data({"loggedIn": True})
+            self.password_entry.delete(0, "end")
+            self.controller.show_page(LoadingPage)
+            async_loop.run_coroutine(self.controller.show_home_page(self.controller))
         else:
             self.toast.show(data["message"], type="error")
         self.sign_in_button.configure(state="normal", text="Sign In")
 
 class HomePage(ctk.CTkFrame):
+    user_data = None
     def __init__(self, parent, controller):
         super().__init__(parent)
+        self.controller = controller
+        self.toast = Toast(self)
 
-        ctk.CTkLabel(self, text="Home Page", font=ctk.CTkFont(size=20)).pack(pady=20)
+    def create_page(self):
+        top_controls = ctk.CTkFrame(self, fg_color="transparent")
+        top_controls.pack(fill="x", pady=10, padx=20)
 
-        ctk.CTkButton(self, text="Logout", command=lambda: controller.show_page(LoginPage)).pack(pady=10)
+        top_controls.grid_columnconfigure((0, 1), weight=1)
+
+        # Interactive toggle theme (styled as a switch)
+        self.theme_var = ctk.BooleanVar(value=ctk.get_appearance_mode() != "dark")
+        is_dark = ctk.get_appearance_mode() == "Dark"
+
+        self.theme_toggle = ctk.CTkSwitch(
+            top_controls,
+            text="Dark Mode",
+            variable=self.theme_var,
+            command=self.toggle_theme,
+            switch_height=24,
+            switch_width=48,
+            fg_color="#444444" if is_dark else "#cccccc",
+            progress_color="#03a9f4" if is_dark else "#3b82f6",  # teal in dark, blue in light
+            button_color="#eeeeee",
+            button_hover_color="#dddddd"
+            
+        )
+        self.theme_toggle.grid(row=0, column=2, sticky="e", padx=5)
+
+        logout_icon = ctk.CTkImage(Image.open("assets/logout.png"), size=(24, 24))
+        self.logout_button = ctk.CTkButton(
+            top_controls, text="", image=logout_icon,
+            width=36, height=36, fg_color="transparent", hover_color="#333333",
+            command=self.async_logout
+        )
+        self.logout_button.grid(row=0, column=3, sticky="e", padx=5)
+
+        # --- Greeting Text ---
+        greeting_frame = ctk.CTkFrame(self, fg_color="transparent")
+        greeting_frame.pack(padx=20, anchor="w")
+
+        ctk.CTkLabel(greeting_frame, text="👋 Welcome back!", font=ctk.CTkFont(size=24, weight="bold")).pack(anchor="w")
+        ctk.CTkLabel(greeting_frame, text="Here's your dashboard — manage your settings and sessions.", font=ctk.CTkFont(size=14)).pack(anchor="w", pady=(0, 10))
+
+        # --- Profile Card ---
+        profile_frame = ctk.CTkFrame(self, corner_radius=10)
+        profile_frame.pack(padx=20, pady=10, fill="x")
+
+        profile_frame.grid_columnconfigure(0, weight=0)
+        profile_frame.grid_columnconfigure(1, weight=1)
+        profile_frame.grid_columnconfigure(2, weight=0)
+        profile_frame.grid_columnconfigure(3, weight=0)
+
+        # Rounded Profile Image
+        profile_image_raw = Image.open(self.user_data['profileImage']).resize((60, 60))
+        mask = Image.new("L", profile_image_raw.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, 60, 60), fill=255)
+        profile_image_raw.putalpha(mask)
+        profile_image = ctk.CTkImage(profile_image_raw, size=(60, 60))
+
+        ctk.CTkLabel(profile_frame, image=profile_image, text="").grid(row=0, column=0, padx=15, pady=15)
+
+        name_email_frame = ctk.CTkFrame(profile_frame, fg_color="transparent")
+        name_email_frame.grid(row=0, column=1, sticky="w")
+
+        ctk.CTkLabel(name_email_frame, text=self.user_data['name'], font=ctk.CTkFont(size=18, weight="bold")).pack(anchor="w")
+        ctk.CTkLabel(name_email_frame, text=self.user_data['email'], font=ctk.CTkFont(size=14)).pack(anchor="w")
+
+        # Stop + Manage Buttons
+        button_group = ctk.CTkFrame(profile_frame, fg_color="transparent")
+        button_group.grid(row=0, column=2, padx=10)
+
+        # self.enable_disable_button = ctk.CTkButton(button_group, text="Disable Control" if self.user_data['linked'] else "Enable Control"
+        #                                            , fg_color="#e74c3c" if self.user_data['linked'] else "#00aa55",
+        #                                             hover_color="#c0392b" if self.user_data['linked'] else "#008844",
+        #                                             command=lambda: async_loop.run_coroutine(self.enable_disable_action()), font=ctk.CTkFont(size=12, weight="bold"))
+        # self.enable_disable_button.pack(side="left", padx=(0, 5))
+
+        self.manage_button = ctk.CTkButton(button_group, text="Manage Account", fg_color="#444", hover_color="#555", command=self.manage_action, font=ctk.CTkFont(size=12, weight="bold"))
+        self.manage_button.pack(side="left")
+
+        # --- Section Title (Select Items) ---
+        ctk.CTkLabel(self, text="Ascess Permissions", font=ctk.CTkFont(size=16, weight="bold")).pack(anchor="w", padx=20, pady=(20, 0))
+
+        # --- Scrollable Selection List ---
+        scroll_frame = ctk.CTkScrollableFrame(self, height=180)
+        scroll_frame.pack(padx=20, pady=(5, 5), fill="both", expand=True)
+
+        self.selection_vars = []
+        for permission in self.user_data['permissions']:  # Simulate many items
+            var = ctk.StringVar(value="off") if permission['value'] == False else ctk.StringVar(value="on")
+            chk = ctk.CTkCheckBox(scroll_frame, text=permission['name'], variable=var, onvalue="on",
+                                   offvalue="off", fg_color="#03a9f4", hover_color="#29b6f6", checkbox_width=18, checkbox_height=18, border_width=1)
+            chk.pack(anchor="w", padx=20, pady=2)
+            self.selection_vars.append((permission['name'], var))
+
+        # --- Save Button: Right aligned below scroll frame ---
+        save_btn_container = ctk.CTkFrame(self, fg_color="transparent")
+        save_btn_container.pack(fill="x", padx=20)
+
+        self.save_button = ctk.CTkButton(save_btn_container, text="Save Changes", fg_color="#00aa55", hover_color="#008844", command=lambda: async_loop.run_coroutine(self.save_selection()), font=ctk.CTkFont(size=12, weight="bold"))
+        self.save_button.pack(anchor="e", pady=10)
+
+    def toggle_theme(self):
+        new_theme = "dark" if self.theme_var.get() else "light"
+        ctk.set_appearance_mode(new_theme)
+
+    async def enable_disable_action(self):
+        self.enable_disable_button.configure(state="disabled", text="Enabling..." if not self.user_data['linked'] else "Disabling...")
+        status, data = await post_data(ENABLE_DISABLE_URL, {"deviceId": uuid, "linked": not self.user_data['linked']})
+        if status == 200:
+            print("started toast")
+            self.toast.show(data["message"], type="success")
+            print("ended toast")
+            self.user_data['linked'] = not self.user_data["linked"]
+        else:
+            self.toast.show(data["message"], type="error")
+        self.enable_disable_button.configure(state="normal", text="Enable Control" if not self.user_data['linked'] else "Disable Control"
+                                             ,fg_color="#e74c3c" if self.user_data['linked'] else "#00aa55",
+                                            hover_color="#c0392b" if self.user_data['linked'] else "#008844")
+
+    def clear_page(self):
+        for widget in self.winfo_children():
+            widget.destroy()
+
+    def manage_action(self):
+        webbrowser.open(MANAGE_ACCOUNT_BASE)
+
+    async def save_selection(self):
+        self.save_button.configure(state="disabled", text="Saving...")
+        selected = {self.user_data['desc_to_key'][item]: True if var.get() == "on" else False for item, var in self.selection_vars}
+        status, data = await post_data(SAVE_PERMISSIONS_URL, {"deviceId": uuid, "permissions": selected})
+        if status == 200:
+            self.toast.show(data["message"], type="success")
+        else:
+            self.toast.show(data["message"], type="error")
+        self.save_button.configure(state="normal", text="Save Changes")
+
+    def async_logout(self):
+        async_loop.run_coroutine(self.logout())
+
+    async def logout(self):
+        self.logout_button.configure(state="disabled")
+        status, data = await post_data(LOGOUT_APP_URL, {"deviceId": uuid})
+        if status == 200:
+            self.toast.show(data["message"], type="success")
+            storeage.add_data({"loggedIn": False})
+            self.controller.show_page(LoginPage)
+        else:
+            self.toast.show(data["message"], type="error")
+        self.logout_button.configure(state="normal")
+
+def download_image_to_assets(url, path="assets"):
+    filename = url.split("/")[-1]
+
+    os.makedirs(path, exist_ok=True)
+
+    filepath = os.path.join(path, filename)
+
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+
+        with open(filepath, "wb") as f:
+            f.write(response.content)
+        print(f"Image saved as: {filepath}")
+        return filepath
+
+    except Exception as e:
+        print(f"Failed to download image: {e}")
+
+async def show_home_page(app):
+    try:
+        status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
+        print(data)
+        profile_image = download_image_to_assets(data["data"]["profileImage"])
+        if not profile_image:
+            profile_image = "assets/profile.webp"
+        user_data = {
+            "name": data["data"]["name"],
+            "email": data["data"]["email"],
+            "profileImage": profile_image,
+            "permissions": [{"name": v, "value": k} for k, v in zip(data["data"]["permissions"].values(), data["data"]["permission_descriptions"].values())],
+            "desc_to_key": {v: k for k, v in data["data"]["permission_descriptions"].items()},
+        }
+        if status == 200:
+            HomePage.user_data = user_data
+            app.pages[HomePage].clear_page()
+            app.pages[HomePage].create_page()
+            app.show_page(HomePage)
+            return
+        app.pages[LoadingPage].toast.show(data["message"], type="error")
+    except Exception as e:
+        app.pages[LoadingPage].toast.show("Error fetching user data", type="error")
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
-    app = App()
+    app = App(is_logged_in=stored_data["loggedIn"] if stored_data else False, show_home_page=show_home_page)
     app.mainloop()

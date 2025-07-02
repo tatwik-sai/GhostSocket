@@ -21,7 +21,6 @@ export const SocketProvider = ({children}) => {
                 withCredentials: true,
                 query: {userId: user.id, type: "user"}
             })
-            console.log("hi2")
             socket.current.on("connect", () => {
                 console.log("Connected to socket server");
             })

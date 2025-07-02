@@ -378,7 +378,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$b
 function DownloadButton() {
     const handleDownload = ()=>{
         const link = document.createElement('a');
-        link.href = '/root_page/ghost-setup.exe';
+        link.href = '/application/ghost-setup.exe';
         link.download = 'ghost-setup.exe';
         document.body.appendChild(link);
         link.click();

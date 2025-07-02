@@ -11,14 +11,14 @@ node_modules
 !.yarn/versions
 
 # testing
-/fronted/coverage
+/frontend/coverage
 
 # next.js
-/fronted/.next/
-/fronted/out/
+/frontend/.next/
+/frontend/out/
 
 # production
-/fronted/build
+/frontend/build
 
 # misc
 .DS_Store

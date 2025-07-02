@@ -187,7 +187,7 @@ async def on_ice(data):
     await pc.addIceCandidate(data)
 
 async def main():
-    await sio.connect("http://localhost:3000?type=sender")
+    await sio.connect(f"http://localhost:3000?type=sender&deviceId={device_id}")
     await sio.wait()
 
 asyncio.run(main())

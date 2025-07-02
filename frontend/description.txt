@@ -23,69 +23,115 @@ Ghost User logs into the website and initially there are 2 sections visible to h
 
 
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+🧭 Recommended Sections for the Website Homepage
+1. 🚀 Hero Section
+Clear title + short pitch + CTA (Call to Action)
 
- Hacker Theme Color Palette
-🌑 Base (Backgrounds)
-#0f0f0f – Jet Black
-
-#121212 – Deep Dark Gray (main background)
-
-#1e1e1e – Dark Panel/Sidebar
-
-💚 Accent (Primary hacker color)
-#00ff41 – Classic Matrix Green (bright neon)
-
-#0aff9d – Cyan green (modern hacker neon)
-
-#39ff14 – Vivid Lime Green (for glows)
-
-🧊 Secondary Accent
-#00c3ff – Electric Blue
-
-#ff3c70 – Glitchy Pink
-
-#ffb400 – Gold (for active elements)
-
-🔠 Text
-#e0e0e0 – Light gray (main readable text)
-
-#a3f7bf – For code/logs/terminal outputs
-
-#8f8f8f – Muted gray for placeholders
-
-✅ Bonus Styling Tips
-🖥️ Fonts
-Use monospace fonts like:
-
-'Fira Code', 'Source Code Pro', or 'JetBrains Mono'
-
-Gives terminal, coder feel
-
-💡 Effects
-Use glow effects:
-
-css
+plaintext
 Copy
 Edit
-text-shadow: 0 0 5px #00ff41, 0 0 10px #00ff41;
-Add typing animation for command-line text
+Title: Control Your Devices From Anywhere 🌐
+Subtitle: Ghost Socket lets you securely view, manage, and control your Windows PCs — remotely, in real time.
+[🔐 Login]  [📥 Download App]
+Include an image, mockup, or animation showing a user controlling a PC from the browser.
 
-Subtle glitches or flickers on hover (CSS or Framer Motion)
+2. 🔧 How It Works (3-step onboarding)
+Break it down:
 
-🧩 UI Patterns
-Terminal-style panels
+mathematica
+Copy
+Edit
+① Sign in securely with Clerk  
+② Install the Ghost Socket app on your PC  
+③ Remotely access your authorized devices
+Use icons or a horizontal stepper UI.
 
-Toggle dark terminal vs GUI view
+3. 📦 Features Section
+Show off your capabilities with modern cards or a grid:
 
-Command palette at top (like VS Code or Spotlight)
+✅ View screen in real time
 
-🎨 Live Palette Example
-Role	Color	Hex Code
-Background	Jet Black	#0f0f0f
-Primary Text	Soft Gray	#e0e0e0
-Accent Glow	Hacker Green	#00ff41
-Highlight	Electric Blue	#00c3ff
-Error/Alert	Glitch Pink	#ff3c70
+🎥 Access webcam & mic
+
+⌨️ Execute CMD instructions
+
+🖱️ Send mouse/keyboard input
+
+🔐 Encrypted communication
+
+🧰 Fine-grained permission control
+
+Use cool icons + descriptions.
+
+4. 🖥️ Your Devices Panel (for logged-in users)
+Only if the user is logged in:
+
+List all connected PCs
+
+Show status (online, inactive)
+
+Actions:
+
+[🖥 View]
+
+[⚙️ Manage Permissions]
+
+[❌ Remove]
+
+5. 📦 Install Ghost Socket
+Link to download the desktop app
+
+QR code / button: Download for Windows
+
+Link to docs: How to install and connect your device
+
+6. 🙋‍♂️ About or FAQ
+Answer top questions like:
+
+Is this secure?
+
+How is access managed?
+
+Can I control multiple PCs?
+
+7. 🔐 Auth Buttons (Clerk-powered)
+[🔓 Login with Email / OTP]
+
+[👤 Sign up / Manage Account] (optional: link opens Clerk UI)
+
+8. 🌙 Footer
+Include:
+
+© 2025 Ghost Socket
+
+[GitHub] [Privacy Policy] [Terms]
+
+Socials / Contact
+
+🎨 Bonus: UI/UX Tips
+Stick to a dark theme with neon/glow effects (matches the "ghost" hacker vibe)
+
+Use animated SVGs or Lottie for interaction visuals
+
+If possible, show a live demo panel (mocked interaction with a fake device)
+
+✅ Tech Stack Suggestion
+If you're using Next.js + Tailwind (as you mentioned before), you can:
+
+Use @clerk/nextjs for auth
+
+Use Socket.IO to show real-time device connection status
+
+Add loading skeletons for devices
+
+👉 Want me to generate the actual landing page HTML/React/Next.js code for this layout?
+Just say:
+
+"Yes, generate Ghost Socket homepage in Next.js"
+or
+"Make me the layout in Tailwind + HTML"
+or
+"Show me the devices panel React component"
 
 
 

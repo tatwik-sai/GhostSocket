@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 export default function DownloadButton() {
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = '/root_page/ghost-setup.exe';
+    link.href = '/application/ghost-setup.exe';
     link.download = 'ghost-setup.exe';
     document.body.appendChild(link);
     link.click();
