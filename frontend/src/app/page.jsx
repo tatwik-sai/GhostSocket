@@ -62,7 +62,7 @@ export default function Home() {
     <>
     <div className="flex flex-col">
       <Navbar />
-
+      
       <div className="relative overflow-hidden mt-16 flex flex-col items-center min-h-screen">
         <div className="flex flex-col-reverse md:flex-row items-center justify-center gap-10 mt-30 md:gap-20 h-full w-full px-4 py-12 md:py-20">
           

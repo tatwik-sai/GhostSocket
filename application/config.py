@@ -1,4 +1,3 @@
-
 API_BASE = "http://localhost:8747/app"
 CHECK_USER_URL = f"{API_BASE}/check-user"
 VERIFY_OTP_URL = f"{API_BASE}/verify-otp"

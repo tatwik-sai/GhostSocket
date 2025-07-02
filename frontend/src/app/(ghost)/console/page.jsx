@@ -30,6 +30,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { useRouter } from 'next/navigation';
 import DevicesList from '@/components/DevicesList'
 import { useDevicesStore } from '@/store/slices/devices-slice'
+// import { auth } from '@clerk/nextjs/dist/types/server'
 
 export default function DeviceSlider() {
   const { user } = useUser();
@@ -37,29 +38,24 @@ export default function DeviceSlider() {
   const { myDevices, otherDevices, setMyDevices, setOtherDevices } = useDevicesStore();
   const [searchMy, setSearchMy] = useState("");
   const [searchOther, setSearchOther] = useState("");
-  const dummyMyDevices = [
-    { id: 1, name: "Ghost_PC_01", status: "online", os: "Windows 11", connected: false },
-    { id: 2, name: "Ghost_Laptop", status: "offline", os: "Ubuntu 22.04", connected: true },
-    { id: 3, name: "Ghost_PC_01", status: "online", os: "Windows 11", connected: true  },
-    { id: 4, name: "Ghost_Laptop", status: "offline", os: "Ubuntu 22.04", connected: true  },
-    { id: 5, name: "Ghost_PC_01", status: "online", os: "Windows 11", connected: true  },
-    { id: 6, name: "Ghost_Laptop", status: "offline", os: "Ubuntu 22.04", connected: false },
-    { id: 7, name: "Ghost_PC_01", status: "online", os: "Windows 11", connected: true  },
-    { id: 8, name: "Ghost_Laptop", status: "offline", os: "Ubuntu 22.04", connected: false },
-  ];
-  const dummyOtherDevices = [
-    { id: 1, name: "DevTest PC", status: "offline", owner: "Alice", connected: true },
-    { id: 2, name: "RemoteServer_02", status: "offline", owner: "Bob", connected: true },
-    { id: 3, name: "DevTest_PC", status: "online", owner: "Alice", connected: false },
-    { id: 4, name: "RemoteServer_02", status: "online", owner: "Bob", connected: true },
-    { id: 5, name: "RemoteServer_02", status: "offline", owner: "Bob", connected: true },
-    { id: 6, name: "DevTest_PC", status: "online", owner: "Alice", connected: false },
-    { id: 7, name: "RemoteServer_02", status: "online", owner: "Bob", connected: true },
-  ];
+  let clerk_token, authHeaders;
 
   useEffect(() => {
-    setMyDevices(dummyMyDevices);
-    setOtherDevices(dummyOtherDevices);
+    async function fetchData() {
+      clerk_token = await getToken();
+      authHeaders = {
+        headers: {
+          Authorization: `Bearer ${clerk_token}`,
+        },
+      };
+      const myDevicesData = await apiClient.get("/devices/my", authHeaders);
+      const otherDevicesData = await apiClient.get("/devices/other", authHeaders);
+      console.log("My Devices:", myDevicesData.data);
+      console.log("Other Devices:", otherDevicesData.data);
+      setMyDevices(myDevicesData.data);
+      setOtherDevices(otherDevicesData.data);
+    }
+    fetchData()
   }, [setMyDevices, setOtherDevices]);
 
   const handleClick = async () => {
@@ -68,7 +64,7 @@ export default function DeviceSlider() {
 
     try {
       console.log(clerk_token)
-      const response = await axios.get("http://localhost:8747/protected",
+      const response = await apiClient.get("/protected",
         {
           headers: {
             Authorization: `Bearer ${clerk_token}`,
@@ -96,6 +92,7 @@ export default function DeviceSlider() {
 
   return (
   <div className="h-[100vh] md:p-4 space-y-15">
+    <button onClick={handleClick}>Hello</button>
     <div className="flex-col flex-1">
       <div className="flex justify-between mt-4 mb-3 pl-4">
       <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>

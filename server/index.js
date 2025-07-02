@@ -8,6 +8,7 @@ import clerkRoutes from "./routes/ClerkRoutes.js";
 import appRoutes from "./routes/AppRoutes.js";
 import setupSocket from "./socket.js";
 import { clerkClient } from "./utils/ClerkClient.js";
+import deviceRoutes from "./routes/DeviceRoutes.js";
 
 
 dotenv.config()
@@ -27,11 +28,12 @@ app.use(express.json());
 
 app.use("/clerk", clerkRoutes)
 app.use("/app", appRoutes)
+app.use("/devices", deviceRoutes)
 
 app.get("/protected", ClerkExpressRequireAuth(), async (req, res) => {
     const { userId } = req.auth;
     const user = await clerkClient.users.getUser(userId);
-    console.log(user)
+    console.log(user._raw.object)
     res.json({
       message: "You are authenticated",
       userId: userId,

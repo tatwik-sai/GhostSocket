@@ -8,8 +8,8 @@ from aiortc import RTCPeerConnection, RTCSessionDescription, VideoStreamTrack, A
 import sounddevice as sd
 from av.audio.frame import AudioFrame
 import fractions
-
-print(sd.query_devices())
+from config import API_BASE
+# print(sd.query_devices())
 
 
 class SystemAudioStreamTrack(AudioStreamTrack):
@@ -57,7 +57,6 @@ class WebcamStreamTrack(VideoStreamTrack):
         video_frame.pts = pts
         video_frame.time_base = time_base
         return video_frame
-
 
 class ScreenStreamTrack(VideoStreamTrack):
     def __init__(self):
@@ -108,8 +107,8 @@ count = 0
 async def connect():
     print("✅ Connected to signaling server")
 
-@sio.on("start")
-async def on_start():
+@sio.on("initiate-webrtc")
+async def initiate_webrtc(data):
     global pc
     pc = RTCPeerConnection()
     print("▶️ Received start signal from viewer")
@@ -136,7 +135,9 @@ async def on_start():
 
     await sio.emit("offer", {
         "sdp": pc.localDescription.sdp,
-        "type": pc.localDescription.type
+        "type": pc.localDescription.type,
+        "userId": data["userId"],
+
     })
     print(f"📨 Sent offer")
 
@@ -170,11 +171,11 @@ async def on_resume_screen():
     await sio.emit("screen_resumed")
     print("✅ Screen share resumed")
 
-@sio.on("stop")
-async def on_stop():
+@sio.on("stop-webrtc")
+async def stop_webrtc(data):
     print("🔴 Received stop signal from viewer")
     await pc.close()
-    await sio.emit("stopped-sending")
+    await sio.emit("stopped-webrtc", data)
 
 @sio.on("answer")
 async def on_answer(data):
@@ -186,8 +187,9 @@ async def on_ice(data):
     print("🌍 Got ICE candidate")
     await pc.addIceCandidate(data)
 
-async def main():
-    await sio.connect(f"http://localhost:3000?type=sender&deviceId={device_id}")
+async def connect_socket(uuid):
+    await sio.connect(API_BASE, auth={"type": "device", "deviceId": uuid})
     await sio.wait()
 
-asyncio.run(main())
+async def disconnect_socket():
+    await sio.disconnect()

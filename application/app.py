@@ -8,9 +8,22 @@ import aiohttp
 import threading
 from PIL import Image, ImageDraw, ImageTk
 from config import *
-from web import uuid
 import os
 import requests
+import subprocess 
+from sender import connect_socket, disconnect_socket
+
+def get_system_uuid():
+    try:
+        result = subprocess.check_output("wmic csproduct get UUID", shell=True)
+        uuid = result.decode().split("\n")[1].strip()
+        return uuid
+    except Exception as e:
+        print(f"Error fetching system UUID: {e}")
+        return None
+
+uuid = get_system_uuid()
+print(f"System UUID: {uuid}")
 
 async def post_data(url, payload):
     async with aiohttp.ClientSession() as session:
@@ -502,6 +515,8 @@ class HomePage(ctk.CTkFrame):
         self.toast = Toast(self)
 
     def create_page(self):
+        async_loop.run_coroutine(connect_socket(uuid))
+        print("Connected to socket server")
         top_controls = ctk.CTkFrame(self, fg_color="transparent")
         top_controls.pack(fill="x", pady=10, padx=20)
 
@@ -663,7 +678,6 @@ def download_image_to_assets(url, path="assets"):
 
         with open(filepath, "wb") as f:
             f.write(response.content)
-        print(f"Image saved as: {filepath}")
         return filepath
 
     except Exception as e:
@@ -672,7 +686,6 @@ def download_image_to_assets(url, path="assets"):
 async def show_home_page(app):
     try:
         status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
-        print(data)
         profile_image = download_image_to_assets(data["data"]["profileImage"])
         if not profile_image:
             profile_image = "assets/profile.webp"
@@ -696,5 +709,8 @@ async def show_home_page(app):
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
+    if stored_data["loggedIn"]:
+        async_loop.run_coroutine(connect_socket(uuid))
+        print("Connected to socket server - 1")
     app = App(is_logged_in=stored_data["loggedIn"] if stored_data else False, show_home_page=show_home_page)
     app.mainloop()

@@ -15,6 +15,10 @@ io.on("connection", (socket) => {
   socket.handshake.query.type === "sender" ? senderSocket = socket : viewerSocket = socket;
   console.log("🔌 Connected:", socket.id);
 
+  socket.on("disconnect", () => {
+    console.log("🔌 Disconnected:", socket.id);
+  });
+
   socket.on("viewer", () => {
     viewerSocket = socket;
     console.log("👀 Viewer connected:", socket.id);
@@ -40,7 +44,7 @@ io.on("connection", (socket) => {
       viewerSocket.emit("stopped-sending");
     }
   });
-
+//
   socket.on("stop_screen", () => {
     if (senderSocket) {
       console.log("🔴 Viewer requested screen stop");

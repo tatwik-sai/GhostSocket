@@ -39,6 +39,10 @@ const userDeviceLinksSchema = new mongoose.Schema({
         type: String,
         default: "user",
     },
+    active: {
+        type: Boolean,
+        default: false,
+    },
     permissions: {
         type: permissionsSchema,
         default: () => ({ canControl: false, canView: false }),
