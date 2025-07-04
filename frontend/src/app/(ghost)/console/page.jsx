@@ -1,36 +1,11 @@
 "use client"
 import React, { useEffect } from 'react'
 import { useAuth, UserButton, useUser } from '@clerk/nextjs'
-import { Button } from '@/components/ui/button'
 import { apiClient } from '@/lib/apiClient'
-import axios from 'axios'
-import Viewer from '@/components/Viewer'
 import { useState } from 'react'
 import { IoSearch } from "react-icons/io5";
-import { MdDelete } from "react-icons/md";
-import Link from 'next/link'
-import { FaWindows } from "react-icons/fa";
-import { MdModeEdit } from "react-icons/md";
-import { FiMoreVertical } from "react-icons/fi";
-import { CiGlobe } from "react-icons/ci";
-import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { useRouter } from 'next/navigation';
 import DevicesList from '@/components/DevicesList'
-import { useDevicesStore } from '@/store/slices/devices-slice'
-// import { auth } from '@clerk/nextjs/dist/types/server'
+import { useDevicesStore } from '@/store/slices/DevicesSlice'
 
 export default function DeviceSlider() {
   const { user } = useUser();
@@ -50,8 +25,6 @@ export default function DeviceSlider() {
       };
       const myDevicesData = await apiClient.get("/devices/my", authHeaders);
       const otherDevicesData = await apiClient.get("/devices/other", authHeaders);
-      console.log("My Devices:", myDevicesData.data);
-      console.log("Other Devices:", otherDevicesData.data);
       setMyDevices(myDevicesData.data);
       setOtherDevices(otherDevicesData.data);
     }
@@ -63,7 +36,6 @@ export default function DeviceSlider() {
     const clerk_token = await getToken();
 
     try {
-      console.log(clerk_token)
       const response = await apiClient.get("/protected",
         {
           headers: {
@@ -92,7 +64,7 @@ export default function DeviceSlider() {
 
   return (
   <div className="h-[100vh] md:p-4 space-y-15">
-    <button onClick={handleClick}>Hello</button>
+    {/* <button onClick={handleClick}>Hello</button> */}
     <div className="flex-col flex-1">
       <div className="flex justify-between mt-4 mb-3 pl-4">
       <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>

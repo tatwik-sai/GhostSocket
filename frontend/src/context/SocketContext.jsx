@@ -42,7 +42,7 @@
 //     )
 // }
 "use client";
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "@clerk/nextjs";
 import { HOST } from "@/utils/constants";
@@ -55,14 +55,19 @@ export const useSocket = () => {
 
 export const SocketProvider = ({ children }) => {
   const socket = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
   const { getToken } = useAuth();
 
   useEffect(() => {
     const connectSocket = async () => {
       try {
         const token = await getToken();
-        if (!token) return console.warn("No token found");
+        if (!token) {
+          console.warn("No token found");
+          return;
+        }
 
+        console.log("Connecting socket with token...");
         socket.current = io(HOST, {
           withCredentials: true,
           auth: {
@@ -73,10 +78,22 @@ export const SocketProvider = ({ children }) => {
 
         socket.current.on("connect", () => {
           console.log("Connected to socket");
+          setIsConnected(true);
+        });
+
+        socket.current.on("disconnect", () => {
+          console.log("Disconnected from socket");
+          setIsConnected(false);
+        });
+
+        socket.current.on("connect_error", (error) => {
+          console.error("Socket connection error:", error);
+          setIsConnected(false);
         });
 
       } catch (err) {
         console.error("Failed to connect socket:", err);
+        setIsConnected(false);
       }
     };
 
@@ -85,12 +102,13 @@ export const SocketProvider = ({ children }) => {
     return () => {
       if (socket.current) {
         socket.current.disconnect();
+        setIsConnected(false);
       }
     };
-  }, [getToken]);
+  }, []);
 
   return (
-    <SocketContext.Provider value={socket}>
+    <SocketContext.Provider value={{socket, isConnected}}>
       {children}
     </SocketContext.Provider>
   );

@@ -6,8 +6,32 @@
           "moduleId": "[project]/.next-internal/server/app/(ghost)/console/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
+        "app/(ghost)/device/[deviceId]/device-profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/device-profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/files/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/files/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
         "app/(ghost)/device/[deviceId]/page": {
           "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/resource-monitor/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/screen-share/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/screen-share/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/webcam-feed/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
         "app/_not-found/page": {
@@ -17,7 +41,13 @@
       },
       "layer": {
         "app/(ghost)/console/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/device-profile/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/files/page": "action-browser",
         "app/(ghost)/device/[deviceId]/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/screen-share/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/terminal/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": "action-browser",
         "app/_not-found/page": "action-browser"
       }
     },
@@ -27,8 +57,32 @@
           "moduleId": "[project]/.next-internal/server/app/(ghost)/console/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
+        "app/(ghost)/device/[deviceId]/device-profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/device-profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/files/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/files/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
         "app/(ghost)/device/[deviceId]/page": {
           "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/resource-monitor/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/screen-share/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/screen-share/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/webcam-feed/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
         "app/_not-found/page": {
@@ -38,7 +92,13 @@
       },
       "layer": {
         "app/(ghost)/console/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/device-profile/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/files/page": "action-browser",
         "app/(ghost)/device/[deviceId]/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/screen-share/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/terminal/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": "action-browser",
         "app/_not-found/page": "action-browser"
       }
     },
@@ -48,8 +108,32 @@
           "moduleId": "[project]/.next-internal/server/app/(ghost)/console/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
+        "app/(ghost)/device/[deviceId]/device-profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/device-profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/files/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/files/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
         "app/(ghost)/device/[deviceId]/page": {
           "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/resource-monitor/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/screen-share/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/screen-share/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/webcam-feed/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
         "app/_not-found/page": {
@@ -59,7 +143,13 @@
       },
       "layer": {
         "app/(ghost)/console/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/device-profile/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/files/page": "action-browser",
         "app/(ghost)/device/[deviceId]/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/screen-share/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/terminal/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": "action-browser",
         "app/_not-found/page": "action-browser"
       }
     },
@@ -69,8 +159,32 @@
           "moduleId": "[project]/.next-internal/server/app/(ghost)/console/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
+        "app/(ghost)/device/[deviceId]/device-profile/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/device-profile/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/files/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/files/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
         "app/(ghost)/device/[deviceId]/page": {
           "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/resource-monitor/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/screen-share/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/screen-share/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/terminal/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/terminal/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false
+        },
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": {
+          "moduleId": "[project]/.next-internal/server/app/(ghost)/device/[deviceId]/webcam-feed/page/actions.js { ACTIONS_MODULE0 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/keyless-actions.js [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/node_modules/@clerk/nextjs/dist/esm/app-router/server-actions.js [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false
         },
         "app/_not-found/page": {
@@ -80,7 +194,13 @@
       },
       "layer": {
         "app/(ghost)/console/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/device-profile/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/files/page": "action-browser",
         "app/(ghost)/device/[deviceId]/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/resource-monitor/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/screen-share/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/terminal/page": "action-browser",
+        "app/(ghost)/device/[deviceId]/webcam-feed/page": "action-browser",
         "app/_not-found/page": "action-browser"
       }
     }

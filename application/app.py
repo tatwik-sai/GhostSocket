@@ -13,16 +13,17 @@ import requests
 import subprocess 
 from sender import connect_socket, disconnect_socket
 
-def get_system_uuid():
+def get_uuid():
     try:
-        result = subprocess.check_output("wmic csproduct get UUID", shell=True)
-        uuid = result.decode().split("\n")[1].strip()
-        return uuid
+        result = subprocess.check_output(
+            ['powershell', '-Command', '(Get-CimInstance -Class Win32_ComputerSystemProduct).UUID'],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        return result
     except Exception as e:
-        print(f"Error fetching system UUID: {e}")
-        return None
+        return f"Error: {e}"
 
-uuid = get_system_uuid()
+uuid = get_uuid()
 print(f"System UUID: {uuid}")
 
 async def post_data(url, payload):
@@ -709,7 +710,7 @@ async def show_home_page(app):
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
-    if stored_data["loggedIn"]:
+    if stored_data and stored_data["loggedIn"]:
         async_loop.run_coroutine(connect_socket(uuid))
         print("Connected to socket server - 1")
     app = App(is_logged_in=stored_data["loggedIn"] if stored_data else False, show_home_page=show_home_page)

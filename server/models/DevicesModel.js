@@ -3,12 +3,15 @@ import mongoose from "mongoose";
 const deviceDataSchema = new mongoose.Schema({
     os: {
         type: String,
+        default: "unknown",
     },
     ip: {
         type: String,
+        default: "unknown",
     },
     location: {
         type: String,
+        default: "unknown",
     },
 }, { _id: false, timestamps: true });
 

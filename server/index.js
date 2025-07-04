@@ -23,10 +23,11 @@ app.use(cors({
     credentials: true
 }))
 
+app.use("/clerk", clerkRoutes)  // This expects raw json not parsed json
+
 app.use(cookieParser());
 app.use(express.json());
 
-app.use("/clerk", clerkRoutes)
 app.use("/app", appRoutes)
 app.use("/devices", deviceRoutes)
 

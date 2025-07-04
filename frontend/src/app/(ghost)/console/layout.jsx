@@ -27,7 +27,6 @@ export default function ConsoleLayout({ children }) {
   const pathname = usePathname();
   const {isLoaded, user} = useUser();
   return (
-    <SocketProvider>
         <div className="flex w-[100vw] h-[100vh]">
             <div className="flex flex-col w-[250px] md:w-[300px] bg-dark-3">
                 <div className="flex items-center gap-[1px] pr-10 pl-3 pt-5 mb-10">
@@ -82,6 +81,5 @@ export default function ConsoleLayout({ children }) {
                   {children}
             </div>
         </div>
-    </SocketProvider>
-  );
+    );
 }

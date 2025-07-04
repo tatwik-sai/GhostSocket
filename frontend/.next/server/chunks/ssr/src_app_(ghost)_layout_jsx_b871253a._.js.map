@@ -2,5 +2,5 @@
   "version": 3,
   "sources": [],
   "sections": [
-    {"offset": {"line": 7, "column": 0}, "map": {"version":3,"sources":["file:///D:/Projects/ghost_socket/frontend/src/app/%28ghost%29/layout.jsx"],"sourcesContent":["\r\nexport default function ConsoleLayout({ children }) {\r\n  return (\r\n    <SocketProvider>\r\n        <div>\r\n            Console Layout\r\n            {children}\r\n        </div>\r\n    </SocketProvider>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;AACe,SAAS,cAAc,EAAE,QAAQ,EAAE;IAChD,qBACE,8OAAC;kBACG,cAAA,8OAAC;;gBAAI;gBAEA;;;;;;;;;;;;AAIb","debugId":null}}]
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}}]
 }

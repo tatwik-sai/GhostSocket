@@ -8,13 +8,18 @@ import { FiMoreVertical } from "react-icons/fi";
 import { CiGlobe } from "react-icons/ci";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSocket } from '@/context/SocketContext';
+import { Input } from "@/components/ui/input"
+import { useDevicesStore } from '@/store/slices/DevicesSlice';
+import { toast } from 'sonner';
+import { apiClient } from '@/lib/apiClient';
 
 
 const DevicesList = ({type, devices}) => {
-  console.log("Filtered Devices:", devices);
   const scrollRef = useRef(null);
   const router = useRouter();
   const socket = useSocket()
+  const nameInputRef = useRef(null);
+  const {editingId, setEditingId, setDeviceName} = useDevicesStore()
   const statusColors = {
     online: "bg-blue-500",
     offline: "bg-gray-500",
@@ -29,11 +34,31 @@ const DevicesList = ({type, devices}) => {
         }
       };
 
+      const handleKeyDown = (e) => {
+        if (editingId && e.key === "Escape") setEditingId(null);
+      };
+
+      
+
       container.addEventListener("wheel", handleWheel);  
+      window.addEventListener("keydown", handleKeyDown);
       return () => {
         container.removeEventListener("wheel", handleWheel);
+        window.removeEventListener("keydown", handleKeyDown)
       }
-    }, []);
+    }, [editingId]);
+
+  const saveEditedName = (userDeviceLinkId) => {
+        const newName = nameInputRef.current.value;
+        if (newName.trim() !== "") {
+          apiClient.put(`/devices/${userDeviceLinkId}/name`, { name: newName })
+          setDeviceName(userDeviceLinkId, newName, type);
+          setEditingId(null);
+        } else {
+          toast("Name cannot be empty", {
+            variant: "destructive"});
+        }
+      }
 
   const scroll = (direction) => {
     const scrollAmount = 370;
@@ -45,8 +70,8 @@ const DevicesList = ({type, devices}) => {
     }
   };
 
-  const handleCardClick = (deviceId) => {
-    router.push(`/device/${deviceId}`);
+  const handleCardClick = (deviceId, event) => {
+    router.push(`/device/${deviceId}/device-profile`);
   };
 
   const handleConnect = (deviceId) => {
@@ -70,28 +95,43 @@ const DevicesList = ({type, devices}) => {
       <div className="w-full rounded-md overflow-x-auto p-2 hide-scroll-bar" ref={scrollRef}>
         <div className="flex w-max space-x-4 p-2" style={{ scrollBehavior: "smooth" }}>
           {devices.length !== 0 && devices.map((device) => (
-            <div key={device._id} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105  active:scale-100 transition-all duration-200" onClick={() => handleCardClick(device._id)}>
+            <div key={device._id} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105  active:scale-100 transition-all duration-200" onClick={(e) => handleCardClick(device.deviceId, e)}>
               <div className="flex justify-between items-center gap-25">
                 <div className="flex gap-2 items-center">
                     {console.log("Device OS:", device.os)}
                   {device.os?.toLowerCase().includes("ubuntu") ?
                     <FaUbuntu className="w-6 h-6" /> : <FaWindows className="w-6 h-6" />}
+                  {editingId === device._id ? 
+                  (<input ref={nameInputRef} defaultValue={device.name} onBlur={(e) => {setEditingId(null)}}
+                  placeholder='Enter device name'
+                  className="w-full px-2 py-1 text-white bg-zinc-900 placeholder-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-dark-5"
+                   autoFocus  onKeyDown={(e) => {e.key === "Enter" && saveEditedName(device._id)}} onClick={(e) => e.stopPropagation()}/>) : ( <>
                   <p className="font-semi-bold text-lg text-ellipsis w-[150px] whitespace-nowrap overflow-hidden">{device.name}</p>
-                  <MdModeEdit className="opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-95 transition-all duration-300"  onClick={(e) => e.stopPropagation()}/>
+                  <MdModeEdit className="opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-95 transition-all duration-300"  
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingId(device._id);
+                    setTimeout(() => {
+                      nameInputRef.current?.select();
+                    }, 0);
+                    }}/>
+                  </>
+                  )}
                 </div>
                 <FiMoreVertical className="w-5 h-5 opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-90 transition-all duration-100"  onClick={(e) => e.stopPropagation()}/>
               </div>
               <div className="flex gap-1 items-center justify-start pl-8">
                 <div className={`w-2 h-2 rounded-full ${statusColors[device.status]}`} />
+                {console.log("Device Status:", device.status)}
                 <p className="text-sm text-gray-400">{device.status}</p>
               </div>
               <div className="flex flex-col pt-4 gap-0">
                 <p className="text-sm text-gray-400">{`last seen ${"2 mins ago"}`}</p>
                 <p className="text-sm text-gray-400">{`${device.os}`}</p>
-                <p className="text-sm text-gray-400">{`IP ${"192.168.10.1"}`}</p>
+                <p className="text-sm text-gray-400">{`IP ${device.ip}`}</p>
                 <div className="flex gap-1 items-center justify-start">
                   <CiGlobe className="w-4 h-4"/>
-                  <p className="text-sm text-gray-400">{"Mumbai, India"}</p>
+                  <p className="text-sm text-gray-400">{device.location}</p>
                 </div>
               </div>
               <div className="flex justify-between items-center mt-23">

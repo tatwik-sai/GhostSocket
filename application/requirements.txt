@@ -1,0 +1,12 @@
+customtkinter
+aiohttp
+Pillow
+requests
+python-socketio
+opencv-python
+numpy
+mss
+av
+aiortc
+sounddevice
+cryptography

@@ -74,6 +74,7 @@ class ScreenStreamTrack(VideoStreamTrack):
             frame = VideoFrame.from_ndarray(tiny_frame, format="bgr24")
             frame.pts = pts
             frame.time_base = time_base
+            print("⏸️ Sending paused screen frame (1x1 pixel)")
             return frame
         
         # Normal capture
@@ -103,12 +104,78 @@ class ScreenStreamTrack(VideoStreamTrack):
 sio = socketio.AsyncClient()
 pc = None
 count = 0
+
+
+async def pause_track(track_name):  
+    if not pc:
+        print("PeerConnection is not active.")
+        return
+
+    for sender in pc.getSenders():
+        if sender.track:
+            if (
+                track_name == "screen" and isinstance(sender.track, ScreenStreamTrack)
+            ):
+                print("🖥️ Pausing screen track")
+                sender.track.pause()
+                await sio.emit("screen_paused")
+                break
+
+            elif (
+                track_name == "webcam" and isinstance(sender.track, WebcamStreamTrack)
+            ):
+                print("📷 Pausing webcam track")
+                sender.track.cap.release()
+                await sio.emit("webcam_paused")
+                break
+
+            elif (
+                track_name == "audio" and isinstance(sender.track, SystemAudioStreamTrack)
+            ):
+                print("🔈 Pausing audio track")
+                sender.track.pause()
+                await sio.emit("audio_paused")
+                break
+
+
+async def resume_track(track_name):
+    if not pc:
+        print("PeerConnection is not active.")
+        return
+
+    for sender in pc.getSenders():
+        if sender.track:
+            if (
+                track_name == "screen" and isinstance(sender.track, ScreenStreamTrack)
+            ):
+                print("🖥️ Resuming screen track")
+                sender.track.resume()
+                await sio.emit("screen_resumed")
+                break
+
+            elif (
+                track_name == "webcam" and isinstance(sender.track, WebcamStreamTrack)
+            ):
+                print("📷 Resuming webcam track")
+                sender.track.cap = cv2.VideoCapture(0)
+                await sio.emit("webcam_resumed")
+                break
+
+            elif (
+                track_name == "audio" and isinstance(sender.track, SystemAudioStreamTrack)
+            ):
+                print("🔈 Resuming audio track")
+                sender.track.resume()
+                await sio.emit("audio_resumed")
+                break
+
+
 @sio.event
 async def connect():
     print("✅ Connected to signaling server")
 
 @sio.on("initiate-webrtc")
-async def initiate_webrtc(data):
+async def initiate_webrtc():
     global pc
     pc = RTCPeerConnection()
     print("▶️ Received start signal from viewer")
@@ -133,11 +200,11 @@ async def initiate_webrtc(data):
     offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
 
-    await sio.emit("offer", {
+    await sio.emit("webrtc-offer", {
+        "offer": {
         "sdp": pc.localDescription.sdp,
         "type": pc.localDescription.type,
-        "userId": data["userId"],
-
+        }
     })
     print(f"📨 Sent offer")
 
@@ -172,20 +239,36 @@ async def on_resume_screen():
     print("✅ Screen share resumed")
 
 @sio.on("stop-webrtc")
-async def stop_webrtc(data):
+async def stop_webrtc():
     print("🔴 Received stop signal from viewer")
     await pc.close()
-    await sio.emit("stopped-webrtc", data)
+    await sio.emit("stopped-webrtc")
 
-@sio.on("answer")
+@sio.on("webrtc-answer")
 async def on_answer(data):
     print("✅ Got answer")
-    await pc.setRemoteDescription(RTCSessionDescription(sdp=data["sdp"], type=data["type"]))
+    await pc.setRemoteDescription(RTCSessionDescription(sdp=data["answer"]["sdp"], type=data["answer"]["type"]))
 
-@sio.on("ice")
+@sio.on("webrtc-ice-candidate")
 async def on_ice(data):
     print("🌍 Got ICE candidate")
-    await pc.addIceCandidate(data)
+    await pc.addIceCandidate(data.get("ice"))
+
+@sio.on("from-user")
+async def from_user(data):
+    print(f"📨 Received message from user: {data['message']}")
+    if data["message"] == "pause_screen":
+        await pause_track("screen")
+    elif data["message"] == "resume_screen":
+        await resume_track("screen")
+    elif data["message"] == "pause_webcam":
+        await pause_track("webcam")
+    elif data["message"] == "resume_webcam":
+        await resume_track("webcam")
+    elif data["message"] == "pause_audio":
+        await pause_track("audio")
+    elif data["message"] == "resume_audio":
+        await resume_track("audio")
 
 async def connect_socket(uuid):
     await sio.connect(API_BASE, auth={"type": "device", "deviceId": uuid})
