@@ -138,4 +138,8 @@ or
 
 
 
+// cd command to get files folders and size
+powershell -command "Get-ChildItem | Where-Object {!$_.Attributes.ToString().Contains('Hidden')} | Select-Object Name,@{Name='Type';Expression={if ($_.PSIsContainer) {'Folder'} else {'File'}}},@{Name='Size';Expression={try {if ($_.PSIsContainer) {$s=(Get-ChildItem $_.FullName -Recurse -File -ErrorAction Stop | Measure-Object Length -Sum).Sum} else {$s=$_.Length}; if ($s -lt 1KB) {\"$s Bytes\"} elseif ($s -lt 1MB) {\"{0:N2} KB\" -f ($s/1KB)} elseif ($s -lt 1GB) {\"{0:N2} MB\" -f ($s/1MB)} else {\"{0:N2} GB\" -f ($s/1GB)}} catch {'Access Denied'}}} | Format-Table -AutoSize"
 
+// get all drives
+fsutil fsinfo drives

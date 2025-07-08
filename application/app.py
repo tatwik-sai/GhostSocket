@@ -13,6 +13,14 @@ import requests
 import subprocess 
 from sender import connect_socket, disconnect_socket
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Use current directory of app.py
+ASSETS_DIR = os.path.join(BASE_DIR, "assets")
+
+def get_asset_path(filename):
+    """Get the correct path for asset files"""
+    return os.path.join(ASSETS_DIR, filename)
+
+
 def get_uuid():
     try:
         result = subprocess.check_output(
@@ -63,10 +71,10 @@ class Toast:
 
         # Icon mapping
         icon_paths = {
-            "success": "assets/success.png",
-            "error": "assets/error.png",
-            "warning": "assets/warning.png",
-            "info": "assets/info.png"
+            "success": get_asset_path("success.png"),
+            "error": get_asset_path("error.png"), 
+            "warning": get_asset_path("warning.png"),
+            "info": get_asset_path("info.png")
         }
 
         # Load icon image
@@ -433,8 +441,10 @@ class PasswordPage(ctk.CTkFrame):
         self.password_entry.pack(side="left", padx=(0, 5))
 
         # Load eye icons
-        eye_open = Image.open("assets/eye_open.png").resize((20, 20))
-        eye_closed = Image.open("assets/eye_closed.png").resize((20, 20))
+        eye_open_path = get_asset_path("eye_open.png")
+        eye_closed_path = get_asset_path("eye_closed.png")
+        eye_open = Image.open(eye_open_path).resize((20, 20))
+        eye_closed = Image.open(eye_closed_path).resize((20, 20))
         self.eye_open_icon = ctk.CTkImage(light_image=eye_open, dark_image=eye_open)
         self.eye_closed_icon = ctk.CTkImage(light_image=eye_closed, dark_image=eye_closed)
 
@@ -542,7 +552,7 @@ class HomePage(ctk.CTkFrame):
         )
         self.theme_toggle.grid(row=0, column=2, sticky="e", padx=5)
 
-        logout_icon = ctk.CTkImage(Image.open("assets/logout.png"), size=(24, 24))
+        logout_icon = ctk.CTkImage(Image.open(get_asset_path("logout.png")), size=(24, 24))
         self.logout_button = ctk.CTkButton(
             top_controls, text="", image=logout_icon,
             width=36, height=36, fg_color="transparent", hover_color="#333333",
@@ -666,30 +676,42 @@ class HomePage(ctk.CTkFrame):
             self.toast.show(data["message"], type="error")
         self.logout_button.configure(state="normal")
 
-def download_image_to_assets(url, path="assets"):
+def download_image_to_assets(url, path=None):
+    if path is None:
+        path = ASSETS_DIR
+
     filename = url.split("/")[-1]
-
     os.makedirs(path, exist_ok=True)
-
     filepath = os.path.join(path, filename)
 
     try:
         response = requests.get(url)
         response.raise_for_status()
-
         with open(filepath, "wb") as f:
             f.write(response.content)
         return filepath
-
     except Exception as e:
         print(f"Failed to download image: {e}")
+        return None
 
 async def show_home_page(app):
     try:
+        print("📡 Fetching user data...")
         status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
+        print(f"📡 Response status: {status}")
+        print(f"📡 Response data: {data}")
+        
+        if status != 200:
+            print(f"❌ API Error: {data}")
+            app.pages[LoadingPage].toast.show(data.get("message", "Failed to fetch user data"), type="error")
+            return
+            
+        print("📡 Downloading profile image...")
         profile_image = download_image_to_assets(data["data"]["profileImage"])
         if not profile_image:
-            profile_image = "assets/profile.webp"
+            profile_image = get_asset_path("profile.webp")  # Use get_asset_path
+            
+        print("📡 Building user data...")
         user_data = {
             "name": data["data"]["name"],
             "email": data["data"]["email"],
@@ -697,15 +719,22 @@ async def show_home_page(app):
             "permissions": [{"name": v, "value": k} for k, v in zip(data["data"]["permissions"].values(), data["data"]["permission_descriptions"].values())],
             "desc_to_key": {v: k for k, v in data["data"]["permission_descriptions"].items()},
         }
-        if status == 200:
-            HomePage.user_data = user_data
-            app.pages[HomePage].clear_page()
-            app.pages[HomePage].create_page()
-            app.show_page(HomePage)
-            return
-        app.pages[LoadingPage].toast.show(data["message"], type="error")
+        
+        print("📡 Setting up home page...")
+        HomePage.user_data = user_data
+        app.pages[HomePage].clear_page()
+        app.pages[HomePage].create_page()
+        app.show_page(HomePage)
+        print("✅ Home page loaded successfully")
+        
     except Exception as e:
-        app.pages[LoadingPage].toast.show("Error fetching user data", type="error")
+        print(f"❌ Error in show_home_page: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            app.pages[LoadingPage].toast.show("Error loading home page", type="error")
+        except:
+            print("❌ Could not show error toast")
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")

@@ -1,6 +1,6 @@
 "use client"
 import { useSocket } from "@/context/SocketContext";
-import { useActiveConnectionStore } from "@/store/slices/ActiveConnectionSlice";
+import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useParams} from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -8,7 +8,7 @@ const WebCamPage = () => {
     const { deviceId } = useParams();
     const webcamVideo = useRef(null);
     const {socket, isConnected: isSocketConnected} = useSocket();
-    const {webcamStream, peerConnection} = useActiveConnectionStore();
+    const {webcamStream, peerConnection} = useStreamsAndConnectionStore();
 
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
@@ -38,9 +38,13 @@ const WebCamPage = () => {
     }, [deviceId, webcamStream, peerConnection]);
 
   return (
-    <div>
-        <div style={{ width: '50%' }}>
-            <h3>Webcam Feed</h3>
+    <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0">
+        <div className="text-white/80 text-3xl font-bold mb-2">
+            Webcam Feed
+        </div>
+        <div className="h-[1px] w-full bg-dark-4"></div>
+
+        <div className="py-2 w-[50%]">
             <video 
                 ref={webcamVideo} 
                 autoPlay 

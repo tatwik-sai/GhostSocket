@@ -61,18 +61,16 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     const connectSocket = async () => {
       try {
-        const token = await getToken();
-        if (!token) {
-          console.warn("No token found");
+        if (!getToken) {
+          console.error("getToken is not available");
           return;
         }
-
         console.log("Connecting socket with token...");
         socket.current = io(HOST, {
           withCredentials: true,
-          auth: {
-            token,
-            type: "user",
+          auth: async (cb) => {
+            const freshToken = await getToken();
+            cb({ token: freshToken, type: "user" });
           },
         });
 

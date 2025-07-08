@@ -22,8 +22,8 @@ export const navItems = [
         icon: RiTerminalBoxFill, 
     },
     {
-        name: "Screen Stream",
-        href: "/screen-share",
+        name: "Remote Controller",
+        href: "/remote-control",
         icon: RiComputerFill, 
     },
     

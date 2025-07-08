@@ -57,6 +57,7 @@ const setupSocket = (server) => {
             return;
           }
           if (device.status !== "online") {
+            console.log(1)
             socket.emit("error", {message: `Device is not online`});
             return;
           }
@@ -105,6 +106,7 @@ const setupSocket = (server) => {
               answer: data.answer
             });
           } else {
+            console.log(2)
             socket.emit("error", {message: `Device is not online`});
           }
         });
@@ -120,6 +122,7 @@ const setupSocket = (server) => {
               ice: data.ice
             });
           } else {
+            console.log(3)
             socket.emit("error", {message: `Device is not online`});
           }
         });
@@ -129,10 +132,11 @@ const setupSocket = (server) => {
           if (!isConnected) return;
           const devId = userDeviceManager.getDeviceIdByUserId(userId);
           const deviceSocketId = userDeviceManager.getDeviceSocketIdByUserId(userId);
-          console.log(`User ${userId} sent message to device ${devId}`);
+          console.log(`User ${userId} sent message to device ${devId}`, data);
           if (deviceSocketId) {
             io.to(deviceSocketId).emit("from-user", data);
           } else {
+            console.log(4)
             socket.emit("error", {message: `Device is not online`});
           }
         });

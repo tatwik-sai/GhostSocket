@@ -33,6 +33,17 @@ body {
   --color-dark-3: #101012;
   --color-dark-4: #1F1F22;
   --color-dark-5: #2b2b2b;
+
+  --terminal-bg: #1e1e1e;
+  --terminal-fg: #d4d4d4;
+  --terminal-input-bg: #3b4048;
+  --terminal-input-border: #3b4048;
+  --terminal-blue: #61afef;
+  --terminal-green: #98c379;
+  --terminal-red: #e06c75;
+  --primary-blue: #61afef;
+  --secondary-gray: #4b5263;
+  --danger-red: #e06c75;
 }
 
 .cl-socialButtonsBlockButtonText {
@@ -65,4 +76,76 @@ body {
 }
 .hide-scroll-bar::-webkit-scrollbar {
   display: none;
+}
+
+
+@import 'xterm/css/xterm.css';
+
+/* --- Custom Scrollbar Styles --- */
+
+/* Apply styles to the xterm-viewport when it's inside our custom class */
+.terminal-custom-scrollbar .xterm-viewport {
+    /* For Firefox scrollbar (less flexible) */
+    scrollbar-width: thin; /* Can be 'auto', 'thin', or 'none' */
+    scrollbar-color: #5c6370 #282c34; /* thumb color track color */
+}
+
+/* For Webkit browsers (Chrome, Safari, Edge) */
+.terminal-custom-scrollbar .xterm-viewport::-webkit-scrollbar {
+  width: 8px; /* Decrease width */
+  height: 8px; /* For horizontal scrollbar if it appears */
+  background-color: transparent; /* Make the background of the scrollbar transparent */
+}
+
+.terminal-custom-scrollbar .xterm-viewport::-webkit-scrollbar-track {
+  background: #282c34; /* Darker track color, matching your terminal background theme */
+  border-radius: 4px; /* Optional: adds a slight curve to the track */
+}
+
+.terminal-custom-scrollbar .xterm-viewport::-webkit-scrollbar-thumb {
+  background-color: #5c6370; /* **Changed thumb color** - a subtle gray that contrasts well */
+  border-radius: 4px; /* Rounded corners for the thumb */
+}
+
+.terminal-custom-scrollbar .xterm-viewport::-webkit-scrollbar-thumb:hover {
+  background-color: #6a717b; /* Slightly lighter thumb on hover */
+}
+
+/* Remove scrollbar arrows (buttons) for Webkit browsers */
+.terminal-custom-scrollbar .xterm-viewport::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) hsl(var(--background));
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground));
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--foreground)); /* Lighter on hover */
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
