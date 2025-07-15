@@ -1,14 +1,74 @@
 "use client"
+import { Button } from "@/components/ui/button";
 import { useSocket } from "@/context/SocketContext";
+import { apiClient } from "@/lib/apiClient";
+import { useRemoteControlStore } from "@/store/slices/ActiveConnection/RemoteControlSlice";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
+import { HOST } from "@/utils/constants";
+import { useAuth } from "@clerk/nextjs";
+import { FiDownload } from "react-icons/fi";
+import { IoMdClose } from "react-icons/io";
+import { FaCamera } from "react-icons/fa";
 import { useParams} from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { set } from "lodash";
+import { useKeyboardTracker, useMouseTracker } from "./controller";
+import { toast } from "sonner";
 
 const RemoteControlPage = () => {
+
     const { deviceId } = useParams();
     const screenVideo = useRef(null);
+    const canvasRef = useRef(null);
+    const [controlling, setControlling] = useState(false);
+    const { getToken } = useAuth();
+    const [selectedImage, setSelectedImage] = useState(null);
     const {socket, isConnected: isSocketConnected} = useSocket();
     const {screenStream, peerConnection} = useStreamsAndConnectionStore();
+    const {images, addImage, setImages} = useRemoteControlStore()
+    const {start: startKeyboard, stop: stopKeyboard} = useKeyboardTracker();
+    const {start: startMouse, stop: stopMouse} = useMouseTracker(); 
+
+    useEffect(() => {
+        const fetchImages = async () => {
+            try {
+                const clerk_token = await getToken();
+                const response = await apiClient.get(`/devices/${deviceId}/get-uploads?type=screen`, {
+                    headers: { Authorization: `Bearer ${clerk_token}` }
+                });
+                setImages(response.data);
+                console.log("Fetched images:", response.data);
+            } catch (err) {
+                console.error("Failed to fetch images:", err);
+            }
+        };
+        if (images.length > 0) return;
+        fetchImages();
+    }, []);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+        const fullscreenElement = document.fullscreenElement;
+        if (fullscreenElement === null) {
+            console.log(1)
+            if (controlling) {
+                console.log(2)
+                setControlling(false);
+                stopKeyboard();
+                stopMouse();
+            }
+            console.log("Exited fullscreen");
+        } else if (fullscreenElement === screenVideo.current) {
+            console.log("Entered fullscreen");
+        }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+        return () => {
+        document.removeEventListener("fullscreenchange", handleFullscreenChange);
+        };
+    }, [controlling]);
 
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
@@ -37,23 +97,168 @@ const RemoteControlPage = () => {
         });
     }, [deviceId, screenStream, peerConnection]);
 
-  return (
-    <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0">
-        <div className="text-white/80 text-3xl font-bold mb-2">
-            Remote Controller
-        </div>
-        <div className="h-[1px] w-full bg-dark-4"></div>
+    const downloadImage = async () => {
+        const response = await fetch(selectedImage, { mode: 'cors' });
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
 
-        <div className="py-2 w-[50%]">
-            <video 
-                ref={screenVideo} 
-                autoPlay 
-                playsInline 
-                controls 
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `screenshot-${Date.now()}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    };
+
+    const takeAndUploadSnapshot = () => {
+        const video = screenVideo.current;
+        const canvas = canvasRef.current;
+        if (!video || !canvas) return;
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+            toast.error("Video Stream not available", {
+            variant: "destructive"}
+            );
+            return
+        };
+
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+        if (!blob) {
+            toast.error("Failed to capture snapshot", {
+                variant: "destructive"
+            });
+            return;
+        };
+        const formData = new FormData();
+        formData.append("snapshot", blob, `snapshot-${Date.now()}.png`);
+        formData.append("deviceId", deviceId);
+        formData.append("type", "screen");
+
+        try {
+            const clerk_token = await getToken();
+            const response = await apiClient.post(`/devices/${deviceId}/uploads`, formData, {
+            headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${clerk_token}`}
+            });
+            addImage(response.data.id);
+        } catch (err) {
+            console.error("Upload failed:", err);
+        }
+        }, "image/png");
+    };
+
+    const mouseMoveHandler = (event) => {
+        const x = event.screenX;
+        const y = event.screenY;
+    }
+
+    const handleControl = () => {
+        const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+        if (!tcpDataChannel || !tcpDataChannel.readyState === "open") {
+            toast.error("Video stream is not open.", {
+                variant: "destructive"
+            });
+            return;
+        }
+        if (controlling) {
+            setControlling(false);
+            // socket.current.emit("to-device", {message: "stop_control"});
+        } else {
+            setControlling(true);
+            screenVideo.current.requestFullscreen()
+            console.log("Starting control");
+            startKeyboard();
+            startMouse();
+        }
+    }
+
+  return (
+    <div className="flex flex-col h-screen p-3 pb-0 pr-0">
+    <div className="text-white text-3xl font-bold mb-2">Remote Control</div>
+
+    <div className="flex flex-1 w-full overflow-hidden gap-2">
+        <div className="flex flex-col flex-[3] gap-4 h-full">
+        <div className="w-full px-0 py-4">
+            <div className="max-w-[960px] aspect-video rounded-xl overflow-hidden border border-neutral-700 shadow-xl">
+            <video
+                ref={screenVideo}
+                autoPlay
+                playsInline
+                controls
                 muted
-                style={{ width: "100%", background: "#000" }}
+                className="w-full h-full object-contain bg-black"
             />
+            </div>
         </div>
+        <div className="flex gap-3 px-1 pb-4">
+            <Button className="bg-blue-600 hover:bg-blue-700 hover:scale-105 active:scale-100 transition-all duration-300 font-bold" onClick={takeAndUploadSnapshot}>
+                <FaCamera />
+                SnapShot
+            </Button>
+            <Button className={`${controlling ? "bg-primary-red hover:bg-primary-red-hover" : "bg-dark-4 hover:bg-dark-5"} 
+            hover:scale-105 active:scale-100 transition-all duration-300 font-bold`} onClick={handleControl}>
+            {controlling ? "Stop Controll" : "Start Controll"}
+            </Button>
+        </div>
+        </div>
+
+        <div className="flex flex-col flex-[2] h-full bg-dar rounded-xl">
+        <h3 className="text-white text-xl font-semibold p-4 pt-3 border-b border-white/20">
+            Snapshots
+        </h3>
+        <div className="flex-1 custom-scrollbar overflow-y-auto p-6">
+            <div className="grid grid-cols-2 gap-5">
+            {images.map((image) => (
+                <img
+                key={image}
+                src={`${HOST}/uploads/${image}`}
+                alt="screenshot"
+                className="shadow-xl border-[3px] border-[#ffffff1a] rounded-xl hover:scale-110 transition-all duration-300"
+                onClick={() => setSelectedImage(`${HOST}/uploads/${image}`)}
+                />
+            ))}
+            </div>
+            {images.length === 0 && (
+            <div className="text-gray-400 text-left">
+                No snapshots available.
+            </div>
+            )}
+        </div>
+        </div>
+    </div>
+
+    <canvas ref={canvasRef} className="hidden" />
+
+    {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        {/* Background overlay with 90% opacity */}
+        <div className="absolute inset-0 bg-black opacity-90"></div>
+
+        {/* Foreground content */}
+        <div className="relative z-10 w-full h-full flex justify-center items-center p-4">
+            <div className="flex flex-col gap-5 items-center justify-center">
+            <div className="flex gap-5">
+                <div className="bg-dark-4 rounded-full p-2 hover:bg-dark-5 hover:scale-105 active:95 transition-all duration-300">
+                <FiDownload className="text-3xl" onClick={downloadImage} />
+                </div>
+                <div className="bg-dark-4 rounded-full p-2 hover:bg-dark-5 hover:scale-105 active:95 transition-all duration-300">
+                <IoMdClose className="text-3xl" onClick={() => setSelectedImage(null)} />
+                </div>
+            </div>
+            <img
+                src={selectedImage}
+                alt="Full View"
+                className="max-w-[90vw] max-h-[80vh] rounded-lg shadow-2xl"
+            />
+            </div>
+        </div>
+        </div>
+    )}
     </div>
   )
 }

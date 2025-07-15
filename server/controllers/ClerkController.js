@@ -26,6 +26,7 @@ export const onSignup = async (req, res) => {
     } else if(eventType === "user.deleted") {
         await DBUser.findByIdAndDelete(id)
     }
+      console.log('Webhook event processed:', evt)
       return res.status(201).send('New user created')
     } catch (err) {
       console.error('Error:', err)

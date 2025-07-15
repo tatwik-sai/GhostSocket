@@ -1,44 +1,24 @@
 import customtkinter as ctk
 import webbrowser
 import re
-from tkinter import simpledialog
 from storage import Storage
 import asyncio
-import aiohttp
 import threading
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageDraw
 from config import *
 import os
 import requests
 import subprocess 
 from sender import connect_socket, disconnect_socket
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Use current directory of app.py
-ASSETS_DIR = os.path.join(BASE_DIR, "assets")
-
-def get_asset_path(filename):
-    """Get the correct path for asset files"""
-    return os.path.join(ASSETS_DIR, filename)
-
-
-def get_uuid():
-    try:
-        result = subprocess.check_output(
-            ['powershell', '-Command', '(Get-CimInstance -Class Win32_ComputerSystemProduct).UUID'],
-            stderr=subprocess.DEVNULL
-        ).decode().strip()
-        return result
-    except Exception as e:
-        return f"Error: {e}"
+from async_requests import post_data, get_data
+from utils import get_uuid, get_asset_path
+from componets.toast import Toast
+from pages.loading import LoadingPage
+from controllers.system_info import get_system_info
 
 uuid = get_uuid()
-print(f"System UUID: {uuid}")
-
-async def post_data(url, payload):
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, json=payload) as response:
-            data = await response.json()
-            return [response.status, data]
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(BASE_DIR, "assets")
 
 class AsyncLoopThread:
     def __init__(self):
@@ -57,65 +37,6 @@ async_loop = AsyncLoopThread()
 storeage = Storage("ghost_socket")
 stored_data = storeage.get_data()
 
-class Toast:
-    def __init__(self, parent):
-        self.parent = parent
-        self._toast_widget = None
-
-    def show(self, message: str, duration: int = 2500, type: str = "info"):
-        if self._toast_widget and self._toast_widget.winfo_exists():
-            self._toast_widget.destroy()
-
-        # Unified background color
-        fg_color = "#2b2b2b"  # dark theme neutral
-
-        # Icon mapping
-        icon_paths = {
-            "success": get_asset_path("success.png"),
-            "error": get_asset_path("error.png"), 
-            "warning": get_asset_path("warning.png"),
-            "info": get_asset_path("info.png")
-        }
-
-        # Load icon image
-        icon_path = icon_paths.get(type, icon_paths["info"])
-        image = Image.open(icon_path).resize((20, 20), Image.Resampling.LANCZOS)
-        icon = ctk.CTkImage(light_image=image, dark_image=image, size=(20, 20))
-        # Toast frame
-        frame = ctk.CTkFrame(self.parent, fg_color=fg_color, corner_radius=12)
-        self._toast_widget = frame
-        # Icon + Label
-        icon_label = ctk.CTkLabel(frame, image=icon, text="")
-        icon_label.pack(side="left", padx=(10, 6))
-
-        msg_label = ctk.CTkLabel(
-            frame,
-            text=message,
-            font=ctk.CTkFont(size=12, weight="bold"),
-            text_color="white"
-        )
-        msg_label.pack(side="left", padx=6, pady=10)
-
-        frame.place(relx=0.5, y=-50, anchor="n")  # start off-screen
-        self._slide_in(frame, target_y=30)
-        frame.after(duration, lambda: self._slide_out(frame))
-
-    def _slide_in(self, toast, y=-50, target_y=30, step=5):
-        if y < target_y:
-            toast.place_configure(y=y)
-            toast.after(10, lambda: self._slide_in(toast, y + step, target_y))
-        else:
-            toast.place_configure(y=target_y)
-
-    def _slide_out(self, toast, y=None, step=5):
-        if y is None:
-            y = int(toast.winfo_y())
-        if y > -50:
-            toast.place_configure(y=y)
-            toast.after(10, lambda: self._slide_out(toast, y - step))
-        else:
-            toast.destroy()
-
 class App(ctk.CTk):
     def __init__(self, is_logged_in: bool = False, show_home_page=None):
         super().__init__()
@@ -124,21 +45,18 @@ class App(ctk.CTk):
         self.resizable(False, False)
         self.show_home_page = show_home_page
 
-        # Container to hold all pages
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)
 
-        # ✨ Fix: allow pages to expand inside container
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 
-        # Dictionary to store pages
         self.pages = {}
 
         for Page in (LoginPage, HomePage, OtpPage, PasswordPage, LoadingPage):
             page = Page(self.container, self)
             self.pages[Page] = page
-            page.grid(row=0, column=0, sticky="nsew")  # fills container
+            page.grid(row=0, column=0, sticky="nsew")
 
         if is_logged_in:
             self.show_page(LoadingPage)
@@ -150,59 +68,21 @@ class App(ctk.CTk):
         page = self.pages[page_class]
         page.tkraise()
 
-class LoadingPage(ctk.CTkFrame):
-    def __init__(self, parent, controller=None):
-        super().__init__(parent)
-        self.controller = controller
-        self.toast = Toast(self)
-        self.dot_labels = []
-        self.current_index = 0
-
-        # Main container
-        container = ctk.CTkFrame(self, fg_color="transparent")
-        container.pack(expand=True)
-
-        # "Loading" text
-        title = ctk.CTkLabel(container, text="Loading...", font=ctk.CTkFont(size=22, weight="bold"))
-        title.pack(pady=20)
-
-        # Dot animation container
-        dot_frame = ctk.CTkFrame(container, fg_color="transparent")
-        dot_frame.pack()
-
-        for i in range(3):
-            lbl = ctk.CTkLabel(dot_frame, text="●", font=ctk.CTkFont(size=28), text_color="#555555")
-            lbl.pack(side="left", padx=6)
-            self.dot_labels.append(lbl)
-
-        self.animate_dots()
-
-    def animate_dots(self):
-        for i, label in enumerate(self.dot_labels):
-            label.configure(text_color="#d63031" if i == self.current_index else "#555555")
-
-        self.current_index = (self.current_index + 1) % 3
-        self.after(300, self.animate_dots)
-
 class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.toast = Toast(self)
         self.controller = controller
 
-        # Centering wrapper
         wrapper = ctk.CTkFrame(self, fg_color="transparent")
         wrapper.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Title
         ctk.CTkLabel(wrapper, text="🔐 Welcome Back", font=ctk.CTkFont(size=26, weight="bold")).pack(pady=(10, 6))
         ctk.CTkLabel(wrapper, text="Login to continue", font=ctk.CTkFont(size=14), text_color="gray").pack(pady=(0, 25))
 
-        # Email Entry
         self.email_entry = ctk.CTkEntry(wrapper, placeholder_text="Email", width=300, height=40, corner_radius=10)
         self.email_entry.pack(pady=(10, 2))
 
-        # 🔔 Instruction Note
         ctk.CTkLabel(
             wrapper,
             text="Enter the email linked to your GhostSocket account.",
@@ -210,12 +90,11 @@ class LoginPage(ctk.CTkFrame):
             text_color="gray"
         ).pack(pady=(0, 15))
 
-        # Login Button
         self.login_button = ctk.CTkButton(
             wrapper,
             text="Login",
             command=self.async_handle_login,
-            fg_color="#d63031",  # Red
+            fg_color="#d63031",
             hover_color="#e17055",
             text_color="white",
             width=300,
@@ -224,10 +103,8 @@ class LoginPage(ctk.CTkFrame):
         )
         self.login_button.pack(pady=12)
 
-        # OR Divider
         ctk.CTkLabel(wrapper, text="──────── or ────────", text_color="gray").pack(pady=(10, 5))
 
-        # Signup Button
         signup_button = ctk.CTkButton(
             wrapper,
             text="Sign Up",
@@ -248,7 +125,6 @@ class LoginPage(ctk.CTkFrame):
         self.login_button.configure(state="disabled", text="Logging in...")
         email = self.email_entry.get()
 
-        # Email format check
         if not self.is_valid_email(email):
             self.toast.show("Please enter a valid email address.", type="error")
             self.login_button.configure(state="normal", text="Login")
@@ -524,6 +400,8 @@ class HomePage(ctk.CTkFrame):
         super().__init__(parent)
         self.controller = controller
         self.toast = Toast(self)
+        self.check_boxes = []
+        self.main_checkbox = None
 
     def create_page(self):
         async_loop.run_coroutine(connect_socket(uuid))
@@ -533,7 +411,6 @@ class HomePage(ctk.CTkFrame):
 
         top_controls.grid_columnconfigure((0, 1), weight=1)
 
-        # Interactive toggle theme (styled as a switch)
         self.theme_var = ctk.BooleanVar(value=ctk.get_appearance_mode() != "dark")
         is_dark = ctk.get_appearance_mode() == "Dark"
 
@@ -545,7 +422,7 @@ class HomePage(ctk.CTkFrame):
             switch_height=24,
             switch_width=48,
             fg_color="#444444" if is_dark else "#cccccc",
-            progress_color="#03a9f4" if is_dark else "#3b82f6",  # teal in dark, blue in light
+            progress_color="#03a9f4" if is_dark else "#3b82f6",
             button_color="#eeeeee",
             button_hover_color="#dddddd"
             
@@ -596,12 +473,6 @@ class HomePage(ctk.CTkFrame):
         button_group = ctk.CTkFrame(profile_frame, fg_color="transparent")
         button_group.grid(row=0, column=2, padx=10)
 
-        # self.enable_disable_button = ctk.CTkButton(button_group, text="Disable Control" if self.user_data['linked'] else "Enable Control"
-        #                                            , fg_color="#e74c3c" if self.user_data['linked'] else "#00aa55",
-        #                                             hover_color="#c0392b" if self.user_data['linked'] else "#008844",
-        #                                             command=lambda: async_loop.run_coroutine(self.enable_disable_action()), font=ctk.CTkFont(size=12, weight="bold"))
-        # self.enable_disable_button.pack(side="left", padx=(0, 5))
-
         self.manage_button = ctk.CTkButton(button_group, text="Manage Account", fg_color="#444", hover_color="#555", command=self.manage_action, font=ctk.CTkFont(size=12, weight="bold"))
         self.manage_button.pack(side="left")
 
@@ -613,19 +484,37 @@ class HomePage(ctk.CTkFrame):
         scroll_frame.pack(padx=20, pady=(5, 5), fill="both", expand=True)
 
         self.selection_vars = []
-        for permission in self.user_data['permissions']:  # Simulate many items
-            var = ctk.StringVar(value="off") if permission['value'] == False else ctk.StringVar(value="on")
-            chk = ctk.CTkCheckBox(scroll_frame, text=permission['name'], variable=var, onvalue="on",
+        for permission in self.user_data['permissions']:
+            var = ctk.StringVar(value="off") if permission['value']['allowed'] == False else ctk.StringVar(value="on")
+            chk = ctk.CTkCheckBox(scroll_frame, text=permission['value']["shortDescription"], variable=var, onvalue="on", font=ctk.CTkFont(size=12, weight="bold"),
                                    offvalue="off", fg_color="#03a9f4", hover_color="#29b6f6", checkbox_width=18, checkbox_height=18, border_width=1)
-            chk.pack(anchor="w", padx=20, pady=2)
+            chk.pack(anchor="w", padx=10, pady=0)
+            custom_label = ctk.CTkLabel(scroll_frame, text=permission["value"]["longDescription"], font=ctk.CTkFont(size=12, weight="normal"), text_color="#666565")
+            custom_label.pack(anchor="w", padx=35, pady=(0, 10))
             self.selection_vars.append((permission['name'], var))
+            self.check_boxes.append(chk)
+            if permission['name'] == "remoteControl":
+                self.main_checkbox = chk
+                self.main_checkbox.configure(command=self.handle_checkbox_all)
+            else:
+                chk.configure(command=self.handle_checkbox)
 
-        # --- Save Button: Right aligned below scroll frame ---
         save_btn_container = ctk.CTkFrame(self, fg_color="transparent")
         save_btn_container.pack(fill="x", padx=20)
 
-        self.save_button = ctk.CTkButton(save_btn_container, text="Save Changes", fg_color="#00aa55", hover_color="#008844", command=lambda: async_loop.run_coroutine(self.save_selection()), font=ctk.CTkFont(size=12, weight="bold"))
+        self.save_button = ctk.CTkButton(save_btn_container, text="Save Changes", fg_color="#1597d3", hover_color="#10a7ec", command=lambda: async_loop.run_coroutine(self.save_selection()), font=ctk.CTkFont(size=12, weight="bold"))
         self.save_button.pack(anchor="e", pady=10)
+
+    def handle_checkbox_all(self):
+        value = self.main_checkbox.get()
+        for cb in self.check_boxes:
+            cb.select() if value == "on" else cb.deselect()
+    
+    def handle_checkbox(self):
+        if self.main_checkbox.get() == "on":
+            for cb in self.check_boxes:
+                if cb.get() == "off":
+                    self.main_checkbox.deselect()
 
     def toggle_theme(self):
         new_theme = "dark" if self.theme_var.get() else "light"
@@ -654,7 +543,7 @@ class HomePage(ctk.CTkFrame):
 
     async def save_selection(self):
         self.save_button.configure(state="disabled", text="Saving...")
-        selected = {self.user_data['desc_to_key'][item]: True if var.get() == "on" else False for item, var in self.selection_vars}
+        selected = {item: True if var.get() == "on" else False for item, var in self.selection_vars}
         status, data = await post_data(SAVE_PERMISSIONS_URL, {"deviceId": uuid, "permissions": selected})
         if status == 200:
             self.toast.show(data["message"], type="success")
@@ -696,45 +585,52 @@ def download_image_to_assets(url, path=None):
 
 async def show_home_page(app):
     try:
-        print("📡 Fetching user data...")
+        print("Posting device info to server...")
+        device_info = get_system_info()
+        status, data = await post_data(UPDATE_DEVICE_INFO_URL, {"deviceInfo": device_info, "deviceId": uuid})
+        print("Fetching user data...")
         status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
-        print(f"📡 Response status: {status}")
-        print(f"📡 Response data: {data}")
-        
+        if status == 404 and data.get("type") == "deleted":
+            print("Device not found or deleted, redirecting to login page...")
+            app.pages[LoadingPage].toast.show("Device not found or deleted", type="error")
+            storeage.add_data({"loggedIn": False})
+            app.show_page(LoginPage)
+            return
+        print("User data fetched, status:", data)
+
         if status != 200:
-            print(f"❌ API Error: {data}")
+            print(f"API Error: {data}")
             app.pages[LoadingPage].toast.show(data.get("message", "Failed to fetch user data"), type="error")
             return
             
-        print("📡 Downloading profile image...")
+        print("Downloading profile image...")
         profile_image = download_image_to_assets(data["data"]["profileImage"])
         if not profile_image:
-            profile_image = get_asset_path("profile.webp")  # Use get_asset_path
+            profile_image = get_asset_path("profile.webp") 
             
-        print("📡 Building user data...")
+        print("Building user data...")
         user_data = {
             "name": data["data"]["name"],
             "email": data["data"]["email"],
             "profileImage": profile_image,
-            "permissions": [{"name": v, "value": k} for k, v in zip(data["data"]["permissions"].values(), data["data"]["permission_descriptions"].values())],
-            "desc_to_key": {v: k for k, v in data["data"]["permission_descriptions"].items()},
+            "permissions": [{ "name": str(key), "value": value } for key, value in data["data"]["permissions"].items()],
         }
         
-        print("📡 Setting up home page...")
+        print("Setting up home page...")
         HomePage.user_data = user_data
         app.pages[HomePage].clear_page()
         app.pages[HomePage].create_page()
         app.show_page(HomePage)
-        print("✅ Home page loaded successfully")
+        print("Home page loaded successfully")
         
     except Exception as e:
-        print(f"❌ Error in show_home_page: {e}")
+        print(f"Error in show_home_page: {e}")
         import traceback
         traceback.print_exc()
         try:
             app.pages[LoadingPage].toast.show("Error loading home page", type="error")
         except:
-            print("❌ Could not show error toast")
+            print("Could not show error toast")
 
 if __name__ == "__main__":
     ctk.set_appearance_mode("dark")

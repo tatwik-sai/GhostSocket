@@ -2,7 +2,7 @@
 
 import { useStreamsAndConnectionStore } from '@/store/slices/ActiveConnection/StreamsAndConnectionSlice';
 import { useTerminalStore } from '@/store/slices/ActiveConnection/TerminalSlice';
-import React, { useEffect, useRef, useCallback, useState, use } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
@@ -12,8 +12,7 @@ const ClientTerminal = () => {
   const fitAddon = useRef(null);
   const xtermInstance = useRef(null);
   const [isReady, setIsReady] = useState(false);
-  const {setXtermInstance, isExecuting, setIsExecuting, getPrompt, currentPath, systemUserName, setSystemUserName, setCurrentPath} = useTerminalStore();
-  const {tcpDataChannel} = useStreamsAndConnectionStore();
+  const {setXtermInstance, setIsExecuting, getPrompt} = useTerminalStore();
 
   const inputBuffer = useRef('');
 
@@ -46,6 +45,18 @@ const ClientTerminal = () => {
             return;
         } else {
           const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+          if (!tcpDataChannel) {
+            writeToTerminal('You are not connected to the device.\r\n');
+            writeToTerminal(getPrompt());
+            xtermInstance.current.focus();
+            return;
+          }
+          if (tcpDataChannel.readyState !== 'open') {
+            writeToTerminal('Connection to the device is not open.\r\n');
+            writeToTerminal(getPrompt());
+            xtermInstance.current.focus();
+            return;
+          }
           tcpDataChannel.send(JSON.stringify({ type: 'execute_command', command }));
           setIsExecuting(true);
         }
@@ -99,8 +110,8 @@ const ClientTerminal = () => {
           cols: Math.floor(rect.width / 9) || 80, // Estimate columns based on width
           rows: Math.floor(rect.height / 17) || 24, // Estimate rows based on height
           theme: {
-            background: '#100f0f',
-            foreground: '#d4d4d4',
+            background: '#101012',
+            foreground: '#FFFFFF',
             cursor: '#ffffff',
             selection: '#4b5263',
             black: '#282c34',
@@ -185,14 +196,13 @@ const ClientTerminal = () => {
 
   return (
     <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0">
-      <div className="text-white/80 text-3xl font-bold mb-2">
+      <div className="text-white text-3xl font-bold mb-2">
         Remote Console
       </div>
-      <div className="h-[1px] w-full bg-dark-4 mb-4"></div>
       
-      <div className=" bg-dark-3 border-[1px] border-dark-5 rounded-lg overflow-hidden relative w-full h-full">
+      <div className=" bg-[#101012]  rounded-lg overflow-hidden relative w-full h-full">
         {!isReady && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#1e1e1e] z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#171717] z-10">
             <p className="text-white/60">Initializing terminal...</p>
           </div>
         )}

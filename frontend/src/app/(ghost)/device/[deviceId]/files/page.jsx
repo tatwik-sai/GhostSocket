@@ -129,10 +129,9 @@ const FilePage = () => {
   const currentFiles = getCurrentFiles();
   return (
     <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0" ref={containerRef}>
-      <div className="text-white/80 text-3xl font-bold mb-2">
+      <div className="text-white text-3xl font-bold mb-2">
         File Manager
       </div>
-      <div className="h-[1px] w-full bg-dark-4"></div>
       <div ref={optionsRef}>
         <OptionsBar />
       </div>
@@ -149,7 +148,7 @@ const FilePage = () => {
           {currentFiles.map((item) => {
             const isSelected = selectedFiles.includes(item.name);
             const FileIcon = fileIcons[item.type] || fileIcons["default"];
-            return (<div data-file-card className={`flex max-w-80 items-center border-dark-4 ${isSelected ? "bg-blue-700/50" : "bg-dark-3"}
+            return (<div data-file-card className={`flex max-w-80 items-center border-none ${isSelected ? "bg-blue-700/50" : "bg-dark-3"}
              border-[1px] overflow-hidden rounded-2xl p-2 gap-3 active:scale-95 transition-all duration-200 ${!isSelected && "hover:bg-dark-4"}`}
               key={[...currentFilePath, item.name]} onDoubleClick={() => handleFileDoubleClick(item)}
                onClick={(e) => {handleFileClick(e, item)}}>

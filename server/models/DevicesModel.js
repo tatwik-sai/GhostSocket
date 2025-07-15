@@ -13,6 +13,26 @@ const deviceDataSchema = new mongoose.Schema({
         type: String,
         default: "unknown",
     },
+    cpu: {
+        type: String,
+        default: "unknown",
+    },
+    username: {
+        type: String,
+        default: "unknown",
+    },
+    hostname: {
+        type: String,
+        default: "unknown",
+    },
+    architecture: {
+        type: String,
+        default: "unknown",
+    },
+    role: {
+        type: String,
+        default: "unknown",
+    },
 }, { _id: false, timestamps: true });
 
   

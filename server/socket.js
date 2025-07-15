@@ -5,15 +5,15 @@ import DBDevice from "./models/DevicesModel.js";
 import UserDeviceManager from "./utils/UserDeviceManager.js";
 import DBUserDeviceLinks from "./models/UserDeviceLinksModel.js";
 dotenv.config();
+let io = null;
+const userDeviceManager = new UserDeviceManager();
 const setupSocket = (server) => {
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: "http://localhost:3000",
             credentials: true
         }
     })
-
-    const userDeviceManager = new UserDeviceManager();
 
     io.on("connection", async (socket) => {
       const {token, type, deviceId} = socket.handshake.auth;
@@ -148,6 +148,16 @@ const setupSocket = (server) => {
 
         // Update the device status to online
         await DBDevice.findByIdAndUpdate(deviceId, { status: "online" }, { new: true })
+        const userIds = await DBUserDeviceLinks.distinct('userId', {deviceId});
+        console.log("++++++++++++++++", userIds)
+        for (const userId of userIds) {
+          if (userDeviceManager.userSocketMap.has(userId)) {
+            const userSocketId = userDeviceManager.userSocketMap.get(userId);
+            console.log(`Notifying user ${userId} about device ${deviceId} connection`);
+            io.to(userSocketId).emit("device-status", {deviceId, status: "online"});
+          }
+        }
+
         
         // On Disconnect, remove the device from the map
         socket.on("disconnect", async () => {
@@ -164,6 +174,14 @@ const setupSocket = (server) => {
           await DBDevice.findByIdAndUpdate(deviceId, { inUse: false })
           // Update the device status to offline
           await DBDevice.findByIdAndUpdate(deviceId, { status: "offline" }, { new: true })
+          const userIds = await DBUserDeviceLinks.distinct('userId', {deviceId});
+          for (const userId of userIds) {
+            if (userDeviceManager.userSocketMap.has(userId)) {
+              const userSocketId = userDeviceManager.userSocketMap.get(userId);
+              console.log(`Notifying user ${userId} about device ${deviceId} connection`);
+              io.to(userSocketId).emit("device-status", {deviceId, status: "offline"});
+            }
+          }
         });
 
         // Forward the WebRTC stop response to the user
@@ -223,4 +241,4 @@ const setupSocket = (server) => {
       });
       
 }
-export default setupSocket;
+export { setupSocket, io , userDeviceManager};

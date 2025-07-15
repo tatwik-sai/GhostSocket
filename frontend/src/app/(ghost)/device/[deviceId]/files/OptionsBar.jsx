@@ -43,21 +43,21 @@ const OptionsBar = () => {
 
   return (
     <div className={`${selectedFiles.length === 0 ? "hidden": "flex items-center"} transition-opacity duration-3000
-     bg-dark-3 rounded-lg p-1 border-[1px] border-dark-4 mr-2`}>
+     bg-blue-700/50 rounded-lg p-1 mr-2`}>
         <Tooltip>
             <TooltipTrigger asChild>
                 <AiOutlineClose onClick={() => setSelectedFiles([])} 
-                className='p-1 w-6 h-6 hover:bg-gray-800 rounded-md cursor-pointer text-white/50'/>
+                className='p-1 w-6 h-6 hover:bg-blue-700/60 rounded-md cursor-pointer text-white'/>
             </TooltipTrigger>
             <TooltipContent>
                 <div className='rounded-sm bg-dark-5 p-2'>Close</div>
             </TooltipContent>
         </Tooltip>
-        <p className='text-white/50 cursor-context-menu pl-3 pr-2'>{selectedFiles.length + " selected"}</p>
+        <p className='text-white cursor-context-menu pl-3 pr-2'>{selectedFiles.length + " selected"}</p>
         <div className='flex items-center gap-2'>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <FaDownload onClick={handleDownload} className='p-1 w-6 h-6 hover:bg-gray-800 rounded-md cursor-pointer text-white/50'/>
+                    <FaDownload onClick={handleDownload} className='p-1 w-6 h-6 hover:bg-blue-700/60 rounded-md cursor-pointer text-white'/>
                 </TooltipTrigger>
                 <TooltipContent>
                     <div className='rounded-sm bg-dark-5 p-2'>Download</div>
@@ -65,7 +65,7 @@ const OptionsBar = () => {
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <RiDeleteBin6Fill onClick={handleDelete} className='p-1 w-6 h-6 hover:bg-gray-800 rounded-md cursor-pointer text-white/50'/>
+                    <RiDeleteBin6Fill onClick={handleDelete} className='p-1 w-6 h-6 hover:bg-blue-700/60  rounded-md cursor-pointer text-white'/>
                 </TooltipTrigger>
                 <TooltipContent>
                     <div className='rounded-sm bg-dark-5 p-2'>Delete</div>

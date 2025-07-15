@@ -1,5 +1,6 @@
 "use client"
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useMemo} from 'react'
+import debounce from 'lodash/debounce';
 import { navItems } from './nav_items';
 import { useParams, usePathname } from "next/navigation";
 import Link from 'next/link';
@@ -10,22 +11,81 @@ import { useFileStore } from '@/store/slices/ActiveConnection/FileSlice';
 import { useStreamsAndConnectionStore } from '@/store/slices/ActiveConnection/StreamsAndConnectionSlice';
 import { useTerminalStore } from '@/store/slices/ActiveConnection/TerminalSlice';
 import { getReadableSize } from '@/utils/utilities';
+import { useResourcesStore } from '@/store/slices/ActiveConnection/ResourcesSlice';
+import dynamic from 'next/dynamic';
+import { add, set } from 'lodash';
+import { FaWindows } from 'react-icons/fa';
+import { useAuth } from '@clerk/clerk-react';
+import { useDeviceProfileStore } from '@/store/slices/ActiveConnection/DeviceProfileSlice';
+import { apiClient } from '@/lib/apiClient';
+import { useWebCamStore } from '@/store/slices/ActiveConnection/WebCamStore';
+import { useRemoteControlStore } from '@/store/slices/ActiveConnection/RemoteControlSlice';
 
 const ControlPanelLayout = ({children}) => {
+    const statusColors = {
+    online: "bg-blue-500",
+    offline: "bg-gray-500",
+    };
     const { deviceId } = useParams();
     const pathname = usePathname();
     const {socket, isConnected: isSocketConnected} = useSocket();
     const connectBtn = useRef(null);
+    const {getToken} = useAuth();
     const [connectButtonState, setConnectButtonState, ] = useState({text: "Connect", inProcess: false})
+
+    const {deviceInfo, permissions, setDeviceInfo, setPermissions, resetDeviceProfile} = useDeviceProfileStore();
 
     const {setIsRefreshing, addFilesToPath, setDownloadProgress, 
         setNumDownloadingFiles, setDownloadFileSize, setDownloadedFileSize,
-        setIsDownloading, updateFilesToPath, setSelectedFiles} = useFileStore();
+        setIsDownloading, updateFilesToPath, setSelectedFiles, resetFileStore} = useFileStore();
 
     const {peerConnection, setAudioStream , setScreenStream, setWebcamStream, 
-        setPeerConnection, setTcpDataChannel, setUdpDataChannel} = useStreamsAndConnectionStore()
+        setPeerConnection, setTcpDataChannel, setUdpDataChannel, resetStreamsAndConnection} = useStreamsAndConnectionStore()
     
-    const {xtermInstance, setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName} = useTerminalStore();
+    const {xtermInstance, setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName, resetTerminal} = useTerminalStore();
+
+    const {setStaticCPUInfo, setDynamicCPUInfo, setStaticMemoryInfo, setDynamicMemoryInfo,
+         addToCPUChartData, addToMemoryChartData ,setProcessesList, resetResources} = useResourcesStore();
+    
+    const {resetWebCam} = useWebCamStore()
+    const {resetRemoteControl} = useRemoteControlStore();
+
+    const count = useRef(0);
+    const debouncedGetCPUInfo = useMemo(() =>
+        debounce((query) => {
+            const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+            const {resourceActive} = useResourcesStore.getState();
+            if (resourceActive && tcpDataChannel) {
+                tcpDataChannel.send(JSON.stringify({type: "get_dynamic_cpu_info"}));
+            }
+        }, 1000), [])
+    
+    const debouncedGetHandles = useMemo(() =>
+        debounce((query) => {
+            const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+            const {activeTab, resourceActive} = useResourcesStore.getState();
+            if (activeTab === 'cpu' && resourceActive && tcpDataChannel) {
+                tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));
+            }
+        }, 3000), [])
+
+    const debouncedGetProcesses = useMemo(() =>
+        debounce((query) => {
+            const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+            const {activeTab, resourceActive} = useResourcesStore.getState();
+            if (activeTab === 'process' && resourceActive && tcpDataChannel) {
+                tcpDataChannel.send(JSON.stringify({type: "get_processes"}));
+            }
+        }, 3000), [])
+    
+    const debouncedGetMemoryInfo = useMemo(() =>
+        debounce((query) => {
+            const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+            const {resourceActive} = useResourcesStore.getState();
+            if (resourceActive && tcpDataChannel) {
+                tcpDataChannel.send(JSON.stringify({type: "get_dynamic_memory_info"}));
+            }
+        }, 1000), [])
 
     const initializeWebRTC = () => {
         console.log("🔧 Initializing WebRTC connection");
@@ -116,6 +176,7 @@ const ControlPanelLayout = ({children}) => {
                     try {
                         const parsed_data = JSON.parse(e.data);
                         const {xtermInstance} = useTerminalStore.getState();
+                        const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
                         
                         if (parsed_data.type === "get_files_response") {
                             addFilesToPath(parsed_data.path, parsed_data.files);
@@ -292,6 +353,39 @@ const ControlPanelLayout = ({children}) => {
                             setSystemUserName(parsed_data.user);
                             setCurrentPath(parsed_data.path);
                         }
+                        else if (parsed_data.type === "static_cpu_info") {
+                            setStaticCPUInfo(parsed_data.cpu_info);
+                            console.log("Received static CPU info:", parsed_data.info);
+                        }
+                        else if (parsed_data.type === "dynamic_cpu_info") {
+                            const {dynamicCPUInfo} = useResourcesStore.getState();
+                            setDynamicCPUInfo({...dynamicCPUInfo, ...parsed_data.cpu_info});
+                            addToCPUChartData(parsed_data.cpu_info.utilization);
+                            console.log("Count: ", count.current);
+                            count.current++;
+                            debouncedGetCPUInfo()
+                        }
+                        else if (parsed_data.type === "threads_and_handles") {
+                            const {threads, handles} = parsed_data.data;
+                            const {dynamicCPUInfo} = useResourcesStore.getState();
+                            setDynamicCPUInfo({...dynamicCPUInfo, threads, handles});
+                            debouncedGetHandles();
+                        }
+                        else if (parsed_data.type === "static_memory_info") {
+                            setStaticMemoryInfo(parsed_data.memory_info);
+                            console.log("Received static memory info:", parsed_data.info);
+                        }
+                        else if (parsed_data.type === "dynamic_memory_info") {
+                            setDynamicMemoryInfo(parsed_data.memory_info);
+                            addToMemoryChartData(parsed_data.memory_info.utilization);
+                            debouncedGetMemoryInfo();
+                            console.log("Received dynamic memory info:", parsed_data.info);
+                        }
+                        else if (parsed_data.type === "processes") {
+                            const processes = parsed_data.processes;
+                            setProcessesList(processes);
+                            debouncedGetProcesses();
+                        }
                         else if (parsed_data.type === "error") {
                             toast.error(parsed_data.message || "An error occurred");
                             setIsDownloading(false);
@@ -437,6 +531,55 @@ const ControlPanelLayout = ({children}) => {
 
     }, [socket, isSocketConnected, deviceId, peerConnection]);
 
+    useEffect(() => {
+        if (!socket?.current || !isSocketConnected) return;
+        socket.current.on("device-status", (data) => {
+          console.log("Device online event received:", data);
+          const {updateDeviceInfo, deviceInfo} = useDeviceProfileStore.getState();
+          if (deviceInfo?.deviceId === data.deviceId) {
+            updateDeviceInfo({status: data.status});
+          }
+        });
+    
+        return () => {
+          socket.current.off("device-status");
+        }
+    }, [socket.current, isSocketConnected])
+
+    useEffect(() => {
+        async function fetchDeviceData() {
+          const clerk_token = await getToken();
+          try {
+            const response = await apiClient.get(`/devices/${deviceId}`, {
+              headers: { Authorization: `Bearer ${clerk_token}` }
+            });
+            setDeviceInfo(response.data.deviceInfo);
+            setPermissions(response.data.permissions);
+          } catch (error) {
+            console.error("Error fetching device data:", error);
+          }
+        }
+        if (deviceInfo && permissions) return;
+        fetchDeviceData();
+      }, [])
+    
+    useEffect(() => {
+        return () => {
+            resetDeviceProfile();
+            resetFileStore();
+            resetStreamsAndConnection();
+            resetTerminal();
+            resetResources();
+            resetWebCam();
+            resetRemoteControl();
+            
+            debouncedGetCPUInfo.cancel();
+            debouncedGetHandles.cancel();
+            debouncedGetProcesses.cancel();
+            debouncedGetMemoryInfo.cancel();
+        }
+    }, [])
+
     const handleConnect = () => {
         if (!socket?.current || !isSocketConnected) {
             console.error("Socket not connected");
@@ -471,38 +614,56 @@ const ControlPanelLayout = ({children}) => {
 
   return (  
     <>
-        <div className='flex'>
-            <div className="flex w-60 p-2">
-                <ul className="flex flex-col gap-3 mr-2 ml-2 flex-1">
+        <div className='flex bg-dark-3 h-[100vh]'>
+            <div className='flex flex-col justify-between items-start h-full w-60 md:w-70'>
+                <div className="flex m-4 pb-4 pl- items-center gap-2">
+                    <FaWindows className="text-4xl text-blue-500 mr-2" />
+                    <div className="flex justify-center flex-col">
+                        <h2 className="font-semibold text-xl overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.name}</h2>
+                        <div className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${statusColors[deviceInfo?.status]}`} />
+                            <p className="text-gray-500 text-sm overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.os}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex flex-col justify-between w-full  p-2 h-full">
+                    <div className='flex flex-colh-full'>
+                        <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
+                            {navItems.map((item) => {
+                                const path = `/device/${deviceId}${item.href}`
+                                return (
+                                <li key={item.name}>
+                                <Link
+                                    href={path}
+                                    className={`flex gap-2 items-center rounded-lg p-2 transition-colors ${
+                                    pathname === path
+                                        ? "bg-blue-600"
+                                        : "hover:bg-white/10"
+                                    }`}
+                                >
+                                    <item.icon size={22} className={`${pathname === path ? "invert brightness-0" : ""}`}/>
+                                    <span className="text-white text-md font-medium">{item.name}</span>
+                                </Link>
+                                </li>
+                            )})}
+                        </ul>
+                    </div>
                     <Button 
                     ref={connectBtn} 
                     onClick={handleConnect} 
-                    className="bg-dark-5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50" 
+                    className={`${connectButtonState.text === "Disconnect" ? 
+                        "bg-primary-red hover:bg-primary-red-hover": 
+                        "bg-blue-600 hover:bg-blue-700"}
+                         items-center disabled:bg-gray-400 font-semibold disabled:cursor-not-allowed disabled:opacity-50`}
                     disabled={!isSocketConnected || connectButtonState.inProcess}
-                >
-                    {connectButtonState.text}
-                </Button>
-                  {navItems.map((item) => {
-                    const path = `/device/${deviceId}/${item.href}`
-                    return (
-                    <li key={item.name}>
-                      <Link
-                        href={path}
-                        className={`flex gap-3 items-center rounded-lg p-3 transition-colors ${
-                          pathname === path
-                            ? "bg-primary-red"
-                            : "hover:bg-white/10"
-                        }`}
-                      >
-                        <item.icon size={22} className={`${pathname === path ? "invert brightness-0" : ""}`}/>
-                        <span className="text-white text-sm font-medium">{item.name}</span>
-                      </Link>
-                    </li>
-                  )})}
-                </ul>
+                    >
+                        {connectButtonState.text}
+                    </Button>
+                </div>
             </div>
+            
 
-            <div className='w-1 bg-dark-5 h-[100vh]'></div>
+            <div className='w-[1px]  bg-dark-5 h-[100vh]'></div>
 
             <div className='flex-1 bg-dark-1'>
                 {children}

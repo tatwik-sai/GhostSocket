@@ -3,9 +3,9 @@
 import { create } from "zustand";
 
 export const createTerminalSlice = (set, get) => ({
-  currentPath: null,
+  currentPath: '~',
   xtermInstance: null,
-  systemUserName: null,
+  systemUserName: "username",
   terminalExecutions: [],
   isExecuting: false,
   setIsExecuting: (isExecuting) => {
@@ -37,6 +37,15 @@ export const createTerminalSlice = (set, get) => ({
       systemUserName: name,
     }));
   },
+  resetTerminal: () => {
+    set(() => ({
+      currentPath: '~',
+      xtermInstance: null,
+      systemUserName: "username",
+      terminalExecutions: [],
+      isExecuting: false,
+    }));
+  }
 });
 
 export const useTerminalStore = create(createTerminalSlice);

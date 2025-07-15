@@ -1,93 +1,343 @@
-import { useCpuDataSimulation } from "./SystemMonitorDashBoard";
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer} from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+"use client"
+
+import React, {useEffect} from "react"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice"
+import { useResourcesStore } from "@/store/slices/ActiveConnection/ResourcesSlice"
 
 
-export const CpuMonitorSection = () => {
- const { cpuUtilization, cpuHistory, cpuInfo, processCount, threadCount, handleCount, uptime } = useCpuDataSimulation();
+const chartConfig = {
+  views: {
+    label: "CPU",
+  },
+}
 
- const chartConfig = {
-   utilization: {
-     label: "Utilization",
-     color: "hsl(210 20% 70%)", // A light gray for consistency in config
-   },
- };
+function StaticCpuCard() {
+    const {staticCPUInfo} = useResourcesStore()
+    return (
+        <Card className="py-0 bg-dark-3 border-none  w-full xl:w-1/2">
+            <CardHeader className="flex justify-between items-center border-[#ffffff1a] border-b-[1px]">
+                <div className="py-6 space-y-1">
+                    <CardTitle className="text-white">
+                        System Specs
+                    </CardTitle>
+                    <CardDescription className="text-[#a1a1a1]">
+                        A comprehensive overview of the CPU hardware configuration
+                    </CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="p-2 pr-2">
+                <div className="flex flex-col gap-6 overflow-hidden">
+                    <div className="flex gap-4">
+                        <div className="flex">
 
- const formatAxisTick = (tick) => {
-   const date = new Date(tick);
-   return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
- };
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Cores
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.cores}
+                                </span>
+                            </div>
 
- return (
-   <div className="space-y-6">
-     <h2 className="text-2xl font-bold text-gray-50 mb-4">CPU Performance</h2>
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Logical Processors
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.logicalProcessors}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
-     <Card className="bg-gray-800 rounded-xl border border-gray-700">
-       <CardHeader className="flex flex-row items-center justify-between pb-2">
-         <CardTitle className="text-xl font-semibold text-gray-50">{cpuInfo.brand}</CardTitle>
-         <div className="text-3xl font-bold text-gray-50">{cpuUtilization}%</div>
-       </CardHeader>
-       <CardContent>
-         <div className="text-gray-400 text-sm mb-2">Usage over the last minute</div>
-         <ChartContainer config={chartConfig} className="min-h-[150px] w-full">
-           <ResponsiveContainer width="100%" height={150}>
-             <BarChart data={cpuHistory} margin={{ top: 5, right: 20, left: 10, bottom: 30 }}>
-               <CartesianGrid strokeDasharray="3 3" stroke="#4a4a4a" />
-               <XAxis
-                 dataKey="date"
-                 tickFormatter={formatAxisTick}
-                 stroke="#888"
-                 style={{ fontSize: '0.7rem' }}
-                 interval="preserveStartEnd" // Ensure first and last ticks are visible
-               />
-               <YAxis domain={[0, 100]} tickFormatter={(value) => `${value}%`} stroke="#888" style={{ fontSize: '0.7rem' }} />
-               <Tooltip
-                 contentStyle={{ backgroundColor: '#333', border: 'none', borderRadius: '5px', color: '#fff' }}
-                 itemStyle={{ color: '#fff' }}
-                 formatter={(value) => [`${value.toFixed(1)}%`, 'Utilization']}
-                 labelFormatter={(value) => new Date(value).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}
-               />
-               <Bar dataKey="utilization" fill="#A1A1A1" name="Utilization" />
-             </BarChart>
-           </ResponsiveContainer>
-         </ChartContainer>
-       </CardContent>
-     </Card>
+                    <div className="flex gap-4">
+                        <div className="flex">
 
-     {/* Detailed CPU Info (remains unchanged) */}
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-       <Card className="bg-gray-800 rounded-xl border border-gray-700">
-         <CardHeader>
-           <CardTitle className="text-xl font-semibold text-gray-50">Live Metrics</CardTitle>
-         </CardHeader>
-         <CardContent className="space-y-2 text-gray-300">
-           <p><span className="text-gray-400">Utilization:</span> <span className="font-bold">{cpuUtilization}%</span></p>
-           <p><span className="text-gray-400">Speed:</span> <span className="font-bold">{(cpuInfo.speed).toFixed(2)} GHz</span></p>
-           <p><span className="text-gray-400">Processes:</span> <span className="font-bold">{processCount}</span></p>
-           <p><span className="text-gray-400">Threads:</span> <span className="font-bold">{threadCount}</span></p>
-           <p><span className="text-gray-400">Handles:</span> <span className="font-bold">{handleCount}</span></p>
-         </CardContent>
-       </Card>
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Base Speed
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.baseSpeed}
+                                </span>
+                            </div>
 
-       <Card className="bg-gray-800 rounded-xl border border-gray-700">
-         <CardHeader>
-           <CardTitle className="text-xl font-semibold text-gray-50">CPU Details</CardTitle>
-         </CardHeader>
-         <CardContent className="space-y-2 text-gray-300">
-           <p><span className="text-gray-400">Base Speed:</span> {(cpuInfo.baseSpeed).toFixed(2)} GHz</p>
-           <p><span className="text-gray-400">Max Speed:</span> {(cpuInfo.maxSpeed).toFixed(2)} GHz</p>
-           <p><span className="text-gray-400">Sockets:</span> {cpuInfo.sockets}</p>
-           <p><span className="text-gray-400">Physical Cores:</span> {cpuInfo.cores}</p>
-           <p><span className="text-gray-400">Logical Processors:</span> {cpuInfo.logicalProcessors}</p>
-           <p><span className="text-gray-400">Virtualization:</span> {cpuInfo.virtualization}</p>
-           <p><span className="text-gray-400">L1 Cache:</span> {cpuInfo.cache.l1} KB</p>
-           <p><span className="text-gray-400">L2 Cache:</span> {cpuInfo.cache.l2} KB</p>
-           <p><span className="text-gray-400">L3 Cache:</span> {cpuInfo.cache.l3} KB</p>
-           <p><span className="text-gray-400">Up Time:</span> {uptime}</p>
-         </CardContent>
-       </Card>
-     </div>
-   </div>
- );
-};
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Sockets
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.sockets}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 pr-4 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Virtualization
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.virtualizationEnabled}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex">
+
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    L2 Cache
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.l2Cache}
+                                </span>
+                            </div>
+
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    L3 Cache
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {staticCPUInfo.l3Cache}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function DynamicCpuCard() {
+    const {dynamicCPUInfo} = useResourcesStore()
+    return (
+        <Card className="py-0 bg-dark-3 border-none  w-full xl:w-1/2">
+            <CardHeader className="flex justify-between items-center border-[#ffffff1a] border-b-[1px]">
+                <div className="py-6 space-y-1">
+                    <CardTitle className="text-white">
+                        Realtime Metrics
+                    </CardTitle>
+                    <CardDescription className="text-[#a1a1a1]">
+                        Real-time preview of CPU usage and performance
+                    </CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="p-2 pr-2">
+                <div className="flex flex-col gap-6 overflow-hidden">
+                    <div className="flex gap-4">
+                        <div className="flex">
+
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Utilization
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.utilization}%
+                                </span>
+                            </div>
+
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Speed
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.currentSpeed}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex">
+
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Processes
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.processes}
+                                </span>
+                            </div>
+
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 pr-4 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Threads
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.threads}
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex">
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-7 py-2 text-left border-l"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Handles
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.handles}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex">
+
+                            <div
+                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
+                             px-3 py-2 text-left"
+                            >
+                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                                    Up time
+                                </span>
+                                <span className="text-lg leading-none font-bold sm:text-3xl">
+                                    {dynamicCPUInfo.upTime}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function CpuUtilizationGraph() {
+    const { staticCPUInfo, dynamicCPUInfo, cpuChartData } = useResourcesStore()
+  return (
+    <Card className="py-0 bg-dark-3 border-none ">
+      <CardHeader className="flex flex-col items-stretch border-b border-[#ffffff1a] !p-0 sm:flex-row">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
+          <CardTitle>{staticCPUInfo.brand}</CardTitle>
+          <CardDescription className="text-[#a1a1a1]">
+            Showing usage for the last few minutes
+          </CardDescription>
+        </div>
+        <div className="flex">
+            <div
+            className="border-[#ffffff1a] relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
+            >
+            <span className="text-muted-foreground text-xs text-[#a1a1a1]">
+                Speed
+            </span>
+            <span className="text-lg leading-none font-bold sm:text-3xl">
+                {dynamicCPUInfo.currentSpeed}
+            </span>
+            </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-2 sm:p-6">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[250px] w-full"
+        >
+          <BarChart
+            accessibilityLayer
+            data={cpuChartData}
+            >
+            <CartesianGrid vertical={false} stroke="#ffffff1a" opacity={0.5}/>
+            <ChartTooltip className="border-[#ffffff1a] bg-black z-100" cursor={{ fill: "#ffffff1a" , opacity: 0.3 }}
+              content={
+                <ChartTooltipContent
+                  className="w-[150px]"
+                  nameKey="views"
+                  labelFormatter={(value) => {
+                    return "Usage"
+                  }}
+                />
+              }
+            />
+            <Bar 
+                dataKey={"usage"}
+                fill={`#2b7fff`}
+            />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
+}
+
+
+export function CpuLayout() {
+    const {setActiveTab} = useResourcesStore()
+    useEffect(() => {
+        const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
+        setActiveTab("cpu")
+        if (!tcpDataChannel) return;
+        tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));
+    }, [setActiveTab])
+    return (
+        <div className="flex flex-col gap-4 h-full">
+            <CpuUtilizationGraph />
+            <div className="flex flex-col xl:flex-row gap-4 flex-1 xl:flex-none">
+                <DynamicCpuCard />
+                <StaticCpuCard />
+            </div>
+        </div>
+            
+    )
+}

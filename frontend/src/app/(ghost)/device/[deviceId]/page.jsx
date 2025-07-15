@@ -1,222 +1,374 @@
-"use client"
-import React, { useEffect, useRef, useState } from 'react'
-import { useParams } from 'next/navigation';
-import { useSocket } from '@/context/SocketContext';
-import react from 'react';
-import { Button } from '@/components/ui/button';
-import { connect } from 'socket.io-client';
-import { toast } from "sonner"
+// "use client";
+// import { useEffect, useRef } from "react";
+// export function useKeyboardTracker() {
+//   const isListening = useRef(false);
+//   const modifiers = useRef(new Set());
+//   const lastPrintableKey = useRef(null);
 
-const Device = () => {
-    const {deviceId} = useParams();
-    const {socket, isConnected} = useSocket();
-    const pcRef = useRef(null);
-    const screenVideo = useRef(null);
-    const webcamVideo = useRef(null);
-    const connectBtn = useRef(null);
-    const [connectButtonState, setConnectButtonState] = useState({text: "Connect", inProcess: false})
+//   const send = (event) => {
+//     console.log("SEND:", event.keys);
+//   };
 
-    const initializeWebRTC = () => {
-        console.log("🔧 Initializing WebRTC connection");
-        
-        // Close existing connection if it exists
-        if (pcRef.current) {
-            pcRef.current.close();
-        }
-        
-        // Create new RTCPeerConnection
-        pcRef.current = new RTCPeerConnection({
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' }
-            ]
-        });
+//   const getCurrentKeys = () => {
+//     const keys = [...modifiers.current];
+//     if (lastPrintableKey.current) keys.push(lastPrintableKey.current);
+//     return keys;
+//   };
 
-        // Set up track handler
-        pcRef.current.ontrack = (event) => {
-            console.log("📺 Received track from device", event);
-            if (event.track.kind === "video") {
-                const stream = new MediaStream([event.track]);
-                
-                if (!screenVideo.current?.srcObject) {
-                    console.log("Setting screen video");
-                    screenVideo.current.srcObject = stream;
-                    screenVideo.current.play().catch(e => console.log("Screen play error:", e));
-                } else if (!webcamVideo.current?.srcObject) {
-                    console.log("Setting webcam video");
-                    webcamVideo.current.srcObject = stream;
-                    webcamVideo.current.play().catch(e => console.log("Webcam play error:", e));
-                }
-            }
-        };
+//   const handleKeyDown = (e) => {
+//     e.preventDefault();
+//     e.stopPropagation();
 
-        // Set up connection state handler
-        pcRef.current.onconnectionstatechange = () => {
-            console.log("🔗 Connection State:", pcRef.current.connectionState);
-            if (pcRef.current.connectionState === "connected") {
-                console.log("WebRTC fully connected");
-                setConnectButtonState({inProcess: false, text: "Disconnect"});
-            } else if (pcRef.current.connectionState === "disconnected" || pcRef.current.connectionState === "failed") {
-                console.log("WebRTC disconnected or failed");
-                setConnectButtonState({inProcess: false, text: "Connect"});
-                // Clear video sources
-                if (screenVideo.current) screenVideo.current.srcObject = null;
-                if (webcamVideo.current) webcamVideo.current.srcObject = null;
-            }
-        };
+//     const key = e.key;
+//     const isModifier = ["Shift", "Control", "Alt", "Meta"].includes(key);
+//     let changed = false;
 
-        // Set up ICE connection state handler
-        pcRef.current.oniceconnectionstatechange = () => {
-            console.log("🧊 ICE Connection State:", pcRef.current.iceConnectionState);
-        };
-    };
+//     if (isModifier && !modifiers.current.has(key)) {
+//       modifiers.current.add(key);
+//       changed = true;
+//     } else if (!isModifier && (key.length === 1 || key === " ")) {
+//       if (lastPrintableKey.current !== key) {
+//         lastPrintableKey.current = key;
+//         changed = true;
+//       }
+//     }
 
-    useEffect(() => {
-        if (!socket?.current || !isConnected) return;
+//     if (changed) {
+//       send({ type: "keyboard", keys: getCurrentKeys() });
+//     }
+//   };
 
-        console.log("🚀 Setting up socket listeners");
+//   const handleKeyUp = (e) => {
+//     e.preventDefault();
+//     e.stopPropagation();
 
-        const handleWebRTCOffer = async (data) => {
-            console.log("📩 Received WebRTC offer from device", data);
-            try {
-                // Make sure we have a fresh WebRTC connection
-                if (!pcRef.current || pcRef.current.connectionState === "closed") {
-                    initializeWebRTC();
-                }
-                
-                await pcRef.current.setRemoteDescription(data.offer);
-                const answer = await pcRef.current.createAnswer();
-                await pcRef.current.setLocalDescription(answer);
-                
-                socket.current.emit("webrtc-answer", {
-                    deviceId,
-                    answer: pcRef.current.localDescription,
-                });
-                console.log("📤 Sent WebRTC answer to device", data.deviceId);
-            } catch (error) {
-                console.error("❌ Error handling WebRTC offer:", error);
-                // Reset connection on error
-                initializeWebRTC();
-            }
-        };
+//     const key = e.key;
+//     const isModifier = ["Shift", "Control", "Alt", "Meta"].includes(key);
+//     let changed = false;
 
-        const handleICECandidate = async (data) => {
-            console.log("🌍 Received ICE candidate from device", data);
-            try {
-                if (pcRef.current && data.ice) {
-                    await pcRef.current.addIceCandidate(new RTCIceCandidate(data.ice));
-                    console.log("✅ Added ICE candidate successfully");
-                }
-            } catch (error) {
-                console.error("❌ Failed to add ICE candidate:", error);
-            }
-        };
+//     if (isModifier && modifiers.current.has(key)) {
+//       modifiers.current.delete(key);
+//       changed = true;
+//     } else if (!isModifier && lastPrintableKey.current === key) {
+//       lastPrintableKey.current = null;
+//       changed = true;
+//     }
 
+//     if (changed) {
+//       send({ type: "keyboard", keys: getCurrentKeys() });
+//     }
+//   };
 
-        socket.current.on("webrtc-offer", handleWebRTCOffer);
-        socket.current.on("webrtc-ice-candidate", handleICECandidate);
-        socket.current.on("error", (data) => {
-          toast.error(data.message || "An error occurred");
-          setConnectButtonState({inProcess: false, text: (pcRef.current?.connectionState === "connected") ? "Disconnect"  : "Connect"});
-        });
+//   const handleBlur = () => {
+//     modifiers.current.clear();
+//     lastPrintableKey.current = null;
+//     send({ type: "keyboard", keys: [] });
+//   };
 
-        initializeWebRTC();
+//   const start = () => {
+//     if (isListening.current) return;
+//     isListening.current = true;
 
-        return () => {
-            if (socket.current) {
-                socket.current.off("webrtc-offer", handleWebRTCOffer);
-                socket.current.off("webrtc-ice-candidate", handleICECandidate);
-            }
-            if (pcRef.current) {
-                pcRef.current.close();
-            }
-        };
+//     window.addEventListener("keydown", handleKeyDown, true);
+//     window.addEventListener("keyup", handleKeyUp, true);
+//     window.addEventListener("blur", handleBlur);
+//   };
 
-    }, [socket, isConnected, deviceId]);
+//   const stop = () => {
+//     if (!isListening.current) return;
+//     isListening.current = false;
 
-    const handleConnect = () => {
-        if (!socket?.current || !isConnected) {
-            console.error("Socket not connected");
-            return;
-        }
+//     window.removeEventListener("keydown", handleKeyDown, true);
+//     window.removeEventListener("keyup", handleKeyUp, true);
+//     window.removeEventListener("blur", handleBlur);
+//   };
 
-        if (connectButtonState.text === "Disconnect") {
-            console.log("🔌 Disconnecting from stream");
-            socket.current.emit("stop-webrtc");
-            setConnectButtonState({inProcess: true, text: "Disconnecting..."});
-            
-            if (screenVideo.current) screenVideo.current.srcObject = null;
-            if (webcamVideo.current) webcamVideo.current.srcObject = null;
-            
-            if (pcRef.current) {
-                pcRef.current.close();
-                pcRef.current = null;
-            }
-            
-            setTimeout(() => {
-                setConnectButtonState({inProcess: false, text: "Connect"});
-            }, 1000);
-            
-        } else {
-            console.log("🚀 Requesting stream start for device:", deviceId);
-            
-            initializeWebRTC();
-            
-            socket.current.emit("initiate-webrtc", {
-                deviceId,
-            });
-            setConnectButtonState({inProcess: true, text: "Connecting..."});
-        }
-    };
+//   useEffect(() => {
+//     return () => stop(); // Clean up on unmount
+//   }, []);
+
+//   return { start, stop };
+// }
+
+// export function useMouseTracker() {
+//   const isListening = useRef(false);
+
+//   const send = (event) => {
+//     console.log("SEND:", event);
+//   };
+
+//   const handleMouseMove = (e) => {
+//     send({
+//       type: "mouse",
+//       event: "move",
+//       x: e.clientX,
+//       y: e.clientY,
+//     });
+//   };
+
+//   const handleMouseDown = (e) => {
+//     e.preventDefault();
+//     send({
+//       type: "mouse",
+//       event: "down",
+//       button: e.button,
+//       x: e.clientX,
+//       y: e.clientY,
+//     });
+//   };
+
+//   const handleMouseUp = (e) => {
+//     e.preventDefault();
+//     send({
+//       type: "mouse",
+//       event: "up",
+//       button: e.button,
+//       x: e.clientX,
+//       y: e.clientY,
+//     });
+//   };
+
+//   const handleWheel = (e) => {
+//     e.preventDefault();
+//     send({
+//       type: "mouse",
+//       event: "wheel",
+//       deltaX: e.deltaX,
+//       deltaY: e.deltaY,
+//     });
+//   };
 
 
+//   const start = () => {
+//     if (isListening.current) return;
+//     isListening.current = true;
 
-    return (
-      <div>
-        <div className="mb-4">
-            <span>Device ID: {deviceId}</span>
-            <span className={`ml-4 ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
-                {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
-            </span>
-        </div>
-        
-        <h1>Remote Screen Viewer</h1>
-        
-        <div style={{ display: 'flex', gap: '20px' }}>
-            <div style={{ width: '50%' }}>
-                <h3>Screen Share</h3>
-                <video 
-                    ref={screenVideo} 
-                    autoPlay 
-                    playsInline 
-                    controls 
-                    muted
-                    style={{ width: "100%", background: "#000" }}
-                />
-            </div>
-            <div style={{ width: '50%' }}>
-                <h3>Webcam</h3>
-                <video 
-                    ref={webcamVideo} 
-                    autoPlay 
-                    playsInline 
-                    controls 
-                    muted
-                    style={{ width: "100%", background: "#000" }}
-                />
-            </div>
-        </div>
+//     const opts = { passive: false };
 
-        <br />
-        <Button 
-            ref={connectBtn} 
-            onClick={handleConnect} 
-            className="bg-dark-5 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50" 
-            disabled={!isConnected || connectButtonState.inProcess}
-        >
-            {connectButtonState.text}
-        </Button>
-      </div>
-    );
-};
+//     document.addEventListener("mousemove", handleMouseMove, opts);
+//     document.addEventListener("mousedown", handleMouseDown, opts);
+//     document.addEventListener("mouseup", handleMouseUp, opts);
+//     document.addEventListener("wheel", handleWheel, opts);
+//   };
 
-export default Device;
+//   const stop = () => {
+//     if (!isListening.current) return;
+//     isListening.current = false;
+
+//     document.removeEventListener("mousemove", handleMouseMove);
+//     document.removeEventListener("mousedown", handleMouseDown);
+//     document.removeEventListener("mouseup", handleMouseUp);
+//     document.removeEventListener("wheel", handleWheel);
+//     document.removeEventListener("contextmenu", handleContextMenu);
+//   };
+
+//   useEffect(() => {
+//     return () => stop();
+//   }, []);
+
+//   return { start, stop };
+// }
+
+
+
+
+// export default function Page() {
+//     const { start, stop } = useKeyboardTracker();
+    
+//     useEffect(() => {
+//         start();
+//         return () => stop();
+//     }, [start, stop]);
+    
+//     return (<h1>Tracking mouse...</h1>);
+
+// }
+
+
+
+
+// // function useMouseTracker() {
+// //   const [mouseState, setMouseState] = useState({
+// //     position: { x: 0, y: 0 },
+// //     buttons: [],
+// //     scroll: { deltaX: 0, deltaY: 0 },
+// //     lastEvent: null,
+// //   });
+
+// //   useEffect(() => {
+// //     const handleMouseMove = (e) => {
+// //       setMouseState((prev) => ({
+// //         ...prev,
+// //         position: { x: e.clientX, y: e.clientY },
+// //         lastEvent: "move",
+// //       }));
+// //     };
+
+// //     const handleMouseDown = (e) => {
+// //       setMouseState((prev) => ({
+// //         ...prev,
+// //         buttons: [...new Set([...prev.buttons, e.button])],
+// //         lastEvent: "down",
+// //       }));
+// //     };
+
+// //     const handleMouseUp = (e) => {
+// //       setMouseState((prev) => ({
+// //         ...prev,
+// //         buttons: prev.buttons.filter((btn) => btn !== e.button),
+// //         lastEvent: "up",
+// //       }));
+// //     };
+
+// //     const handleWheel = (e) => {
+// //       setMouseState((prev) => ({
+// //         ...prev,
+// //         scroll: { deltaX: e.deltaX, deltaY: e.deltaY },
+// //         lastEvent: "scroll",
+// //       }));
+// //     };
+
+// //     window.addEventListener("mousemove", handleMouseMove);
+// //     window.addEventListener("mousedown", handleMouseDown);
+// //     window.addEventListener("mouseup", handleMouseUp);
+// //     window.addEventListener("wheel", handleWheel);
+
+// //     return () => {
+// //       window.removeEventListener("mousemove", handleMouseMove);
+// //       window.removeEventListener("mousedown", handleMouseDown);
+// //       window.removeEventListener("mouseup", handleMouseUp);
+// //       window.removeEventListener("wheel", handleWheel);
+// //     };
+// //   }, []);
+
+// //   return mouseState;
+// // }
+
+// // export default function Mouse() {
+// //     const {position, buttons, scroll, lastEvent} = useMouseTracker();
+// //     return (
+// //         <div>
+// //             <h2>Mouse Tracker</h2>
+// //             <p>Position: {`x: ${position.x}, y: ${position.y}`}</p>
+// //             <p>Buttons: {buttons.join(", ") || "None"}</p>
+// //             <p>Scroll: {`deltaX: ${scroll.deltaX}, deltaY: ${scroll.deltaY}`}</p>
+// //             <p>Last Event: {lastEvent || "None"}</p>
+// //         </div>
+// //     )
+// // }
+
+
+// // import { useRef } from "react";
+
+// // export function useInputCapture() {
+// //   const listening = useRef(false);
+
+// //   const send = (event) => {
+// //     // Dummy send function — replace with actual WebSocket/DataChannel etc.
+// //     console.log("Sending event:", JSON.stringify(event));
+// //   };
+
+// //   const handleKeyDown = (e) => {
+// //     if (!listening.current) return;
+// //     const event = {
+// //       type: "keyboard",
+// //       action: "keydown",
+// //       keys: getPressedKeys(e),
+// //     };
+// //     send(event);
+// //   };
+
+// //   const handleKeyUp = (e) => {
+// //     if (!listening.current) return;
+// //     const event = {
+// //       type: "keyboard",
+// //       action: "keyup",
+// //       keys: getPressedKeys(e),
+// //     };
+// //     send(event);
+// //   };
+
+// //   const handleMouse = (e) => {
+// //     if (!listening.current) return;
+// //     const { type, button, clientX: x, clientY: y } = e;
+// //     const mapBtn = ["left", "middle", "right"][e.button] || "left";
+
+// //     const event = {
+// //       type: "mouse",
+// //       action: type,
+// //       x,
+// //       y,
+// //       button: mapBtn,
+// //     };
+// //     send(event);
+// //   };
+
+// //   const handleScroll = (e) => {
+// //     if (!listening.current) return;
+// //     const event = {
+// //       type: "mouse",
+// //       action: "scroll",
+// //       dx: e.deltaX,
+// //       dy: e.deltaY,
+// //     };
+// //     send(event);
+// //   };
+
+// //   const getPressedKeys = (e) => {
+// //     const keys = [];
+// //     if (e.ctrlKey) keys.push("Control");
+// //     if (e.shiftKey) keys.push("Shift");
+// //     if (e.altKey) keys.push("Alt");
+// //     if (e.metaKey) keys.push("Meta");
+// //     if (!["Control", "Shift", "Alt", "Meta"].includes(e.key)) {
+// //       keys.push(e.key.length === 1 ? e.key : e.key); // handles letters, Enter, etc.
+// //     }
+// //     return keys;
+// //   };
+
+// //   const startListening = () => {
+// //     if (listening.current) return;
+// //     listening.current = true;
+
+// //     window.addEventListener("keydown", handleKeyDown);
+// //     window.addEventListener("keyup", handleKeyUp);
+// //     window.addEventListener("mousedown", handleMouse);
+// //     window.addEventListener("mouseup", handleMouse);
+// //     window.addEventListener("click", handleMouse);
+// //     window.addEventListener("mousemove", handleMouse);
+// //     window.addEventListener("wheel", handleScroll);
+// //   };
+
+// //   const stopListening = () => {
+// //     if (!listening.current) return;
+// //     listening.current = false;
+
+// //     window.removeEventListener("keydown", handleKeyDown);
+// //     window.removeEventListener("keyup", handleKeyUp);
+// //     window.removeEventListener("mousedown", handleMouse);
+// //     window.removeEventListener("mouseup", handleMouse);
+// //     window.removeEventListener("click", handleMouse);
+// //     window.removeEventListener("mousemove", handleMouse);
+// //     window.removeEventListener("wheel", handleScroll);
+// //   };
+
+// //   return { startListening, stopListening };
+// // }
+
+
+
+export default function Page() {
+  // const { start, stop } = useKeyboardTracker();
+  // const { start: startMouse, stop: stopMouse } = useMouseTracker();
+
+  // useEffect(() => {
+  //   start();
+  //   startMouse();
+  //   return () => {
+  //     stop();
+  //     stopMouse();
+  //   };
+  // }, [start, stop, startMouse, stopMouse]);
+
+  return (<h1>Remote Control Page</h1>);
+}

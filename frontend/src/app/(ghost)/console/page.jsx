@@ -6,14 +6,28 @@ import { useState } from 'react'
 import { IoSearch } from "react-icons/io5";
 import DevicesList from '@/components/DevicesList'
 import { useDevicesStore } from '@/store/slices/DevicesSlice'
+import { useSocket } from '@/context/SocketContext'
 
-export default function DeviceSlider() {
+export default function DevicesPage() {
   const { user } = useUser();
   const { getToken } = useAuth();
-  const { myDevices, otherDevices, setMyDevices, setOtherDevices } = useDevicesStore();
+  const {socket, isConnected} = useSocket()
+  const { myDevices, otherDevices, setMyDevices, setOtherDevices, updateDeviceOnlineStatus } = useDevicesStore();
   const [searchMy, setSearchMy] = useState("");
   const [searchOther, setSearchOther] = useState("");
   let clerk_token, authHeaders;
+
+  useEffect(() => {
+    if (!socket?.current || !isConnected) return;
+    socket.current.on("device-status", (data) => {
+      console.log("Device online event received:", data);
+      updateDeviceOnlineStatus(data.deviceId, data.status === "online");
+    });
+
+    return () => {
+      socket.current.off("device-status");
+    }
+  }, [socket.current, isConnected])
 
   useEffect(() => {
     async function fetchData() {
@@ -26,6 +40,7 @@ export default function DeviceSlider() {
       const myDevicesData = await apiClient.get("/devices/my", authHeaders);
       const otherDevicesData = await apiClient.get("/devices/other", authHeaders);
       setMyDevices(myDevicesData.data);
+      console.log("My Devices:", myDevicesData.data);
       setOtherDevices(otherDevicesData.data);
     }
     fetchData()

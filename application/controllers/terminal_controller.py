@@ -20,6 +20,3 @@ def cd(path):
         return {"success": True, "path": os.getcwd()}
     except Exception as e:
         return {"success": False, "message": f"Error: {e}. Current directory: {os.getcwd()}"}
-
-print(cd("D:\\"))
-print(cd("ghost_socket"))

@@ -5,6 +5,7 @@ import DBDevice from '../models/DevicesModel.js';
 import DBUserDeviceLinks, { permissionsSchema } from '../models/UserDeviceLinksModel.js';
 import { clerkClient } from '../utils/ClerkClient.js'
 import DBUser from "../models/UserModel.js";
+import DBSessions from "../models/SessionModel.js";
 
 
 dotenv.config();
@@ -194,26 +195,30 @@ export const getUserData = async (req, res) => {
     const { deviceId } = req.body;
     const device = await DBDevice.findOne({ _id: deviceId });
     if (!device) {
-      return res.status(404).json({ message: "Device not found" });
+      return res.status(404).json({ type: "deleted" , message: "Device not found" });
     }
     const userDeviceLink = await DBUserDeviceLinks.findOne({ deviceId, role: "owner" });
     if(!userDeviceLink) {
       return res.status(400).json({ message: "Device isn't logged in" });
     }
     const user = await DBUser.findById(userDeviceLink.userId);
-    const descriptions = {};
-    for (const path in permissionsSchema.paths) {
-        const options = permissionsSchema.paths[path].options;
-        if (options.description) {
-            descriptions[path] = options.description;
-        }
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    const sortedPermissions = Object.fromEntries(Object.entries(userDeviceLink.permissions.toObject()).sort(([permission1, val1], [permission2, val2]) => {
+      if (permission1 === "remoteControl") return -10;
+      if (permission2 === "remoteControl") return 10;
+      if (val1.allowed) return -1;
+      if (val2.allowed) return 1;
+      return 0;
+    }))
+
     return res.status(200).json({ message: "User data fetched", data: {
       name: (!user.firstName && !user.lastName) ? user.email : (user.firstName || "") + " " + (user.lastName || ""),
       email: user.email,
       profileImage: user.imageUrl,
-      permissions: userDeviceLink.permissions,
-      permission_descriptions: descriptions,
+      permissions: sortedPermissions,
     } });
   } catch (err) {
     console.error('Error:', err);
@@ -232,10 +237,58 @@ export const savePermissions = async (req, res) => {
     if(!userDeviceLink) {
       return res.status(400).json({ message: "Login as owner to modify permissions" });
     }
-    console.log("Permissions to save:", userDeviceLink.permissions, permissions);
-    const new_permissions = { ...userDeviceLink.permissions?.toObject?.() || userDeviceLink.permissions || {}, ...permissions };
-    console.log("New Permissions:", new_permissions);
-    await DBUserDeviceLinks.findByIdAndUpdate(userDeviceLink._id, { permissions: new_permissions });
+    console.log("Permissions to save:", permissions);
+    
+    const currentPermissions = userDeviceLink.permissions?.toObject?.() || userDeviceLink.permissions || {};
+    
+    for (const [permission, value] of Object.entries(permissions)) {
+        currentPermissions[permission].allowed = value;
+    }
+    
+    console.log("Updated permissions:", currentPermissions);
+    
+    await DBUserDeviceLinks.findByIdAndUpdate(userDeviceLink._id, { 
+      permissions: currentPermissions 
+    });
+
+    const userLinks = await DBUserDeviceLinks.find({ deviceId, role: "user" });
+    for (const userLink of userLinks) {
+      const userPermissions = userLink.permissions?.toObject?.() || userLink.permissions || {};
+      
+      for (const [permission, value] of Object.entries(userPermissions)) {
+        userPermissions[permission].allowed = 
+          value.allowed && currentPermissions[permission].allowed;
+      }
+      
+      await DBUserDeviceLinks.findByIdAndUpdate(userLink._id, { permissions: userPermissions });
+    }
+
+    const deviceSessions = await DBSessions.find({ 
+                            deviceId, 
+                            terminated: false, 
+                            $or: [
+                              { expiry: { $gt: new Date() } },
+                              { expiry: { $eq: null } }
+                            ]
+                          });
+    console.log("Device sessions:", deviceSessions);
+    for (const session of deviceSessions) {
+      const sessionPermissions = session.permissions;
+      
+      for (let i = 0; i < sessionPermissions.length; i++) {
+        const permission = sessionPermissions[i];
+        const [key, value] = Object.entries(permission)[0];
+        
+        sessionPermissions[i] = { 
+          [key]: value && currentPermissions[key].allowed 
+        };
+      }
+      
+      await DBSessions.findByIdAndUpdate(session._id, { 
+        permissions: sessionPermissions 
+      });
+    }
+
     return res.status(200).json({ message: "Permissions saved" });
   } catch (err) {
     console.error('Error:', err);
@@ -248,6 +301,17 @@ export const enableDisable = async (req, res) => {
     const { deviceId, linked } = req.body;
     await DBDevice.findByIdAndUpdate(deviceId, {linked});
     return res.status(200).json({ message: linked ? "Enabled Control" : "Disabled Control" });
+  } catch (err) {
+    console.error('Error:', err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+export const updateDeviceInfo = async (req, res) => {
+  try {
+    const { deviceId, deviceInfo } = req.body;
+    await DBDevice.findByIdAndUpdate(deviceId, {deviceData: deviceInfo})
+    return res.status(200).json({ message: "Device info updated" });
   } catch (err) {
     console.error('Error:', err);
     return res.status(500).json({ message: "Internal server error" });

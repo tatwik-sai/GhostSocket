@@ -117,6 +117,23 @@ export const createFileSlice = (set) => ({
       selectedFiles: files,
     }));
   },
+  resetFileStore: () => {
+    set(() => ({
+      files: {
+        root: {
+          "*type": "directory",
+        }
+      },
+      currentFilePath: ["root"],
+      selectedFiles: [],
+      isDownloading: false,
+      isRefreshing: false,
+      downloadFileSize: 0,
+      downloadedFileSize: 0,
+      downloadProgress: 0,
+      numDownloadingFiles: 0,
+    }));
+  }
 });
 
 

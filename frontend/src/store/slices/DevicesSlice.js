@@ -1,6 +1,7 @@
+import { get } from "lodash";
 import { create } from "zustand";
 
-export const createDevicesSlice = (set) => ({
+export const createDevicesSlice = (set, get) => ({
   myDevices: [],
   otherDevices: [],
   editingId: null,
@@ -27,15 +28,44 @@ export const createDevicesSlice = (set) => ({
     });
   },
   addMyDevice: (device) => set((state) => ({ myDevices: [...state.myDevices, device] })),
+  getDeviceById: (deviceId, type) => {
+    const state = get(); // Get current state
+    const devices = type === 'myDevices' ? state.myDevices : state.availableDevices;
+    return devices.find(device => 
+      device._id === deviceId || 
+      device.deviceId === deviceId ||
+      device.id === deviceId
+    );
+  },
   removeMyDevice: (deviceId) => set((state) => ({
-    myDevices: state.myDevices.filter((device) => device.id !== deviceId)
+    myDevices: state.myDevices.filter((device) => device.deviceId !== deviceId)
   })),
   setMyDevices: (devices) => set({ myDevices: devices }),
   addOtherDevice: (device) => set((state) => ({ otherDevices: [...state.otherDevices, device] })),
   removeOtherDevice: (deviceId) => set((state) => ({
-    otherDevices: state.otherDevices.filter((device) => device.id !== deviceId)
+    otherDevices: state.otherDevices.filter((device) => device.deviceId !== deviceId)
   })),
   setOtherDevices: (devices) => set({ otherDevices: devices }),
+  updateDeviceOnlineStatus: (deviceId, isOnline) => set((state) => {
+    const updateStatus = (devices) => devices.map(device => 
+      device.deviceId === deviceId ? { ...device, status: isOnline ? 'online' : 'offline' } : device
+    );
+
+    return {
+      myDevices: updateStatus(state.myDevices),
+      otherDevices: updateStatus(state.otherDevices)
+    };
+  }),
+  updateDeviceInUseStatus: (deviceId, inUse) => set((state) => {
+    const updateInUseStatus = (devices) => devices.map(device => 
+      device._id === deviceId ? { ...device, inUse } : device
+    );
+
+    return {
+      myDevices: updateInUseStatus(state.myDevices),
+      otherDevices: updateInUseStatus(state.otherDevices)
+    };
+  }),
 });
 
 export const useDevicesStore = create(createDevicesSlice);

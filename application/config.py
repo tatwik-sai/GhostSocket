@@ -7,6 +7,7 @@ LOGOUT_APP_URL = f"{API_BASE}/logout-app"
 GET_USER_DATA_URL = f"{API_BASE}/get-user-data"
 SAVE_PERMISSIONS_URL = f"{API_BASE}/save-permissions"
 ENABLE_DISABLE_URL = f"{API_BASE}/enable-disable"
+UPDATE_DEVICE_INFO_URL = f"{API_BASE}/update-device-info"
 
 WEB_BASE = "http://localhost:3000"
 SIGNUP_BASE = f"{WEB_BASE}/sign-up"

@@ -8,7 +8,7 @@ const DynamicClientTerminal = dynamic(() => import('./TerminalClient'), {
   ssr: false, 
   loading: () => (
     <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0">
-      <div className="text-white/80 text-3xl font-bold mb-2">
+      <div className="text-white text-3xl font-bold mb-2">
         Remote Console
       </div>
       <div className="h-full w-full bg-dark-4 mb-4"></div>
