@@ -71,7 +71,7 @@ const userDeviceLinksSchema = new mongoose.Schema({
         type: String,
         required: false,
         unique: true,
-        default: "notSession",
+        default: null,
     },
     expiry: {
         type: Date,

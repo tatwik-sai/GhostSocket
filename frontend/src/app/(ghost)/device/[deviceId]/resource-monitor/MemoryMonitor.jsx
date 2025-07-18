@@ -314,7 +314,7 @@ function MemoryUtilizationGraph() {
             />
             <Bar 
                 dataKey={"usage"}
-                fill={`#2b7fff`}
+                fill={`#6C28D9`}
             />
           </BarChart>
         </ChartContainer>

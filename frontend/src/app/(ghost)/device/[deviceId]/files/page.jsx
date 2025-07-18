@@ -1,5 +1,5 @@
 "use client"
-import { useParams} from "next/navigation";
+import { useParams, useRouter} from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { fileIcons } from "./file-icons";
 import NavigationBar from "./NavigationBar";
@@ -11,6 +11,7 @@ import ProgressBar from "@ramonak/react-progress-bar";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useFileStore } from "@/store/slices/ActiveConnection/FileSlice";
 import { useSocket } from "@/context/SocketContext";
+import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
 
 
 function hasSubdirectories(files, path) {
@@ -34,7 +35,17 @@ const FilePage = () => {
   const {tcpDataChannel} = useStreamsAndConnectionStore()
   const {files, selectedFiles, isDownloading, downloadProgress, setIsDownloading, numDownloadingFiles, setNumDownloadingFiles,
      setIsRefreshing, setSelectedFiles, currentFilePath, setCurrentFilePath, downloadedFileSize, downloadFileSize} = useFileStore();
-  
+  const router = useRouter()
+  const {permissions} = useDeviceProfileStore();
+  useEffect(() => {
+      const {permissions} = useDeviceProfileStore.getState();
+      if (permissions !== null && !permissions[3].value.allowed) {
+          router.push(`/device/${deviceId}/device-profile`);
+          toast.error("You do not have permission to access the Files.");
+      }
+  }, [permissions])
+    
+
   useEffect(() => {
     if (socket?.current){
     socket.current.emit("to-device", {message: "pause_screen"});
@@ -148,7 +159,7 @@ const FilePage = () => {
           {currentFiles.map((item) => {
             const isSelected = selectedFiles.includes(item.name);
             const FileIcon = fileIcons[item.type] || fileIcons["default"];
-            return (<div data-file-card className={`flex max-w-80 items-center border-none ${isSelected ? "bg-blue-700/50" : "bg-dark-3"}
+            return (<div data-file-card className={`flex max-w-80 items-center border-none ${isSelected ? "bg-purple-1/50" : "bg-dark-3"}
              border-[1px] overflow-hidden rounded-2xl p-2 gap-3 active:scale-95 transition-all duration-200 ${!isSelected && "hover:bg-dark-4"}`}
               key={[...currentFilePath, item.name]} onDoubleClick={() => handleFileDoubleClick(item)}
                onClick={(e) => {handleFileClick(e, item)}}>

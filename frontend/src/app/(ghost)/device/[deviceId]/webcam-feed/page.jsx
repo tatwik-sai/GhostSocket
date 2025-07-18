@@ -2,11 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { useSocket } from "@/context/SocketContext";
 import { apiClient } from "@/lib/apiClient";
+import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useWebCamStore } from "@/store/slices/ActiveConnection/WebCamStore";
 import { HOST } from "@/utils/constants";
 import { useAuth } from "@clerk/nextjs";
-import { useParams} from "next/navigation";
+import { useParams, useRouter} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FaCamera } from "react-icons/fa";
 import { FiDownload } from "react-icons/fi";
@@ -22,6 +23,16 @@ const WebCamPage = () => {
     const {socket, isConnected: isSocketConnected} = useSocket();
     const {webcamStream, peerConnection} = useStreamsAndConnectionStore();
     const {images, addImage, setImages} = useWebCamStore()
+
+    const router = useRouter()
+    const {permissions} = useDeviceProfileStore();
+    useEffect(() => {
+        const {permissions} = useDeviceProfileStore.getState();
+        if (permissions !== null && !permissions[4].value.allowed) {
+            router.push(`/device/${deviceId}/device-profile`);
+            toast.error("You don't have access to Webcam.");
+        }
+    }, [permissions])
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -139,7 +150,7 @@ const WebCamPage = () => {
             </div>
         </div>
         <div className="flex gap-2 px-1 pb-4">
-            <Button className="bg-blue-600 hover:bg-blue-700 hover:scale-105 active:scale-100 transition-all duration-300 font-bold" onClick={takeAndUploadSnapshot}>
+            <Button className="bg-purple-1 hover:scale-105 active:scale-100 transition-all duration-300 font-bold" onClick={takeAndUploadSnapshot}>
                 <FaCamera />
                 SnapShot
             </Button>

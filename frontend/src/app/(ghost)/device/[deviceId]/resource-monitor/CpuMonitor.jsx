@@ -27,6 +27,15 @@ const chartConfig = {
 
 function StaticCpuCard() {
     const {staticCPUInfo} = useResourcesStore()
+    const {tcpDataChannel} = useStreamsAndConnectionStore()
+    useEffect(() => {
+        const {staticCPUInfo} = useResourcesStore.getState()
+        const {tcpDataChannel} = useStreamsAndConnectionStore.getState()
+        console.log(Object.entries(staticCPUInfo), "************")
+        if (Object.entries(staticCPUInfo).length === 0 && tcpDataChannel && tcpDataChannel.readyState === 'open') {
+            tcpDataChannel.send(JSON.stringify({type: "get_static_cpu_info"}));
+        }
+    }, [tcpDataChannel])
     return (
         <Card className="py-0 bg-dark-3 border-none  w-full xl:w-1/2">
             <CardHeader className="flex justify-between items-center border-[#ffffff1a] border-b-[1px]">
@@ -267,6 +276,7 @@ function DynamicCpuCard() {
 
 function CpuUtilizationGraph() {
     const { staticCPUInfo, dynamicCPUInfo, cpuChartData } = useResourcesStore()
+    
   return (
     <Card className="py-0 bg-dark-3 border-none ">
       <CardHeader className="flex flex-col items-stretch border-b border-[#ffffff1a] !p-0 sm:flex-row">
@@ -312,7 +322,7 @@ function CpuUtilizationGraph() {
             />
             <Bar 
                 dataKey={"usage"}
-                fill={`#2b7fff`}
+                fill={`#6C28D9`}
             />
           </BarChart>
         </ChartContainer>
@@ -323,13 +333,19 @@ function CpuUtilizationGraph() {
 
 
 export function CpuLayout() {
-    const {setActiveTab} = useResourcesStore()
+    const {setActiveTab} = useResourcesStore();
+    
+    useEffect(() => {
+        setActiveTab("cpu");
+    }, [setActiveTab]);
+
     useEffect(() => {
         const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
-        setActiveTab("cpu")
-        if (!tcpDataChannel) return;
-        tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));
-    }, [setActiveTab])
+        if (tcpDataChannel && tcpDataChannel.readyState === 'open') {
+            tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));
+        }
+        
+    }, []);
     return (
         <div className="flex flex-col gap-4 h-full">
             <CpuUtilizationGraph />

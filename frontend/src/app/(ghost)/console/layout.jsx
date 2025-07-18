@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton"
+import { useClerk } from "@clerk/clerk-react";
+
 
 function UserSkeleton() {
   return (
@@ -26,15 +28,37 @@ export default function ConsoleLayout({ children }) {
   const {signOut} = useAuth();
   const pathname = usePathname();
   const {isLoaded, user} = useUser();
+  const { openUserProfile } = useClerk();
+  
   return (
         <div className="flex w-[100vw] h-[100vh]">
             <div className="flex flex-col w-[250px] md:w-[280px] bg-dark-3">
-                <div className="flex items-center gap-[1px] pr-10 pl-3 pt-5 mb-10">
-                  <Image src="/logo.svg" alt="GhostSocket" width={50} height={50} />
-                  <h1 className="text-2xl font-bold text-white">GhostSocket</h1>                
+                <div className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-10">
+                  <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
+                  <h1 className="text-2xl font-bold text-white">GhostSocket</h1>                                  
                 </div>
                 {isLoaded ? (
-                <div className="flex items-center gap-3 mb-10 pr-5 pl-3 cursor-pointer">
+                <div className="flex items-center gap-3 mb-10 pr-5 pl-3 cursor-pointer" 
+                onClick={() => openUserProfile({
+                  appearance: {
+                      baseTheme: "dark",
+                      variables: {
+                          colorPrimary: "#6C28D9", // Your blue color
+                          colorBackground: "#1F1F22", // Match your bg-dark-1
+                          colorInputBackground: "#ffffff1a", // Match your bg-dark-3
+                          colorInputText: "#ffffff",
+                          colorText: "#ffffff",
+                          colorTextSecondary: "#a1a1a1", // More subtle gray
+                          colorShimmer: "#ffffff",
+                          colorAlphaShade: "rgba(255, 255, 255, 0.05)",
+                          borderRadius: "5px",
+                          fontFamily: "inherit",
+                          colorDanger: "#ef4444", // Red for delete/danger actions
+                          colorSuccess: "#10b981", // Green for success states
+                          colorWarning: "#f59e0b", // Orange for warnings
+                      }     
+                  },
+              })}>
                   <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={55} height={55} className="rounded-full object-cover"/>
                   <div className="flex flex-col">
                     <h3 className="body-bold text-lg text-white overflow-hidden text-ellipsis w-[150px] md:w-[180px] whitespace-nowrap">
@@ -53,11 +77,11 @@ export default function ConsoleLayout({ children }) {
                         href={item.href}
                         className={`flex gap-3 items-center rounded-lg p-2 transition-colors ${
                           pathname === item.href
-                            ? "bg-blue-600"
+                            ? "bg-purple-1 text-white"
                             : "hover:bg-white/10"
                         }`}
                       >
-                        <Image src={item.imgURL} alt={item.name} width={28} height={28} className={"invert brightness-0"}/>
+                        <Image src={item.imgURL} alt={item.name} width={28} height={28} className={`${pathname === item.href ? "invert brightness-0" : ""}`}/>
                         <span className="text-white text-md font-medium">{item.name}</span>
                       </Link>
                     </li>
@@ -66,7 +90,7 @@ export default function ConsoleLayout({ children }) {
 
                 <div className="flex flex-col gap-3 ml-2">
                   <Button className="flex gap-3 items-center p-3 pb-8 w-full justify-start cursor-pointer" onClick={() => signOut()}>
-                    <Image src="/navbar-icons/logout.svg" className="invert brightness-0" alt="logout" width={28} height={28} />
+                    <Image src="/navbar-icons/logout.svg" alt="logout" width={28} height={28} />
                     <span className="text-white text-md font-medium">Logout</span>
                   </Button>
                 </div>

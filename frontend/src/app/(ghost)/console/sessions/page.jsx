@@ -211,7 +211,7 @@ const SessionsPage = () => {
             />
             <button
               onClick={handleJoinSession}
-              className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-sm text-white font-semibold px-6 py-2 rounded-lg duration-200"
+              className="purple-primary-button rounded-md px-4 text-sm text-white font-semibold"
             >
               Join Session
             </button>
@@ -354,7 +354,7 @@ const SessionsPage = () => {
                             const [key, value] = Object.entries(permission)[0];
                             return (
                               <div key={key} className="flex items-center gap-3">
-                                <Checkbox checked={value} className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-dark-5 border-white/50 border-[1px]"/>
+                                <Checkbox checked={value} className="data-[state=checked]:bg-purple-1 data-[state=checked]:border-purple-1/90 border-white/50 border-[1px]"/>
                                 <Label className="text-sm">{permissionDesriptions[key].shortDescription}</Label>
                               </div>
                             );

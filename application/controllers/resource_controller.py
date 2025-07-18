@@ -22,21 +22,21 @@ def get_disk_info():
     return total_gb, free_gb
 
 def get_static_cpu_info():
-    c = wmi.WMI()
-    cpu = c.Win32_Processor()[0]
-    cpu_info = get_cpu_info()
+    try:
+        c = wmi.WMI()
+        cpu = c.Win32_Processor()[0]
+        cpu_info = get_cpu_info()
 
-    brand = cpu_info['brand_raw']
-    base_speed = str(round(psutil.cpu_freq().max/1000, 2)) + " GHz"
-    sockets = len(c.Win32_Processor())
-    cores = psutil.cpu_count(logical=False)
-    logical_processors = psutil.cpu_count(logical=True)
-    virtualization_enabled = "Enabled" if cpu.VirtualizationFirmwareEnabled else "Disabled"
-    l1_cache = "not found"
-    l2_cache = str(int(cpu.L2CacheSize) // 1024) + " MB"
-    l3_cache = str(int(cpu.L3CacheSize) // 1024) + " MB"
-
-    return {
+        brand = cpu_info['brand_raw']
+        base_speed = str(round(psutil.cpu_freq().max/1000, 2)) + " GHz"
+        sockets = len(c.Win32_Processor())
+        cores = psutil.cpu_count(logical=False)
+        logical_processors = psutil.cpu_count(logical=True)
+        virtualization_enabled = "Enabled" if cpu.VirtualizationFirmwareEnabled else "Disabled"
+        l1_cache = "not found"
+        l2_cache = str(int(cpu.L2CacheSize) // 1024) + " MB"
+        l3_cache = str(int(cpu.L3CacheSize) // 1024) + " MB"
+        return {
         "brand": brand,
         "baseSpeed": base_speed,
         "sockets": sockets,
@@ -46,7 +46,13 @@ def get_static_cpu_info():
         "l1Cache": l1_cache,
         "l2Cache": l2_cache,
         "l3Cache": l3_cache
-    }
+        }
+    except Exception as e:
+        print(f"An error occurred while collecting CPU info: {e}")
+        return {
+            "error": "Failed to collect CPU info",
+            "details": str(e)
+        }
 
 def get_threads_and_handles():
     threads = 0
@@ -183,4 +189,9 @@ def get_all_processes():
             })
         except: pass
     return procs
+
+
+static_cpu_info = get_static_cpu_info()
+
+
 

@@ -6,6 +6,7 @@ import DBUserDeviceLinks, { permissionsSchema } from '../models/UserDeviceLinksM
 import { clerkClient } from '../utils/ClerkClient.js'
 import DBUser from "../models/UserModel.js";
 import DBSessions from "../models/SessionModel.js";
+import { io, userDeviceManager } from "../socket.js";
 
 
 dotenv.config();
@@ -46,7 +47,6 @@ export const checkUser = async (req, res) => {
         return res.status(500).json({ message: "Error sending OTP" });
       }
     } else {
-      console.log("email_password")
       return res.status(200).json({ type: "email_password" });
     }
   } catch (err) {
@@ -88,7 +88,6 @@ export async function sendOtp(email, userId) {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log(`OTP sent to ${email}`);
     await DBOTP.create({ email, otp, expiresAt: Date.now() + 5 * 60 * 1000 , userId});
     return { success: true};
   } catch (err) {
@@ -237,7 +236,6 @@ export const savePermissions = async (req, res) => {
     if(!userDeviceLink) {
       return res.status(400).json({ message: "Login as owner to modify permissions" });
     }
-    console.log("Permissions to save:", permissions);
     
     const currentPermissions = userDeviceLink.permissions?.toObject?.() || userDeviceLink.permissions || {};
     
@@ -245,7 +243,6 @@ export const savePermissions = async (req, res) => {
         currentPermissions[permission].allowed = value;
     }
     
-    console.log("Updated permissions:", currentPermissions);
     
     await DBUserDeviceLinks.findByIdAndUpdate(userDeviceLink._id, { 
       permissions: currentPermissions 
@@ -271,7 +268,6 @@ export const savePermissions = async (req, res) => {
                               { expiry: { $eq: null } }
                             ]
                           });
-    console.log("Device sessions:", deviceSessions);
     for (const session of deviceSessions) {
       const sessionPermissions = session.permissions;
       
@@ -289,6 +285,27 @@ export const savePermissions = async (req, res) => {
       });
     }
 
+
+    // Instantaneously updating permissions for the active user and device
+    let permissionsSend = { permissions: Object.fromEntries(
+              Object.entries(currentPermissions).map(([key, value]) => [key, value.allowed])
+          )
+        }
+    
+    const activeLink = await DBUserDeviceLinks.findOne({ deviceId, active: true });
+    if (activeLink && activeLink.sessionKey) {
+      const session = await DBSessions.findOne({ _id: activeLink.sessionKey });
+      console.log("Session found:", session);
+      const sessionPermissions = session.permissions;
+      for (const permission of sessionPermissions) {
+        const [key, value] = Object.entries(permission)[0];
+        permissionsSend.permissions[key] = value && currentPermissions[key].allowed;
+      }
+    }
+    if (activeLink && userDeviceManager.areConnected(activeLink.userId, deviceId)) {
+      io.to(userDeviceManager.getUserSocketIdByDeviceId(deviceId)).emit("permissions", permissionsSend);
+      io.to(userDeviceManager.getDeviceSocketIdByUserId(activeLink.userId)).emit("permissions", permissionsSend);
+    }
     return res.status(200).json({ message: "Permissions saved" });
   } catch (err) {
     console.error('Error:', err);

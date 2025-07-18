@@ -44,7 +44,7 @@ export default function DevicesPage() {
       setOtherDevices(otherDevicesData.data);
     }
     fetchData()
-  }, [setMyDevices, setOtherDevices]);
+  }, [setMyDevices, setOtherDevices, user]);
 
   const handleClick = async () => {
     if(!user) return;

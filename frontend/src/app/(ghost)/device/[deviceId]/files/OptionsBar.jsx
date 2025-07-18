@@ -43,11 +43,11 @@ const OptionsBar = () => {
 
   return (
     <div className={`${selectedFiles.length === 0 ? "hidden": "flex items-center"} transition-opacity duration-3000
-     bg-blue-700/50 rounded-lg p-1 mr-2`}>
+     bg-purple-1/50 rounded-lg p-1 mr-2`}>
         <Tooltip>
             <TooltipTrigger asChild>
                 <AiOutlineClose onClick={() => setSelectedFiles([])} 
-                className='p-1 w-6 h-6 hover:bg-blue-700/60 rounded-md cursor-pointer text-white'/>
+                className='p-1 w-6 h-6 hover:bg-purple-1/60 rounded-md cursor-pointer text-white'/>
             </TooltipTrigger>
             <TooltipContent>
                 <div className='rounded-sm bg-dark-5 p-2'>Close</div>
@@ -57,7 +57,7 @@ const OptionsBar = () => {
         <div className='flex items-center gap-2'>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <FaDownload onClick={handleDownload} className='p-1 w-6 h-6 hover:bg-blue-700/60 rounded-md cursor-pointer text-white'/>
+                    <FaDownload onClick={handleDownload} className='p-1 w-6 h-6 hover:bg-purple-1/60 rounded-md cursor-pointer text-white'/>
                 </TooltipTrigger>
                 <TooltipContent>
                     <div className='rounded-sm bg-dark-5 p-2'>Download</div>
@@ -65,7 +65,7 @@ const OptionsBar = () => {
             </Tooltip>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <RiDeleteBin6Fill onClick={handleDelete} className='p-1 w-6 h-6 hover:bg-blue-700/60  rounded-md cursor-pointer text-white'/>
+                    <RiDeleteBin6Fill onClick={handleDelete} className='p-1 w-6 h-6 hover:bg-purple-1/60  rounded-md cursor-pointer text-white'/>
                 </TooltipTrigger>
                 <TooltipContent>
                     <div className='rounded-sm bg-dark-5 p-2'>Delete</div>

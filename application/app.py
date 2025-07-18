@@ -9,8 +9,8 @@ from config import *
 import os
 import requests
 import subprocess 
-from sender import connect_socket, disconnect_socket
-from async_requests import post_data, get_data
+from sender import connect_socket
+from async_requests import post_data
 from utils import get_uuid, get_asset_path
 from componets.toast import Toast
 from pages.loading import LoadingPage
@@ -37,15 +37,25 @@ async_loop = AsyncLoopThread()
 storeage = Storage("ghost_socket")
 stored_data = storeage.get_data()
 
+# Themes and Appearance
+ctk.set_appearance_mode("dark")
+
 class App(ctk.CTk):
     def __init__(self, is_logged_in: bool = False, show_home_page=None):
         super().__init__()
         self.title("Ghost Socket")
         self.geometry("800x600")
         self.resizable(False, False)
+        self.configure(fg_color="#101012")
         self.show_home_page = show_home_page
 
-        self.container = ctk.CTkFrame(self)
+        icon_path = get_asset_path("icon.ico")
+        try:
+            self.iconbitmap(icon_path)
+        except Exception as e:
+            print(f"Could not load icon: {e}")
+
+        self.container = ctk.CTkFrame(self, fg_color="#101012")
         self.container.pack(fill="both", expand=True)
 
         self.container.grid_rowconfigure(0, weight=1)
@@ -70,11 +80,11 @@ class App(ctk.CTk):
 
 class LoginPage(ctk.CTkFrame):
     def __init__(self, parent, controller):
-        super().__init__(parent)
+        super().__init__(parent, fg_color="#101012")
         self.toast = Toast(self)
         self.controller = controller
 
-        wrapper = ctk.CTkFrame(self, fg_color="transparent")
+        wrapper = ctk.CTkFrame(self, fg_color="#101012")
         wrapper.place(relx=0.5, rely=0.5, anchor="center")
 
         ctk.CTkLabel(wrapper, text="🔐 Welcome Back", font=ctk.CTkFont(size=26, weight="bold")).pack(pady=(10, 6))
@@ -94,8 +104,8 @@ class LoginPage(ctk.CTkFrame):
             wrapper,
             text="Login",
             command=self.async_handle_login,
-            fg_color="#d63031",
-            hover_color="#e17055",
+            fg_color="#6C28D9",
+            hover_color="#6411EB",
             text_color="white",
             width=300,
             height=40,
@@ -109,8 +119,8 @@ class LoginPage(ctk.CTkFrame):
             wrapper,
             text="Sign Up",
             command=self.open_signup,
-            fg_color="#d63031",
-            hover_color="#e17055",
+            fg_color="#6C28D9",
+            hover_color="#6411EB",
             text_color="white",
             width=300,
             height=40,
@@ -161,11 +171,11 @@ class LoginPage(ctk.CTkFrame):
 class OtpPage(ctk.CTkFrame):
     email = None
     def __init__(self, parent, controller):
-        super().__init__(parent)
+        super().__init__(parent, fg_color="#101012")
         self.controller = controller
         self.toast = Toast(self)
 
-        wrapper = ctk.CTkFrame(self, fg_color="transparent")
+        wrapper = ctk.CTkFrame(self, fg_color="#101012")
         wrapper.place(relx=0.5, rely=0.5, anchor="center")
 
         ctk.CTkLabel(wrapper, text="🔐 Enter OTP", font=ctk.CTkFont(size=24, weight="bold")).pack(pady=(10, 6))
@@ -194,8 +204,8 @@ class OtpPage(ctk.CTkFrame):
             wrapper,
             text="Verify OTP",
             command=self.async_submit_otp,
-            fg_color="#d63031",
-            hover_color="#e17055",
+            fg_color="#6C28D9",
+            hover_color="#6411EB",
             text_color="white",
             width=280,
             height=45,
@@ -287,13 +297,13 @@ class OtpPage(ctk.CTkFrame):
 class PasswordPage(ctk.CTkFrame):
     email = None
     def __init__(self, parent, controller):
-        super().__init__(parent)
+        super().__init__(parent, fg_color="#101012")
         self.controller = controller
         self.toast = Toast(self)
         self.show_password = False
 
         # Wrapper to center
-        wrapper = ctk.CTkFrame(self, fg_color="transparent")
+        wrapper = ctk.CTkFrame(self, fg_color="#101012")
         wrapper.place(relx=0.5, rely=0.5, anchor="center")
 
         # Header
@@ -302,7 +312,7 @@ class PasswordPage(ctk.CTkFrame):
         self.email_label.pack(pady=(0, 25))
 
         # Entry Frame
-        entry_frame = ctk.CTkFrame(wrapper, fg_color="transparent")
+        entry_frame = ctk.CTkFrame(wrapper, fg_color="#101012")
         entry_frame.pack()
 
         # Password Entry
@@ -342,8 +352,8 @@ class PasswordPage(ctk.CTkFrame):
             wrapper,
             text="Sign In",
             command=self.async_handle_login,
-            fg_color="#d63031",
-            hover_color="#e17055",
+            fg_color="#6C28D9",
+            hover_color="#6411EB",
             text_color="white",
             width=310,
             height=45,
@@ -413,6 +423,7 @@ class HomePage(ctk.CTkFrame):
 
         self.theme_var = ctk.BooleanVar(value=ctk.get_appearance_mode() != "dark")
         is_dark = ctk.get_appearance_mode() == "Dark"
+        self.configure(fg_color="#101012" if is_dark else "#ffffff")
 
         self.theme_toggle = ctk.CTkSwitch(
             top_controls,
@@ -421,8 +432,8 @@ class HomePage(ctk.CTkFrame):
             command=self.toggle_theme,
             switch_height=24,
             switch_width=48,
-            fg_color="#444444" if is_dark else "#cccccc",
-            progress_color="#03a9f4" if is_dark else "#3b82f6",
+            fg_color="#101012" if is_dark else "#cccccc",
+            progress_color="#6C28D9" if is_dark else "#6C28D9",
             button_color="#eeeeee",
             button_hover_color="#dddddd"
             
@@ -432,19 +443,19 @@ class HomePage(ctk.CTkFrame):
         logout_icon = ctk.CTkImage(Image.open(get_asset_path("logout.png")), size=(24, 24))
         self.logout_button = ctk.CTkButton(
             top_controls, text="", image=logout_icon,
-            width=36, height=36, fg_color="transparent", hover_color="#333333",
+            width=36, height=36, fg_color="transparent", hover_color="#333333" if is_dark else "#C3B3DD",
             command=self.async_logout
         )
         self.logout_button.grid(row=0, column=3, sticky="e", padx=5)
 
-        # --- Greeting Text ---
+        # Greeting Text
         greeting_frame = ctk.CTkFrame(self, fg_color="transparent")
         greeting_frame.pack(padx=20, anchor="w")
 
         ctk.CTkLabel(greeting_frame, text="👋 Welcome back!", font=ctk.CTkFont(size=24, weight="bold")).pack(anchor="w")
         ctk.CTkLabel(greeting_frame, text="Here's your dashboard — manage your settings and sessions.", font=ctk.CTkFont(size=14)).pack(anchor="w", pady=(0, 10))
 
-        # --- Profile Card ---
+        # Profile Card
         profile_frame = ctk.CTkFrame(self, corner_radius=10)
         profile_frame.pack(padx=20, pady=10, fill="x")
 
@@ -476,10 +487,10 @@ class HomePage(ctk.CTkFrame):
         self.manage_button = ctk.CTkButton(button_group, text="Manage Account", fg_color="#444", hover_color="#555", command=self.manage_action, font=ctk.CTkFont(size=12, weight="bold"))
         self.manage_button.pack(side="left")
 
-        # --- Section Title (Select Items) ---
+        # Section Title
         ctk.CTkLabel(self, text="Ascess Permissions", font=ctk.CTkFont(size=16, weight="bold")).pack(anchor="w", padx=20, pady=(20, 0))
 
-        # --- Scrollable Selection List ---
+        # Scrollable List
         scroll_frame = ctk.CTkScrollableFrame(self, height=180)
         scroll_frame.pack(padx=20, pady=(5, 5), fill="both", expand=True)
 
@@ -487,7 +498,7 @@ class HomePage(ctk.CTkFrame):
         for permission in self.user_data['permissions']:
             var = ctk.StringVar(value="off") if permission['value']['allowed'] == False else ctk.StringVar(value="on")
             chk = ctk.CTkCheckBox(scroll_frame, text=permission['value']["shortDescription"], variable=var, onvalue="on", font=ctk.CTkFont(size=12, weight="bold"),
-                                   offvalue="off", fg_color="#03a9f4", hover_color="#29b6f6", checkbox_width=18, checkbox_height=18, border_width=1)
+                                   offvalue="off", fg_color="#6C28D9", hover_color="#6411EB", checkbox_width=18, checkbox_height=18, border_width=1)
             chk.pack(anchor="w", padx=10, pady=0)
             custom_label = ctk.CTkLabel(scroll_frame, text=permission["value"]["longDescription"], font=ctk.CTkFont(size=12, weight="normal"), text_color="#666565")
             custom_label.pack(anchor="w", padx=35, pady=(0, 10))
@@ -502,7 +513,7 @@ class HomePage(ctk.CTkFrame):
         save_btn_container = ctk.CTkFrame(self, fg_color="transparent")
         save_btn_container.pack(fill="x", padx=20)
 
-        self.save_button = ctk.CTkButton(save_btn_container, text="Save Changes", fg_color="#1597d3", hover_color="#10a7ec", command=lambda: async_loop.run_coroutine(self.save_selection()), font=ctk.CTkFont(size=12, weight="bold"))
+        self.save_button = ctk.CTkButton(save_btn_container, text="Save Changes", fg_color="#6C28D9", hover_color="#6411EB", command=lambda: async_loop.run_coroutine(self.save_selection()), font=ctk.CTkFont(size=12, weight="bold"))
         self.save_button.pack(anchor="e", pady=10)
 
     def handle_checkbox_all(self):
@@ -518,6 +529,12 @@ class HomePage(ctk.CTkFrame):
 
     def toggle_theme(self):
         new_theme = "dark" if self.theme_var.get() else "light"
+        if new_theme == 'light':
+            self.configure(fg_color="#ffffff")
+            self.logout_button.configure(hover_color="#C3B3DD")
+        else:
+            self.configure(fg_color="#101012")
+            self.logout_button.configure(hover_color="#333333")
         ctk.set_appearance_mode(new_theme)
 
     async def enable_disable_action(self):
@@ -633,8 +650,6 @@ async def show_home_page(app):
             print("Could not show error toast")
 
 if __name__ == "__main__":
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("blue")
     if stored_data and stored_data["loggedIn"]:
         async_loop.run_coroutine(connect_socket(uuid))
         print("Connected to socket server - 1")

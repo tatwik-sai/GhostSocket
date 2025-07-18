@@ -41,7 +41,7 @@ const DevicesList = ({type, devices}) => {
   const nameInputRef = useRef(null);
   const {editingId, setEditingId, setDeviceName} = useDevicesStore()
   const statusColors = {
-    online: "bg-blue-500",
+    online: "bg-purple-1",
     offline: "bg-gray-500",
   };
 
@@ -91,15 +91,8 @@ const DevicesList = ({type, devices}) => {
     }
   };
 
-  const handleCardClick = (deviceId, event) => {
+  const handleLaunch = (deviceId, event) => {
     router.push(`/device/${deviceId}/device-profile`);
-  };
-
-  const handleConnect = (deviceId) => {
-    console.log("Connecting to device:", deviceId);
-    socket.emit("initiate-webrtc", {
-      deviceId
-    });
   };
 
   const handleDropAllSessions = (deviceId) => {
@@ -149,7 +142,7 @@ const DevicesList = ({type, devices}) => {
       <div className="w-full rounded-md overflow-x-auto p-2 hide-scroll-bar" ref={scrollRef}>
         <div className="flex w-max space-x-4 p-2" style={{ scrollBehavior: "smooth" }}>
           {devices.length !== 0 && devices.map((device) => (
-            <div key={device.deviceId} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105 transition-all duration-200" onClick={(e) => handleCardClick(device.deviceId, e)}>
+            <div key={device.deviceId} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105 transition-all duration-200">
               <div className="flex justify-between items-center gap-25">
                 <div className="flex gap-2 items-center">
                     {console.log("Device OS:", device.os)}
@@ -246,17 +239,14 @@ const DevicesList = ({type, devices}) => {
               </div>
               <div className="flex justify-between items-center mt-23">
                 <div className="flex gap-2">
-                  {device.connected ? 
-                  <Button className="bg-primary-red hover:bg-primary-red-hover font-semibold active:scale-90 transition-all duration-100"
-                  onClick={(e) => e.stopPropagation()}>Disconnect</Button>
-                  : <Button className="bg-blue-500 hover:bg-blue-600 font-semibold active:scale-90 transition-all duration-100"
-                  onClick={(e) => {e.stopPropagation(); handleConnect(device.deviceId)}}>Connect</Button>
-                  }
+                  <Button className="purple-primary-button font-semibold"
+                  onClick={(e) => handleLaunch(device.deviceId, e)}>Launch</Button>
+                  
                   <Button className="bg-dark-5/70 hover:bg-dark-5/100 active:scale-90 transition-all duration-100"
                    onClick={(e) => e.stopPropagation()}>Manage</Button>
                 </div>
                 <div className='p-1' onClick={(e) => {e.stopPropagation(); setDeleteDialog(device.deviceId)}} >
-                    <MdDelete  className="h-5 w-5 hover:text-red-500 hover:scale-[1.25] active:scale-90 transition-all duration-100"/>
+                    <MdDelete  className="h-5 w-5 cursor-pointer hover:text-red-500 hover:scale-[1.25] active:scale-90 transition-all duration-100"/>
                 </div>
               </div>
             </div>

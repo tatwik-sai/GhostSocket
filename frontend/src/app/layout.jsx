@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "GhostSocket",
   icons: {
-    icon: "/icon.svg",
+    icon: "/logo.svg",
   },
 };
 

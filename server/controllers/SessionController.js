@@ -2,6 +2,7 @@ import DBSessions from "../models/SessionModel.js";
 import DBUserDeviceLinks from "../models/UserDeviceLinksModel.js";
 import DBDevice from "../models/DevicesModel.js";
 import DBUser from "../models/UserModel.js";
+import { io, userDeviceManager } from "../socket.js";
 
 const formatDate = (date) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -272,8 +273,9 @@ export async function updatePermissions(req, res) {
 
         // check if userdevice link exists and update the user device link permissions
         const userDeviceLink = await DBUserDeviceLinks.findOne({ sessionKey });
+        let updatedPermissions;
         if (userDeviceLink) {
-            const updatedPermissions = permissions.reduce((acc, perm) => {
+            updatedPermissions = permissions.reduce((acc, perm) => {
                 const key = Object.keys(perm)[0];
                 acc[key] = { allowed: perm[key] };
                 return acc;
@@ -282,6 +284,16 @@ export async function updatePermissions(req, res) {
                 { sessionKey },
                 { $set: { permissions: updatedPermissions } }
             );
+        }
+
+        // Instantaneously update the permissions on the device and user if they are connected
+        if (session.joinedUserId && userDeviceManager.areConnected(session.joinedUserId, session.deviceId)) {
+            const permissionsToSend = { permissions: Object.fromEntries(Object.entries(updatedPermissions).map(([key, value]) => [key, value.allowed]))}
+            const deviceSocketId = userDeviceManager.getDeviceSocketIdByUserId(session.joinedUserId);
+            const userSocketId = userDeviceManager.getUserSocketIdByDeviceId(session.deviceId);
+
+            io.to(deviceSocketId).emit("permissions", permissionsToSend);
+            io.to(userSocketId).emit("permissions", permissionsToSend);
         }
         res.status(200).json({ message: "Permissions updated successfully." });
     } catch (error) {

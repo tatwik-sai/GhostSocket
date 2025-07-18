@@ -70,10 +70,16 @@ const setupSocket = (server) => {
           console.log(`Device ${data.deviceId} is now in use`);
           userDeviceManager.addConnection(userId, data.deviceId);
           const deviceSocketId = userDeviceManager.getDeviceSocketIdByUserId(userId);
+          const permissions = Object.entries(userDeviceLink.permissions.toObject()).reduce((acc, [key, value]) => {
+              acc[key] = value.allowed;
+              return acc;
+          }, {});
           // Emit an event to the device to initiate WebRTC
+          console.log("&&&&&&&&&&&&&&&&&&&&&", permissions)
           socket.to(deviceSocketId).emit("initiate-webrtc");
+          socket.to(deviceSocketId).emit("permissions", {permissions})
+          socket.emit("permissions", {permissions});
         });
-
         // Stop a WebRTC session with a device
         socket.on("stop-webrtc", async () => {
           if (!isConnected) return;
@@ -107,7 +113,7 @@ const setupSocket = (server) => {
             });
           } else {
             console.log(2)
-            socket.emit("error", {message: `Device is not online`});
+            socket.emit("error", {message: `Device is not Connected`});
           }
         });
 
@@ -123,7 +129,7 @@ const setupSocket = (server) => {
             });
           } else {
             console.log(3)
-            socket.emit("error", {message: `Device is not online`});
+            socket.emit("error", {message: `Device is not Connected`});
           }
         });
 
@@ -137,7 +143,7 @@ const setupSocket = (server) => {
             io.to(deviceSocketId).emit("from-user", data);
           } else {
             console.log(4)
-            socket.emit("error", {message: `Device is not online`});
+            socket.emit("error", {message: `Device is not Conncted`});
           }
         });
 

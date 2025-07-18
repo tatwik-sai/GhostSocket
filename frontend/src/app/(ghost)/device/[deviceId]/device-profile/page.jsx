@@ -239,12 +239,12 @@ const DeviceProfilePage = () => {
             
             <div className="flex flex-col justify-start gap-3 p-3">
               {permissions?.filter((permission) => permission.value.allowed).map((permission) => (
-                <Label key={permission.key} className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
+                <Label key={permission.key} className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 dark:has-[[aria-checked=true]]:border-purple-1/50 dark:has-[[aria-checked=true]]:bg-purple-1/20">
                   <Checkbox
                     id="toggle-2"
                     defaultChecked
                     disabled
-                    className="data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
+                    className="data-[state=checked]:border-purple-1/50 border-white/50 data-[state=checked]:bg-purple-1 data-[state=checked]:text-white "
                   />
                   <div className="grid gap-1.5 font-normal">
                     <p className="text-sm leading-none font-medium">
@@ -284,7 +284,7 @@ const DeviceProfilePage = () => {
                     <div className="flex items-center justify-center gap-2">
                       <p className="text-xl font-bold pt-2">{session.joinedUserName}</p>
                       <Badge className={`${session.status === 'active'?
-                         'bg-blue-600': 
+                         'bg-purple-1': 
                          (session.status === 'completed' ?
                           'bg-gray-500/50' :
                            "bg-primary-red")} text-white font-semibold mt-2`}>
@@ -294,7 +294,7 @@ const DeviceProfilePage = () => {
                     <p className="text-xs text-gray-500">Access Granted: {session.accessedDate}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {session.status === 'active' && <Button className="bg-primary-red hover:bg-primary-red-hover font-semibold mb-5" onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}>Kill Session</Button>}
+                    {session.status === 'active' && <Button className="bg-primary-red hover:scale-105 transition-all duration-300 cursor-pointer hover:bg-primary-red-hover font-semibold mb-5" onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}>Kill Session</Button>}
                     {/* <Button className="bg-primary-red hover:bg-primary-red-hover font-semibold">Remove Access</Button>
                     <Button className="bg-blue-600 hover:bg-blue-700 font-semibold">Revoke Access</Button> */}
                   </div>
@@ -309,13 +309,13 @@ const DeviceProfilePage = () => {
                           return (
                             <div className="flex items-center gap-3" key={key}>
                               <Checkbox checked={value} disabled={!permissions[permissionIndex].value.allowed || session.status !== 'active'}
-                               onCheckedChange={(checked) => handleCheckBox(checked, sessionIndex, permissionIndex)} className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-dark-5 border-white/50 border-[1px]"/>
+                               onCheckedChange={(checked) => handleCheckBox(checked, sessionIndex, permissionIndex)} className="data-[state=checked]:bg-purple-1 data-[state=checked]:border-purple-1/50 border-white/50 border-[1px]"/>
                               <Label className="">{permissionDesriptions[key].shortDescription}</Label>
                             </div>
                         )})}
                       </div>
                       {session.status === 'active' &&
-                        <Button className="flex-none self-end bg-blue-600 hover:bg-blue-700"
+                        <Button className="flex-none self-end bg-purple-1 font-semibold hover:scale-105 transition-all duration-300 cursor-pointer"
                         onClick={() => savePermissions(sessionIndex)}
                         >Save</Button>}
                     </div>

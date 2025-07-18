@@ -1,8 +1,11 @@
 "use client"
 
 import { useSocket } from '@/context/SocketContext';
+import { useDeviceProfileStore } from '@/store/slices/ActiveConnection/DeviceProfileSlice';
 import dynamic from 'next/dynamic';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { toast } from 'sonner';
 
 const DynamicClientTerminal = dynamic(() => import('./TerminalClient'), {
   ssr: false, 
@@ -20,7 +23,18 @@ const DynamicClientTerminal = dynamic(() => import('./TerminalClient'), {
 });
 
 export default function TerminalPage() {
+  const {deviceId} = useParams();
   const {socket} = useSocket();
+  const router = useRouter()
+  const {permissions} = useDeviceProfileStore();
+  useEffect(() => {
+      const {permissions} = useDeviceProfileStore.getState();
+      console.log("Resource Monitor Permissions: ", permissions);
+      if (permissions !== null && !permissions[2].value.allowed) {
+          router.push(`/device/${deviceId}/device-profile`);
+          toast.error("You do not have permission to access the Terminal.");
+      }
+  }, [permissions])
   useEffect(() => {
     if (socket?.current){
     socket.current.emit("to-device", {message: "pause_screen"});

@@ -9,11 +9,12 @@ import { useAuth } from "@clerk/nextjs";
 import { FiDownload } from "react-icons/fi";
 import { IoMdClose } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
-import { useParams} from "next/navigation";
+import { useParams, useRouter} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { set } from "lodash";
 import { useKeyboardTracker, useMouseTracker } from "./controller";
 import { toast } from "sonner";
+import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
 
 const RemoteControlPage = () => {
 
@@ -28,6 +29,16 @@ const RemoteControlPage = () => {
     const {images, addImage, setImages} = useRemoteControlStore()
     const {start: startKeyboard, stop: stopKeyboard} = useKeyboardTracker();
     const {start: startMouse, stop: stopMouse} = useMouseTracker(); 
+
+    const router = useRouter()
+      const {permissions} = useDeviceProfileStore();
+      useEffect(() => {
+          const {permissions} = useDeviceProfileStore.getState();
+          if (permissions !== null && !permissions[0].value.allowed && !permissions[1].value.allowed) {
+              router.push(`/device/${deviceId}/device-profile`);
+              toast.error("You don't have permission for ScreenView or Control.");
+          }
+      }, [permissions])
 
     useEffect(() => {
         const fetchImages = async () => {
@@ -196,14 +207,15 @@ const RemoteControlPage = () => {
             </div>
         </div>
         <div className="flex gap-3 px-1 pb-4">
-            <Button className="bg-blue-600 hover:bg-blue-700 hover:scale-105 active:scale-100 transition-all duration-300 font-bold" onClick={takeAndUploadSnapshot}>
+            <Button className="bg-purple-1 hover:scale-105 active:scale-100 transition-all duration-300 font-bold" onClick={takeAndUploadSnapshot}>
                 <FaCamera />
                 SnapShot
             </Button>
+            { permissions && permissions[0].value.allowed && 
             <Button className={`${controlling ? "bg-primary-red hover:bg-primary-red-hover" : "bg-dark-4 hover:bg-dark-5"} 
             hover:scale-105 active:scale-100 transition-all duration-300 font-bold`} onClick={handleControl}>
             {controlling ? "Stop Controll" : "Start Controll"}
-            </Button>
+            </Button>}
         </div>
         </div>
 

@@ -20,10 +20,13 @@ import { useDeviceProfileStore } from '@/store/slices/ActiveConnection/DevicePro
 import { apiClient } from '@/lib/apiClient';
 import { useWebCamStore } from '@/store/slices/ActiveConnection/WebCamStore';
 import { useRemoteControlStore } from '@/store/slices/ActiveConnection/RemoteControlSlice';
+import { permissionDesriptions } from '@/utils/constants';
+import Image from 'next/image';
+
 
 const ControlPanelLayout = ({children}) => {
     const statusColors = {
-    online: "bg-blue-500",
+    online: "bg-purple-1",
     offline: "bg-gray-500",
     };
     const { deviceId } = useParams();
@@ -355,7 +358,7 @@ const ControlPanelLayout = ({children}) => {
                         }
                         else if (parsed_data.type === "static_cpu_info") {
                             setStaticCPUInfo(parsed_data.cpu_info);
-                            console.log("Received static CPU info:", parsed_data.info);
+                            console.log("****Received static CPU info:", parsed_data.cpu_info);
                         }
                         else if (parsed_data.type === "dynamic_cpu_info") {
                             const {dynamicCPUInfo} = useResourcesStore.getState();
@@ -511,6 +514,19 @@ const ControlPanelLayout = ({children}) => {
         socket.current.on("webrtc-ice-candidate", handleICECandidate);
         socket.current.on("stopped-webrtc", handleStopWebRTC);
         socket.current.on("stop-webrtc", () => handleStopWebRTC(true));
+        socket.current.on("permissions", (data) => {
+            const updatedPermissions = Object.entries(data.permissions).map(([key, allowed]) => ({
+                key: key,
+                value: {
+                    allowed: allowed,
+                    shortDescription: permissionDesriptions[key]?.shortDescription || "Unknown permission",
+                    longDescription: permissionDesriptions[key]?.longDescription || "No description available"
+                }
+            }));
+            setPermissions(updatedPermissions);
+            console.log("📜 Received permissions from device:", updatedPermissions);
+
+        })
         socket.current.on("error", (data) => {
             toast.error(data.message || "An error occurred");
             setConnectButtonState({
@@ -526,6 +542,7 @@ const ControlPanelLayout = ({children}) => {
                 socket.current.off("stopped-webrtc", handleStopWebRTC);
                 socket.current.off("stop-webrtc");
                 socket.current.off("error");
+                socket.current.off("permissions");
             }
         };
 
@@ -612,53 +629,85 @@ const ControlPanelLayout = ({children}) => {
         }
     };
 
+    const defineNavItem = (item) => {
+        let path = `/device/${deviceId}${item.href}`
+        let disabled = false
+        if (!permissions && item.id !== "profile" ){
+            disabled = true;
+            path = "#";
+        } else if (item.id === "remoteControl" && !permissions[0].value.allowed && !permissions[1].value.allowed){
+            disabled = true;
+            path = "#";
+        } else if (item.id === "terminalAccess" && !permissions[2].value.allowed){
+            disabled = true;
+            path = "#"
+        } else if (item.id === "fileAccess" && !permissions[3].value.allowed){
+            disabled = true;
+            path = "#"
+        } else if (item.id === "webcamFeed" && !permissions[4].value.allowed){
+            disabled = true
+            path = "#"
+        } else if (item.id === "resourceMonitor" && !permissions[5].value.allowed){
+            disabled = true
+            path = "#"
+        }
+        return {path , disabled }
+    }
+
   return (  
     <>
         <div className='flex bg-dark-3 h-[100vh]'>
             <div className='flex flex-col justify-between items-start h-full w-60 md:w-70'>
-                <div className="flex m-4 pb-4 pl- items-center gap-2">
-                    <FaWindows className="text-4xl text-blue-500 mr-2" />
-                    <div className="flex justify-center flex-col">
-                        <h2 className="font-semibold text-xl overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.name}</h2>
-                        <div className="flex items-center gap-1">
-                            <div className={`w-2 h-2 rounded-full ${statusColors[deviceInfo?.status]}`} />
-                            <p className="text-gray-500 text-sm overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.os}</p>
-                        </div>
-                    </div>
-                </div>
+                <Link href={"/console"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-6">
+                    <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
+                    <h1 className="text-2xl font-bold text-white">GhostSocket</h1>                                  
+                </Link>
                 <div className="flex flex-col justify-between w-full  p-2 h-full">
-                    <div className='flex flex-colh-full'>
+                    <div className='flex flex-col h-full'>
                         <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
                             {navItems.map((item) => {
-                                const path = `/device/${deviceId}${item.href}`
+                                const {path, disabled} = defineNavItem(item); 
                                 return (
                                 <li key={item.name}>
                                 <Link
                                     href={path}
                                     className={`flex gap-2 items-center rounded-lg p-2 transition-colors ${
                                     pathname === path
-                                        ? "bg-blue-600"
-                                        : "hover:bg-white/10"
-                                    }`}
+                                        ? "bg-purple-1"
+                                        : (!disabled && "hover:bg-white/10")
+                                    } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
                                 >
-                                    <item.icon size={22} className={`${pathname === path ? "invert brightness-0" : ""}`}/>
+                                    <item.icon size={22} className={`${pathname === path ? "invert brightness-0" : "text-purple-1"}`}/>
                                     <span className="text-white text-md font-medium">{item.name}</span>
                                 </Link>
                                 </li>
                             )})}
                         </ul>
                     </div>
-                    <Button 
-                    ref={connectBtn} 
-                    onClick={handleConnect} 
-                    className={`${connectButtonState.text === "Disconnect" ? 
-                        "bg-primary-red hover:bg-primary-red-hover": 
-                        "bg-blue-600 hover:bg-blue-700"}
-                         items-center disabled:bg-gray-400 font-semibold disabled:cursor-not-allowed disabled:opacity-50`}
-                    disabled={!isSocketConnected || connectButtonState.inProcess}
-                    >
-                        {connectButtonState.text}
-                    </Button>
+                    <div className='flex flex-col w-full gap-4'>
+                        <Button 
+                        ref={connectBtn} 
+                        onClick={handleConnect} 
+                        className={`${connectButtonState.text === "Disconnect" ? 
+                            "bg-primary-red hover:bg-primary-red-hover": 
+                            "bg-purple-1 hover:scale-103"}
+                            items-center disabled:bg-gray-400 cursor-pointer font-semibold disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300`}
+                        disabled={!isSocketConnected || connectButtonState.inProcess}
+                        >
+                            {connectButtonState.text}
+                        </Button>
+                        <div className='h-[1px] bg-dark-5 mt-1'/>
+                        <div className="flex items-center gap-2 pb-2">
+                            <FaWindows className="text-4xl text-blue-500 mr-0" />
+                            <div className="flex justify-center flex-col">
+                                <h2 className="font-semibold text-xl overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.name}</h2>
+                                <div className="flex items-center gap-1">
+                                    <div className={`w-2 h-2 rounded-full ${statusColors[deviceInfo?.status]}`} />
+                                    <p className="text-gray-500 text-sm overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.os}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             

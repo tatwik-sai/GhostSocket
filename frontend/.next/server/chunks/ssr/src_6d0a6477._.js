@@ -172,6 +172,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/components/navigation.react-server.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$RotatingText$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/RotatingText.jsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$DownloadAppButton$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/DownloadAppButton.jsx [app-rsc] (ecmascript)");
+(()=>{
+    const e = new Error("Cannot find module '../..public/logo.svg'");
+    e.code = 'MODULE_NOT_FOUND';
+    throw e;
+})();
+;
 ;
 ;
 ;
@@ -202,10 +208,11 @@ function Navbar() {
             className: "flex justify-between items-center",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "flex items-center gap-[1px] ml-0 sm:ml-10",
+                    className: "flex items-center gap-[1px] ml-0",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$image$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["default"], {
                             src: "/logo.svg",
+                            className: "text-purple-600",
                             alt: "GhostSocket",
                             width: 50,
                             height: 50
@@ -282,7 +289,7 @@ function Navbar() {
                             action: launchConsoleAction,
                             children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$jsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["Button"], {
                                 type: "submit",
-                                className: "red-primary-button",
+                                className: "bg-blue-600",
                                 children: "Launch Console"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/page.jsx",
@@ -395,7 +402,7 @@ function Home() {
                                                 "Devices",
                                                 "Everything!"
                                             ],
-                                            mainClassName: "px-2 sm:px-3 bg-red-500 text-white text-2xl sm:text-3xl md:text-4xl font-bold overflow-hidden py-1 sm:py-1.5 md:py-2 justify-center rounded-lg",
+                                            mainClassName: "px-2 sm:px-3 bg-blue-600 text-white text-2xl sm:text-3xl md:text-4xl font-bold overflow-hidden py-1 sm:py-1.5 md:py-2 justify-center rounded-lg",
                                             staggerFrom: "last",
                                             initial: {
                                                 y: "100%"
@@ -432,7 +439,7 @@ function Home() {
                             columnNumber: 9
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "absolute top-[-200px] left-[-200px] w-[400px] h-[400px] bg-red-500/20 blur-3xl rounded-full z-0 hidden sm:block"
+                            className: "absolute top-[-200px] left-[-200px] w-[400px] h-[400px] bg-blue-500/20 blur-3xl rounded-full z-0 hidden sm:block"
                         }, void 0, false, {
                             fileName: "[project]/src/app/page.jsx",
                             lineNumber: 98,

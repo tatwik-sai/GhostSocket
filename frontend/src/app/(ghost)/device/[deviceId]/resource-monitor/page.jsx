@@ -9,18 +9,36 @@ import { Button } from "@/components/ui/button";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useSocket } from "@/context/SocketContext";
 import { useResourcesStore } from "@/store/slices/ActiveConnection/ResourcesSlice";
+import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
+import { useParams, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const ResourceMonitorPage = () => {
+    const {deviceId} = useParams(); 
     const {setResourceActive} = useResourcesStore()
     const {tcpDataChannel} = useStreamsAndConnectionStore();
     const {socket} = useSocket()
+    
+    const router = useRouter()
+    const {permissions} = useDeviceProfileStore();
     useEffect(() => {
-        if (!tcpDataChannel) return;
+        const {permissions} = useDeviceProfileStore.getState();
+        console.log("Resource Monitor Permissions: ", permissions);
+        if (permissions !== null && !permissions[5].value.allowed) {
+            router.push(`/device/${deviceId}/device-profile`);
+            toast.error("You do not have permission to access the Resource Monitor.");
+        }
+    }, [permissions])
+    
+    useEffect(() => {
+        if (!socket?.current) return;
         socket.current.emit("to-device", {message: "pause_screen"})
         socket.current.emit("to-device", {message: "pause_webcam"})
         socket.current.emit("to-device", {message: "pause_audio"})
-        tcpDataChannel.send(JSON.stringify({type: "get_static_cpu_info"}));
-        tcpDataChannel.send(JSON.stringify({type: "get_static_memory_info"}));
+    }, [])
+    useEffect(() => {
+        if (!tcpDataChannel) return;    
+        // tcpDataChannel.send(JSON.stringify({type: "get_static_memory_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_dynamic_cpu_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_dynamic_memory_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));        

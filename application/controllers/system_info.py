@@ -60,6 +60,7 @@ def location():
         return False
 
 def get_system_info():
+    print("(((((((())))))))", location())
     return {
         "role": "Admin" if isAdmin() else "User",
         "ip": getIP(),

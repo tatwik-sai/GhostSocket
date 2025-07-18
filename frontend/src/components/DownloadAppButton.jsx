@@ -3,7 +3,7 @@
 import { FaWindows } from "react-icons/fa";
 import { Button } from "./ui/button";
 
-export default function DownloadButton() {
+export default function DownloadButton({theme="purple"}) {
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = '/application/ghost-setup.exe';
@@ -14,7 +14,7 @@ export default function DownloadButton() {
   };
 
   return (
-    <Button className="red-primary-button text-xl w-2/5" onClick={handleDownload}>
+    <Button className={`${theme === 'purple' ? "purple-primary-button" : "bg-dark-3"} text-white px-4 py-5 shadow-md cursor-pointer hover:scale-105 transition-all duration-300 text-lg w-2/7`} onClick={handleDownload}>
         <FaWindows className="w-[15px] h-[15px]" />
         Download
     </Button>

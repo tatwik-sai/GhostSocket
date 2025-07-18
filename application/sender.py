@@ -15,6 +15,7 @@ pc = None
 udp_channel = None
 tcp_channel = None
 file_stream = None
+permissions = None
 
 
 async def pause_track(track_name):  
@@ -40,14 +41,6 @@ async def pause_track(track_name):
                 await sio.emit("webcam_paused")
                 break
 
-            elif (
-                track_name == "audio" and isinstance(sender.track, TestAudioTrack)
-            ):
-                print("🔈 Pausing audio track")
-                sender.track.pause()
-                await sio.emit("audio_paused")
-                break
-
 async def resume_track(track_name):
     if not pc:
         print("PeerConnection is not active.")
@@ -71,14 +64,6 @@ async def resume_track(track_name):
                 await sio.emit("webcam_resumed")
                 break
 
-            elif (
-                track_name == "audio" and isinstance(sender.track, TestAudioTrack)
-            ):
-                print("🔈 Resuming audio track")
-                sender.track.resume()
-                await sio.emit("audio_resumed")
-                break
-
 def handle_udp_message(message):
     print("📨 Received from UDP channel:", message)
     if isinstance(message, str):
@@ -87,6 +72,8 @@ def handle_udp_message(message):
         except json.JSONDecodeError:
             print(f"Invalid JSON: {message}")
             return
+    if not permissions.get("remoteControl", None):
+        return
     if message.get("type") == "keyboard":
         handle_keyboard_event(message)
     elif message.get("type") == "mouse":
@@ -101,101 +88,119 @@ def handle_tcp_message(message):
         except json.JSONDecodeError:
             print(f"Invalid JSON: {message}")
             return
-    if message.get("type") == "get_files":
-        response = get_file_structure(message.get("path", []))
-        tcp_channel.send(json.dumps({"type":"get_files_response", "files": response, "path": message.get("path", [])}))
-        print(f"📂 Sent files for path {message.get('path', [])} to browser: {response}")
-    elif message.get("type") == "download_files":
-        files = message.get("files", [])
-        path = message.get("path", [])
+    if permissions.get("fileAccess", None):
+        if message.get("type") == "get_files":
+            response = get_file_structure(message.get("path", []))
+            tcp_channel.send(json.dumps({"type":"get_files_response", "files": response, "path": message.get("path", [])}))
+            print(f"Sent files for path {message.get('path', [])} to browser: {response}")
+            return
+        elif message.get("type") == "download_files":
+            files = message.get("files", [])
+            path = message.get("path", [])
 
-        full_paths = get_full_paths(path, files)
-        file_stream = send_chunks(full_paths, tcp_channel)
-        tcp_channel.send(next(file_stream))
-    elif message.get("type") == "cancel_download":
-        print("Download cancelled by user")
-        file_stream = None
-    elif message.get("type") == "zip_ack":
-        try:
-            if file_stream is None:
-                print("No active file stream to send")
-                return
+            full_paths = get_full_paths(path, files)
+            file_stream = send_chunks(full_paths, tcp_channel)
             tcp_channel.send(next(file_stream))
-        except StopIteration:
-            print("✅ All chunks sent successfully")
-    elif message.get("type") == "delete_files":
-        files = message.get("files", [])
-        path = message.get("path", [])
-        full_paths = get_full_paths(path, files)
-        delete_files(full_paths)
-        response = get_file_structure(path)
-        tcp_channel.send(json.dumps({"type":"delete_files_response", "files": response, "path": path}))
-    elif message.get("type") == "execute_command":
-        command = message.get("command", "")
-        if command:
-            print(f"Executing command: {command}")
-            if command.startswith("cd "):
-                path = command[3:].strip()
-                output = cd(path)
-                if output["success"]:
-                    print(f"Changed directory to: {output['path']}")
-                    tcp_channel.send(json.dumps({"type": "terminal_cd", "path": output["path"], "command": command}))
+            return
+        elif message.get("type") == "cancel_download":
+            print("Download cancelled by user")
+            file_stream = None
+            return
+        elif message.get("type") == "zip_ack":
+            try:
+                if file_stream is None:
+                    print("No active file stream to send")
+                    return
+                tcp_channel.send(next(file_stream))
+            except StopIteration:
+                print("✅ All chunks sent successfully")
+            return
+        elif message.get("type") == "delete_files":
+            files = message.get("files", [])
+            path = message.get("path", [])
+            full_paths = get_full_paths(path, files)
+            delete_files(full_paths)
+            response = get_file_structure(path)
+            tcp_channel.send(json.dumps({"type":"delete_files_response", "files": response, "path": path}))
+            return
+    
+    if permissions.get("terminalAccess", None):
+        if message.get("type") == "execute_command":
+            command = message.get("command", "")
+            if command:
+                print(f"Executing command: {command}")
+                if command.startswith("cd "):
+                    path = command[3:].strip()
+                    output = cd(path)
+                    if output["success"]:
+                        print(f"Changed directory to: {output['path']}")
+                        tcp_channel.send(json.dumps({"type": "terminal_cd", "path": output["path"], "command": command}))
+                    else:
+                        print(f"Error changing directory: {output['message']}")
+                        tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
                 else:
-                    print(f"Error changing directory: {output['message']}")
-                    tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
+                    output = cmd(command)
+                    if output["success"]:
+                        print(f"Command executed successfully: {output['output']}")
+                        tcp_channel.send(json.dumps({"type": "terminal_cmd", "output": output["output"], "command": command}))
+                    else:
+                        print(f"Error executing command: {output['message']}")
+                        tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
+                        print(1)
             else:
-                output = cmd(command)
-                if output["success"]:
-                    print(f"Command executed successfully: {output['output']}")
-                    tcp_channel.send(json.dumps({"type": "terminal_cmd", "output": output["output"], "command": command}))
-                else:
-                    print(f"Error executing command: {output['message']}")
-                    tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
-                    print(1)
-        else:
-            print("No command provided to execute")
-    elif message.get("type") == "get_user_and_path":
-        tcp_channel.send(json.dumps({
-            "type": "user_and_path",
-            "user": os.getlogin(),
-            "path": os.getcwd()
-        }))
-    elif message.get("type") == "get_static_cpu_info":
-        cpu_info = get_static_cpu_info()
-        tcp_channel.send(json.dumps({
-            "type": "static_cpu_info",
-            "cpu_info": cpu_info,
-        }))
-    elif message.get("type") == "get_static_memory_info":
-        memory_info = get_static_memory_info()
-        tcp_channel.send(json.dumps({
-            "type": "static_memory_info",
-            "memory_info": memory_info,
-        }))
-    elif message.get("type") == "get_dynamic_cpu_info":
-        cpu_info = get_dynamic_cpu_info()
-        tcp_channel.send(json.dumps({
-            "type": "dynamic_cpu_info",
-            "cpu_info": cpu_info,
-        }))
-    elif message.get("type") == "get_dynamic_memory_info":
-        memory_info = get_dynamic_memory_info()
-        tcp_channel.send(json.dumps({
-            "type": "dynamic_memory_info",
-            "memory_info": memory_info,
-        }))
-    elif message.get("type") == "get_threads_and_handles":
-        threads_and_handles = get_threads_and_handles()
-        tcp_channel.send(json.dumps({
-            "type": "threads_and_handles",
-            "data": threads_and_handles,
-        }))
-    elif message.get("type") == "get_processes":
-        processes = get_all_processes()
-        tcp_channel.send(json.dumps({
-            "type": "processes",
-            "processes": processes,
-        }))
+                print("No command provided to execute")
+            return
+        elif message.get("type") == "get_user_and_path":
+            tcp_channel.send(json.dumps({
+                "type": "user_and_path",
+                "user": os.getlogin(),
+                "path": os.getcwd()
+            }))
+            return
+    
+    if permissions.get("resourceMonitor", None):
+        if message.get("type") == "get_static_cpu_info":
+            cpu_info = static_cpu_info
+            tcp_channel.send(json.dumps({
+                "type": "static_cpu_info",
+                "cpu_info": cpu_info,
+            }))
+            return
+        elif message.get("type") == "get_static_memory_info":
+            memory_info = get_static_memory_info()
+            tcp_channel.send(json.dumps({
+                "type": "static_memory_info",
+                "memory_info": memory_info,
+            }))
+            return
+        elif message.get("type") == "get_dynamic_cpu_info":
+            cpu_info = get_dynamic_cpu_info()
+            tcp_channel.send(json.dumps({
+                "type": "dynamic_cpu_info",
+                "cpu_info": cpu_info,
+            }))
+            return
+        elif message.get("type") == "get_dynamic_memory_info":
+            memory_info = get_dynamic_memory_info()
+            tcp_channel.send(json.dumps({
+                "type": "dynamic_memory_info",
+                "memory_info": memory_info,
+            }))
+            return
+        elif message.get("type") == "get_threads_and_handles":
+            threads_and_handles = get_threads_and_handles()
+            tcp_channel.send(json.dumps({
+                "type": "threads_and_handles",
+                "data": threads_and_handles,
+            }))
+            return
+        elif message.get("type") == "get_processes":
+            processes = get_all_processes()
+            tcp_channel.send(json.dumps({
+                "type": "processes",
+                "processes": processes,
+            }))
+            return
 
 @sio.event
 async def connect():
@@ -206,7 +211,6 @@ async def initiate_webrtc():
     global pc, udp_channel, tcp_channel, handle_udp_message, handle_tcp_message
     pc = RTCPeerConnection()
     print("▶️ Received start signal from viewer")
-
     @pc.on("icecandidate")
     async def on_icecandidate(candidate):
         if candidate:
@@ -280,35 +284,11 @@ async def initiate_webrtc():
     })
     print(f"📨 Sent offer")
 
-@sio.on("stop_screen")
-async def on_stop_screen():
-    print("🖥️ Received stop screen signal from viewer")
-    
-    # Find and pause the screen track
-    for sender in pc.getSenders():
-        if sender.track and hasattr(sender.track, 'sct'):
-            print("🖥️ Pausing screen track")
-            sender.track.pause()
-            break
-    
-    # Notify viewer that screen has stopped
-    await sio.emit("screen_stopped")
-    print("✅ Screen share paused")
-
-@sio.on("resume_screen")
-async def on_resume_screen():
-    print("🖥️ Received resume screen signal from viewer")
-    
-    # Find and resume the screen track
-    for sender in pc.getSenders():
-        if sender.track and hasattr(sender.track, 'sct'):
-            print("🖥️ Resuming screen track")
-            sender.track.resume()
-            break
-    
-    # Notify viewer that screen has resumed
-    await sio.emit("screen_resumed")
-    print("✅ Screen share resumed")
+@sio.on("permissions")
+async def on_permissions(data):
+    global permissions
+    permissions = data.get("permissions", {})
+    print(  permissions)
 
 @sio.on("stop-webrtc")
 async def stop_webrtc():
