@@ -11,7 +11,6 @@ const setupSocket = (server) => {
     io = new Server(server, {
         cors: {
             origin: process.env.ORIGIN,
-            credentials: true
         }
     })
 

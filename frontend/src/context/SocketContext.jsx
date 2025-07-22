@@ -24,7 +24,6 @@ export const SocketProvider = ({ children }) => {
         }
         console.log("Connecting socket with token...");
         socket.current = io(HOST, {
-          withCredentials: true,
           auth: async (cb) => {
             const freshToken = await getToken();
             cb({ token: freshToken, type: "user" });

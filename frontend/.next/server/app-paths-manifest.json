@@ -1,9 +1,4 @@
 {
-  "/(ghost)/console/page": "app/(ghost)/console/page.js",
   "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js",
-  "/(ghost)/device/[deviceId]/files/page": "app/(ghost)/device/[deviceId]/files/page.js",
-  "/(ghost)/device/[deviceId]/remote-control/page": "app/(ghost)/device/[deviceId]/remote-control/page.js",
-  "/(ghost)/device/[deviceId]/terminal/page": "app/(ghost)/device/[deviceId]/terminal/page.js",
-  "/(ghost)/device/[deviceId]/webcam-feed/page": "app/(ghost)/device/[deviceId]/webcam-feed/page.js",
-  "/page": "app/page.js"
+  "/(ghost)/device/[deviceId]/remote-control/page": "app/(ghost)/device/[deviceId]/remote-control/page.js"
 }
