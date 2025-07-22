@@ -5,7 +5,6 @@ import { CpuLayout} from "./CpuMonitor";
 import { MemoryLayout } from "./MemoryMonitor";
 import ProcessMonitor from "./ProcessMonitor";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { Button } from "@/components/ui/button";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useSocket } from "@/context/SocketContext";
 import { useResourcesStore } from "@/store/slices/ActiveConnection/ResourcesSlice";
@@ -38,7 +37,7 @@ const ResourceMonitorPage = () => {
     }, [])
     useEffect(() => {
         if (!tcpDataChannel) return;    
-        // tcpDataChannel.send(JSON.stringify({type: "get_static_memory_info"}));
+        tcpDataChannel.send(JSON.stringify({type: "get_static_memory_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_dynamic_cpu_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_dynamic_memory_info"}));
         tcpDataChannel.send(JSON.stringify({type: "get_threads_and_handles"}));        
@@ -62,7 +61,7 @@ const ResourceMonitorPage = () => {
                 <TabsTrigger value="memory" className="data-[state=active]:font-bold data-[state=active]:bg-black  font-md text-md opacity-75 data-[state=active]:opacity-100 cursor-pointer">Memory</TabsTrigger>
                 <TabsTrigger value="process" className="data-[state=active]:font-bold data-[state=active]:bg-black font-md text-md opacity-75 data-[state=active]:opacity-100 cursor-pointer">Processes</TabsTrigger>
             </TabsList>
-            <ScrollArea className="overflow-y-auto custom-scrollbar"> {/* Subtract TabsList height */}
+            <ScrollArea className="overflow-y-auto custom-scrollbar">
                 <TabsContent value="cpu">
                     <CpuLayout />
                 </TabsContent>

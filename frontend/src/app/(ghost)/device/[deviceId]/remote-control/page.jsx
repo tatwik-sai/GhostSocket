@@ -11,7 +11,6 @@ import { IoMdClose } from "react-icons/io";
 import { FaCamera } from "react-icons/fa";
 import { useParams, useRouter} from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { set } from "lodash";
 import { useKeyboardTracker, useMouseTracker } from "./controller";
 import { toast } from "sonner";
 import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
@@ -48,7 +47,6 @@ const RemoteControlPage = () => {
                     headers: { Authorization: `Bearer ${clerk_token}` }
                 });
                 setImages(response.data);
-                console.log("Fetched images:", response.data);
             } catch (err) {
                 console.error("Failed to fetch images:", err);
             }
@@ -61,16 +59,12 @@ const RemoteControlPage = () => {
         const handleFullscreenChange = () => {
         const fullscreenElement = document.fullscreenElement;
         if (fullscreenElement === null) {
-            console.log(1)
             if (controlling) {
-                console.log(2)
                 setControlling(false);
                 stopKeyboard();
                 stopMouse();
             }
-            console.log("Exited fullscreen");
         } else if (fullscreenElement === screenVideo.current) {
-            console.log("Entered fullscreen");
         }
         };
 
@@ -84,7 +78,6 @@ const RemoteControlPage = () => {
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
         if (screenStream) {
-            console.log("Setting screen video source", screenStream);
             screenVideo.current.srcObject = screenStream;
             socket.current.emit("to-device", {message: "pause_webcam"});
         } else {
@@ -163,11 +156,6 @@ const RemoteControlPage = () => {
         }, "image/png");
     };
 
-    const mouseMoveHandler = (event) => {
-        const x = event.screenX;
-        const y = event.screenY;
-    }
-
     const handleControl = () => {
         const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
         if (!tcpDataChannel || !tcpDataChannel.readyState === "open") {
@@ -178,11 +166,9 @@ const RemoteControlPage = () => {
         }
         if (controlling) {
             setControlling(false);
-            // socket.current.emit("to-device", {message: "stop_control"});
         } else {
             setControlling(true);
             screenVideo.current.requestFullscreen()
-            console.log("Starting control");
             startKeyboard();
             startMouse();
         }
@@ -248,7 +234,7 @@ const RemoteControlPage = () => {
 
     {selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-        {/* Background overlay with 90% opacity */}
+        {/* Background overlay */}
         <div className="absolute inset-0 bg-black opacity-90"></div>
 
         {/* Foreground content */}

@@ -3,6 +3,7 @@ from PIL import Image
 from utils import get_asset_path
 
 class Toast:
+    """A class to create and manage toast notifications in a Tkinter application."""
     def __init__(self, parent):
         self.parent = parent
         self._toast_widget = None

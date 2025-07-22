@@ -1,11 +1,9 @@
 'use client'
-import React, { use, useEffect, useState } from 'react'
-import { Search, Plus, X, Clock, CheckCircle, XCircle, Users, Calendar, Filter, ChevronDown, Check, Timer } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Clock, CheckCircle, XCircle, Users, Check, Timer } from 'lucide-react'
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition } from '@headlessui/react';
 import { IoFilterOutline, IoSearch } from "react-icons/io5";
 import { Fragment } from 'react';
-import { Dialog } from '@/components/Dialog';
-import NewSession from '@/components/NewSession';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/apiClient';
 import { useAuth } from '@clerk/clerk-react';
@@ -43,7 +41,6 @@ const SessionsPage = () => {
         };
         const response = await apiClient.get('sessions/get-sessions', authHeaders);
         if (response.status === 200) {
-          console.log('Fetched sessions:', response.data);
           setSessionsData(response.data);
         } else {
           toast.error(response.data?.message || 'Failed to fetch sessions', {
@@ -200,7 +197,6 @@ const SessionsPage = () => {
 
         {/* Join Session Section */}
         <div className="bg-dark-3 rounded-lg p-4 mb-4">
-          {/* <h2 className="text-lg font-semibold mb-2">Session Key</h2> */}
           <div className="flex gap-4 max-w-2xl">
             <input
               type="text"

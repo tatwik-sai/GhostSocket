@@ -31,11 +31,11 @@ function StaticCpuCard() {
     useEffect(() => {
         const {staticCPUInfo} = useResourcesStore.getState()
         const {tcpDataChannel} = useStreamsAndConnectionStore.getState()
-        console.log(Object.entries(staticCPUInfo), "************")
         if (Object.entries(staticCPUInfo).length === 0 && tcpDataChannel && tcpDataChannel.readyState === 'open') {
             tcpDataChannel.send(JSON.stringify({type: "get_static_cpu_info"}));
         }
     }, [tcpDataChannel])
+    
     return (
         <Card className="py-0 bg-dark-3 border-none  w-full xl:w-1/2">
             <CardHeader className="flex justify-between items-center border-[#ffffff1a] border-b-[1px]">

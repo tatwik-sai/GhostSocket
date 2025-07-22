@@ -1,5 +1,3 @@
-// create a zustand slice for terminal management
-
 import { create } from "zustand";
 
 export const createTerminalSlice = (set, get) => ({

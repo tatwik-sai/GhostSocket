@@ -3,6 +3,7 @@ import DBUser from '../models/UserModel.js'
 
 
 export const onSignup = async (req, res) => {
+    // Verify and process the webhook event
     try {
       const evt = await verifyWebhook(req)
   

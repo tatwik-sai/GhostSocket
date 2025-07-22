@@ -42,7 +42,6 @@ const WebCamPage = () => {
                     headers: { Authorization: `Bearer ${clerk_token}` }
                 });
                 setImages(response.data);
-                console.log("Fetched images:", response.data);
             } catch (err) {
                 console.error("Failed to fetch images:", err);
             }
@@ -57,7 +56,6 @@ const WebCamPage = () => {
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
         if (webcamStream) {
-            console.log("Setting screen video source", webcamStream);
             webcamVideo.current.srcObject = webcamStream;
             socket.current.emit("to-device", {message: "pause_screen"});
         } else {
@@ -186,7 +184,7 @@ const WebCamPage = () => {
 
     {selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-        {/* Background overlay with 90% opacity */}
+        {/* Background overlay */}
         <div className="absolute inset-0 bg-black opacity-90"></div>
 
         {/* Foreground content */}

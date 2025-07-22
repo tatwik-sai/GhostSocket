@@ -1,14 +1,13 @@
-import React, { use, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation';
 import { MdDelete, MdHistory } from "react-icons/md";
 import { Button } from '@/components/ui/button'
-import { FaWindows, FaUbuntu, FaGooglePlus, FaPlus, FaPlusCircle } from "react-icons/fa";
+import { FaWindows, FaUbuntu } from "react-icons/fa";
 import { MdModeEdit } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
-import { CiCirclePlus, CiGlobe } from "react-icons/ci";
+import { CiGlobe } from "react-icons/ci";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSocket } from '@/context/SocketContext';
-import { Input } from "@/components/ui/input"
 import { useDevicesStore } from '@/store/slices/DevicesSlice';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/apiClient';
@@ -20,10 +19,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { IoMdAddCircle, IoMdAddCircleOutline, IoMdRemoveCircleOutline } from "react-icons/io";
-import { IoAddOutline, IoRemoveCircle, IoRemoveOutline } from 'react-icons/io5';
+import { IoMdAddCircle} from "react-icons/io";
+import { IoRemoveCircle } from 'react-icons/io5';
 import { Dialog } from './Dialog';
-import { set } from 'lodash';
 import NewSession from './NewSession';
 import { useAuth } from '@clerk/nextjs';
 
@@ -37,7 +35,6 @@ const DevicesList = ({type, devices}) => {
   const [dropDialog, setDropDialog] = useState(null);
   const [newSessionDialog, setNewSessionDialog] = useState(null);
   const router = useRouter();
-  const socket = useSocket()
   const nameInputRef = useRef(null);
   const {editingId, setEditingId, setDeviceName} = useDevicesStore()
   const statusColors = {
@@ -71,7 +68,6 @@ const DevicesList = ({type, devices}) => {
   const saveEditedName = (userDeviceLinkId) => {
         const newName = nameInputRef.current.value;
         if (newName.trim() !== "") {
-          console.log("Saving new name:", newName);
           apiClient.put(`/devices/${userDeviceLinkId}/name`, { name: newName })
           setDeviceName(userDeviceLinkId, newName, type);
           setEditingId(null);
@@ -145,7 +141,6 @@ const DevicesList = ({type, devices}) => {
             <div key={device.deviceId} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105 transition-all duration-200">
               <div className="flex justify-between items-center gap-25">
                 <div className="flex gap-2 items-center">
-                    {console.log("Device OS:", device.os)}
                   {device.os?.toLowerCase().includes("ubuntu") ?
                     <FaUbuntu className="w-6 h-6" /> : <FaWindows className="w-6 h-6" />}
                   {editingId === device.deviceId ? 
@@ -203,7 +198,6 @@ const DevicesList = ({type, devices}) => {
                         </div>
                       </DropdownMenuItem>
                       
-                      {/* {type === "myDevices" && <DropdownMenuSeparator className="bg-gray-600" />} */}
                       
                       {type === "myDevices" && <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setDropDialog(device.deviceId)}>
                         <div className='flex gap-2 items-center justify-start'>
@@ -225,7 +219,6 @@ const DevicesList = ({type, devices}) => {
               </div>
               <div className="flex gap-1 items-center justify-start pl-8">
                 <div className={`w-2 h-2 rounded-full ${statusColors[device.status]}`} />
-                {console.log("Device Status:", device.status)}
                 <p className="text-sm text-gray-400">{device.status}</p>
               </div>
               <div className="flex flex-col pt-4 gap-1">

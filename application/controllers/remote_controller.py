@@ -1,26 +1,29 @@
-import keyboard
 from pynput.mouse import Controller, Button
+import keyboard
 
 mouse = Controller()
 
 def handle_keyboard_event(event_data):
+    """
+    Simulates keyboard events based on the provided event data.
 
+    Args:
+        event_data (dict): A dictionary containing the key and event type.
+    """
     key = event_data.get("key")
     event_type = event_data.get("event")
 
     if not key or event_type not in ("keydown", "keyup"):
         return
 
-    # Normalize space key name
     if key == " ":
         key = "space"
 
-    # Press or release modifier keys first
     modifiers = {
         "shift": event_data.get("shiftKey", False),
         "ctrl": event_data.get("ctrlKey", False),
         "alt": event_data.get("altKey", False),
-        "windows": event_data.get("metaKey", False)  # Meta is usually the Windows key
+        "windows": event_data.get("metaKey", False)
     }
 
     try:
@@ -39,10 +42,18 @@ def handle_keyboard_event(event_data):
                     keyboard.release(mod)
 
     except Exception as e:
-        print(f"Error handling key '{key}': {e}")
+        print(f"[-] Error handling key '{key}': {e}")
 
 
 def _map_button(button_index):
+    """
+    A helper function that maps button index to pynput Button.
+
+    Args:
+        button_index (int): The index of the button (0 for left, 1 for middle, 2 for right).
+    Returns:
+        Button: The corresponding pynput Button.
+    """
     return {
         0: Button.left,
         1: Button.middle,
@@ -50,6 +61,12 @@ def _map_button(button_index):
     }.get(button_index, Button.left)
 
 def handle_mouse_event(event):
+    """
+    Simulates mouse events based on the provided event data.
+
+    Args:
+        event (dict): A dictionary containing the mouse event data.
+    """
     event_type = event.get("event")
 
     try:
@@ -72,5 +89,5 @@ def handle_mouse_event(event):
             mouse.scroll(dx, dy)
 
     except Exception as e:
-        print(f"Mouse event error: {e}")
+        print(f"[-] Mouse event error: {e}")
 

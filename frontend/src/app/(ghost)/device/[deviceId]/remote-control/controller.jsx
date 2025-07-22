@@ -13,7 +13,6 @@ export function useKeyboardTracker() {
     if (udpDataChannel && udpDataChannel.readyState === "open") {
       const data = JSON.stringify(event);
       udpDataChannel.send(data);
-      console.log("SEND2:", data);
     } else {
       console.warn("TCP Data Channel is not open");
     }
@@ -85,7 +84,6 @@ export function useKeyboardTracker() {
   const stop = useCallback(() => {
     if (!isListening.current) return;
     isListening.current = false;
-    console.log("Keyboard tracker stopped");
     
     window.removeEventListener("keydown", handleKeyDown, true);
     window.removeEventListener("keyup", handleKeyUp, true);
@@ -111,7 +109,6 @@ export function useMouseTracker() {
     if (udpDataChannel && udpDataChannel.readyState === "open") {
       const data = JSON.stringify(event);
       udpDataChannel.send(data);
-      console.log("SEND2:", event);
     } else {
       console.warn("TCP Data Channel is not open");
     }
@@ -170,7 +167,6 @@ export function useMouseTracker() {
     isListening.current = true;
 
     const opts = { passive: false };
-    console.log("Mouse tracker started");
     window.addEventListener("mousemove", handleMouseMove, opts);
     window.addEventListener("mousedown", handleMouseDown, opts);
     window.addEventListener("mouseup", handleMouseUp, opts);
@@ -181,7 +177,6 @@ export function useMouseTracker() {
   const stop = useCallback(() => {
     if (!isListening.current) return;
     isListening.current = false;
-    console.log("Mouse tracker stopped");
 
     window.removeEventListener("mousemove", handleMouseMove);
     window.removeEventListener("mousedown", handleMouseDown);

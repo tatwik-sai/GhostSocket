@@ -37,7 +37,6 @@ const NewSession = ({deviceId}) => {
         const response = await apiClient.get(`/devices/${deviceId}`, {
           headers: { Authorization: `Bearer ${clerk_token}` }
         });
-        console.log("Device:", response.data);
         setDevice(response.data);
         setPermissions(response.data.permissions)
       } catch (error) {
@@ -175,7 +174,6 @@ const NewSession = ({deviceId}) => {
     document.execCommand('copy');
     document.body.removeChild(el);
     alert('Session ID copied to clipboard!');
-    console.log("Copied Session Key:", sessionKey);
   };
 
   // Add loading state

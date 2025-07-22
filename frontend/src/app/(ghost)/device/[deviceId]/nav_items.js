@@ -1,5 +1,5 @@
 import { SlGraph } from "react-icons/sl";
-import { RiComputerLine, RiCameraLine, RiTerminalBoxFill, RiComputerFill } from "react-icons/ri";
+import { RiTerminalBoxFill, RiComputerFill } from "react-icons/ri";
 import { FaCamera } from "react-icons/fa";
 import { MdDashboard} from "react-icons/md";
 import { IoMdFolder } from "react-icons/io";

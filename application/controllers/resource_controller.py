@@ -1,5 +1,4 @@
 import psutil
-import platform
 import time
 import wmi
 import sys
@@ -7,7 +6,8 @@ from cpuinfo import get_cpu_info
 import ctypes
 import ctypes.wintypes
 
-def get_disk_info():
+def get_disk_info() -> tuple:
+    """Returns the total and free disk space in GB across all partitions."""
     total = 0
     free = 0
     for part in psutil.disk_partitions(all=False):
@@ -21,7 +21,8 @@ def get_disk_info():
     free_gb = round(free / (1024 ** 3), 1)
     return total_gb, free_gb
 
-def get_static_cpu_info():
+def get_static_cpu_info() -> dict:
+    """Returns static CPU information such as brand, base speed, number of sockets, cores, etc."""
     try:
         c = wmi.WMI()
         cpu = c.Win32_Processor()[0]
@@ -54,7 +55,10 @@ def get_static_cpu_info():
             "details": str(e)
         }
 
-def get_threads_and_handles():
+def get_threads_and_handles() -> dict:
+    """
+    Returns the total number of threads and handles used by all processes.
+    """
     threads = 0
     handles = 0
 
@@ -73,7 +77,9 @@ def get_threads_and_handles():
         "handles": handles
     }
 
-def get_dynamic_cpu_info():
+def get_dynamic_cpu_info() -> dict:
+    """Returns dynamic CPU information such as utilization, current speed, number of processes, and uptime.
+    """
     utilization = psutil.cpu_percent(interval=0)
     current_speed = str(round(psutil.cpu_freq().current/1000, 2)) + " GHz"
     processes = len(psutil.pids())
@@ -91,7 +97,8 @@ def get_dynamic_cpu_info():
         "upTime": uptime,
     }
 
-def get_static_memory_info():
+def get_static_memory_info() -> dict:
+    """Returns static memory information such as manufacturers, total size, speed, slots used, and form factor."""
     memory_info = {}
     try:
         c = wmi.WMI()
@@ -133,7 +140,8 @@ def get_static_memory_info():
 
     return memory_info
 
-def get_dynamic_memory_info():
+def get_dynamic_memory_info() -> dict:
+    """Returns dynamic memory information such as used GB, utilization percentage, available GB, paged pool, non-paged pool, and system cache."""
     memory_info = {}
     try:
         c = wmi.WMI()
@@ -177,7 +185,8 @@ def get_dynamic_memory_info():
 
     return memory_info
 
-def get_all_processes():
+def get_all_processes() -> list:
+    """Returns a list of all processes with their PID, name, user, and status."""
     procs = []
     for p in psutil.process_iter(['pid', 'name', 'username', 'status']):
         try:
@@ -189,9 +198,3 @@ def get_all_processes():
             })
         except: pass
     return procs
-
-
-static_cpu_info = get_static_cpu_info()
-
-
-

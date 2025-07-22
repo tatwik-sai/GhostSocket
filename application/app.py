@@ -1,59 +1,50 @@
-import customtkinter as ctk
-import webbrowser
-import re
-from storage import Storage
-import asyncio
+import re, os
+import sys
+import multiprocessing
+import win32com.client
+import win32event
+import win32api
+import winerror
 import threading
-from PIL import Image, ImageDraw
+import webbrowser
 from config import *
-import os
-import requests
-import subprocess 
+import customtkinter as ctk
+from storage import Storage
+from PIL import Image, ImageDraw
 from sender import connect_socket
 from async_requests import post_data
-from utils import get_uuid, get_asset_path
 from componets.toast import Toast
-from pages.loading import LoadingPage
+from PIL import Image, ImageDraw
+from componets.loading import LoadingPage
 from controllers.system_info import get_system_info
+from utils import get_uuid, get_asset_path, download_image_to_assets, create_tray, AsyncLoopThread
 
+
+multiprocessing.freeze_support()
 uuid = get_uuid()
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_DIR = os.path.join(BASE_DIR, "assets")
-
-class AsyncLoopThread:
-    def __init__(self):
-        self.loop = asyncio.new_event_loop()
-        self.thread = threading.Thread(target=self._start_loop, daemon=True)
-        self.thread.start()
-
-    def _start_loop(self):
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_forever()
-
-    def run_coroutine(self, coro):
-        return asyncio.run_coroutine_threadsafe(coro, self.loop)
-
 async_loop = AsyncLoopThread()
 storeage = Storage("ghost_socket")
 stored_data = storeage.get_data()
 
-# Themes and Appearance
+
 ctk.set_appearance_mode("dark")
 
 class App(ctk.CTk):
+    """Main application window for Ghost Socket."""
     def __init__(self, is_logged_in: bool = False, show_home_page=None):
         super().__init__()
         self.title("Ghost Socket")
         self.geometry("800x600")
         self.resizable(False, False)
         self.configure(fg_color="#101012")
+        self.protocol("WM_DELETE_WINDOW", self.withdraw)
         self.show_home_page = show_home_page
 
         icon_path = get_asset_path("icon.ico")
         try:
             self.iconbitmap(icon_path)
         except Exception as e:
-            print(f"Could not load icon: {e}")
+            print(f"[-] Could not load icon: {e}")
 
         self.container = ctk.CTkFrame(self, fg_color="#101012")
         self.container.pack(fill="both", expand=True)
@@ -144,7 +135,7 @@ class LoginPage(ctk.CTkFrame):
         try:
             status, data = await post_data(CHECK_USER_URL, {"email": email})
         except Exception as e:
-            self.toast.show("Error checking user", type="error")
+            self.toast.show("[-] Error checking user", type="error")
             self.login_button.configure(state="normal", text="Login")
             return
         
@@ -415,7 +406,7 @@ class HomePage(ctk.CTkFrame):
 
     def create_page(self):
         async_loop.run_coroutine(connect_socket(uuid))
-        print("Connected to socket server")
+        print("[+] Connected to socket server")
         top_controls = ctk.CTkFrame(self, fg_color="transparent")
         top_controls.pack(fill="x", pady=10, padx=20)
 
@@ -582,50 +573,31 @@ class HomePage(ctk.CTkFrame):
             self.toast.show(data["message"], type="error")
         self.logout_button.configure(state="normal")
 
-def download_image_to_assets(url, path=None):
-    if path is None:
-        path = ASSETS_DIR
-
-    filename = url.split("/")[-1]
-    os.makedirs(path, exist_ok=True)
-    filepath = os.path.join(path, filename)
-
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        with open(filepath, "wb") as f:
-            f.write(response.content)
-        return filepath
-    except Exception as e:
-        print(f"Failed to download image: {e}")
-        return None
-
 async def show_home_page(app):
     try:
-        print("Posting device info to server...")
+        print("[+] Posting device info to server")
         device_info = get_system_info()
         status, data = await post_data(UPDATE_DEVICE_INFO_URL, {"deviceInfo": device_info, "deviceId": uuid})
-        print("Fetching user data...")
+        print("[+] Fetching user data")
         status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
         if status == 404 and data.get("type") == "deleted":
-            print("Device not found or deleted, redirecting to login page...")
+            print("[-] Device not found or deleted, redirecting to login page")
             app.pages[LoadingPage].toast.show("Device not found or deleted", type="error")
             storeage.add_data({"loggedIn": False})
             app.show_page(LoginPage)
             return
-        print("User data fetched, status:", data)
 
         if status != 200:
-            print(f"API Error: {data}")
+            print(f"[-] API Error: {data}")
             app.pages[LoadingPage].toast.show(data.get("message", "Failed to fetch user data"), type="error")
             return
-            
-        print("Downloading profile image...")
+
+        print("[+] Downloading profile image")
         profile_image = download_image_to_assets(data["data"]["profileImage"])
         if not profile_image:
-            profile_image = get_asset_path("profile.webp") 
-            
-        print("Building user data...")
+            profile_image = get_asset_path("profile.webp")
+
+        print("[+] Building user data")
         user_data = {
             "name": data["data"]["name"],
             "email": data["data"]["email"],
@@ -633,25 +605,61 @@ async def show_home_page(app):
             "permissions": [{ "name": str(key), "value": value } for key, value in data["data"]["permissions"].items()],
         }
         
-        print("Setting up home page...")
         HomePage.user_data = user_data
         app.pages[HomePage].clear_page()
         app.pages[HomePage].create_page()
         app.show_page(HomePage)
-        print("Home page loaded successfully")
+        print("[+] Home page loaded successfully")
         
     except Exception as e:
-        print(f"Error in show_home_page: {e}")
+        print(f"[-] Error in show_home_page: {e}")
         import traceback
         traceback.print_exc()
         try:
-            app.pages[LoadingPage].toast.show("Error loading home page", type="error")
+            app.pages[LoadingPage].toast.show("[-] Error loading home page", type="error")
         except:
-            print("Could not show error toast")
+            print("[-] Could not show toast")
+        
+def add_to_startup():   
+    startup_dir = os.path.join(os.environ["APPDATA"], r"Microsoft\\Windows\\Start Menu\\Programs\\Startup")
+    exe_path = sys.executable if getattr(sys, 'frozen', False) else sys.argv[0]
+    shortcut_path = os.path.join(startup_dir, "GhostSocket.lnk")
+
+    if not os.path.exists(shortcut_path):
+        try:
+            shell = win32com.client.Dispatch("WScript.Shell")
+            shortcut = shell.CreateShortCut(shortcut_path)
+            shortcut.Targetpath = exe_path
+            shortcut.WorkingDirectory = os.path.dirname(exe_path)
+            shortcut.IconLocation = exe_path
+            shortcut.save()
+            print("[+] Added to startup.")
+        except Exception as e:
+            print(f"[-] Failed to add to startup: {e}")
+
 
 if __name__ == "__main__":
-    if stored_data and stored_data["loggedIn"]:
-        async_loop.run_coroutine(connect_socket(uuid))
-        print("Connected to socket server - 1")
-    app = App(is_logged_in=stored_data["loggedIn"] if stored_data else False, show_home_page=show_home_page)
-    app.mainloop()
+    mutex = win32event.CreateMutex(None, False, "Global\\GhostSocketAppMutex")
+    last_error = win32api.GetLastError()
+
+    if last_error == winerror.ERROR_ALREADY_EXISTS:
+        print("[-] Another instance is already running.")
+        sys.exit()
+    try:
+        add_to_startup()
+        if stored_data and stored_data["loggedIn"]:
+            async_loop.run_coroutine(connect_socket(uuid))
+            print("[+] Connected to socket server")
+        app = App(is_logged_in=stored_data["loggedIn"] if stored_data else False, show_home_page=show_home_page)
+        tray_thread = threading.Thread(target=create_tray, args=(app,), daemon=True)
+        tray_thread.start()
+        if "--tray" not in sys.argv:
+            app.mainloop()
+        else:
+            app.withdraw()
+            app.mainloop()
+    except Exception as e:
+        import traceback
+        with open("error.log", "w") as f:
+            traceback.print_exc(file=f)
+        raise

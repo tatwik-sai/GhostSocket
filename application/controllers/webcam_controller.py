@@ -4,12 +4,14 @@ from av import VideoFrame
 from aiortc import VideoStreamTrack
 
 class WebcamStreamTrack(VideoStreamTrack):
+    """A video stream track that captures frames from a webcam."""
     paused = False
     def __init__(self):
         super().__init__()
         self.cap = cv2.VideoCapture(0)
 
-    async def recv(self):
+    async def recv(self) -> VideoFrame:
+        """Returns a video frame from the webcam."""
         if self.paused:
             pts, time_base = await self.next_timestamp()
             tiny_frame = np.zeros((1, 1, 3), np.uint8)
@@ -29,9 +31,9 @@ class WebcamStreamTrack(VideoStreamTrack):
     @classmethod
     def pause(cls):
         cls.paused = True
-        print("WebCam track paused")
-    
+        print("[#] WebCam track paused")
+
     @classmethod
     def resume(cls):
         cls.paused = False
-        print("WebCam track resumed")
+        print("[#] WebCam track resumed")

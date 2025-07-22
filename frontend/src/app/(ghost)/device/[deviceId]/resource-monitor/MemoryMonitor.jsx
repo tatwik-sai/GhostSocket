@@ -16,7 +16,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { useResourcesStore } from "@/store/slices/ActiveConnection/ResourcesSlice"
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice"
 
@@ -102,19 +101,6 @@ function StaticMemoryCard() {
                                 </span>
                             </div>
                         </div>
-                        {/* <div className="flex">
-                            <div
-                            className="border-[#ffffff1a] flex flex-col justify-center gap-1
-                             px-7 pr-4 py-2 text-left border-l"
-                            >
-                                <span className="text-muted-foreground text-xs text-[#a1a1a1]">
-                                    Cached
-                                </span>
-                                <span className="text-lg leading-none font-bold sm:text-3xl">
-                                    123
-                                </span>
-                            </div>
-                        </div> */}
                     </div>
 
                     <div className="flex gap-4">

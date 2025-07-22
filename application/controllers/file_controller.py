@@ -6,19 +6,35 @@ import zipfile
 import io
 import base64
 import shutil
-import time
 
+SIZE_IN_KB = 32
+CHUNK_SIZE = SIZE_IN_KB * 1024
 
-CHUNK_SIZE = 32 * 1024  # 32 KB
+def get_full_paths(path: list, files: list) -> list:
+    """    
+    Given a path and a list of files, return the full paths for each file.
 
-def get_full_paths(path, files):
+    Args:
+        path (list): A list representing the path, e.g., ["C:", "Users", "Folder"].
+        files (list): A list of file names to construct full paths for.
+    Returns:
+        list: A list of full paths constructed from the base path and file names.
+    """
     base_path = os.path.join(*path[1:])
     full_paths = []
     for item in files:
         full_paths.append(os.path.join(base_path, item))
     return full_paths
 
-def get_readable_size(size_in_bytes):
+def get_readable_size(size_in_bytes: int) -> str:
+    """
+    Convert size in bytes to a readable format.
+
+    Args:
+        size_in_bytes (int): Size in bytes to convert.
+    Returns:
+    str: Readable size as string.
+    """
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
         if size_in_bytes < 1024:
             return f"{size_in_bytes:.0f} {unit}"
@@ -26,6 +42,12 @@ def get_readable_size(size_in_bytes):
     return f"{size_in_bytes:.0f} PB"
 
 def get_root_folders_structure():
+    """
+    Retrieve the structure of root folders on Windows(Partitions).
+
+    Returns:
+        list: A list of dictionaries representing root folders with their names, types, and sizes.
+    """
     drives = psutil.disk_partitions(all=False)
     folders = []
     for drive in drives:
@@ -41,24 +63,37 @@ def get_root_folders_structure():
                 continue
     return folders
 
-def construct_windows_path(path_parts):
-    """Construct a proper Windows path from path parts"""
+def construct_windows_path(path_parts: list) -> str:
+    """
+    Construct a Windows path from a list of path parts.
+
+    Args:
+        path_parts (list): A list of path components, e.g., ["D:", "Downloads", "Folder"].
+    Returns:
+        str: A constructed Windows path.
+    """
     if not path_parts:
         return ""
     
     if len(path_parts) == 1 and path_parts[0].endswith(':'):
-        # Drive root: "D:" -> "D:\"
+        # Partition only
         return path_parts[0] + '\\'
     elif path_parts[0].endswith(':'):
-        # Drive with subdirectories: ["D:", "MSFS", "Folder"] -> "D:\MSFS\Folder"
+        # Partition with subdirectories
         drive = path_parts[0] + '\\'
         subdirs = path_parts[1:]
         return os.path.join(drive, *subdirs)
     else:
-        # Regular path joining
+        # Path joining
         return os.path.join(*path_parts)
 
-def get_file_structure(path_array):
+def get_file_structure(path_array: list) -> list:
+    """
+    Retrieve the file structure for a given path on Windows.
+
+    Args:
+        path_array (list): A list representing the path, e.g., ["C:", "Users", "Folder"].
+    """
     if path_array == ["root"]:
         return get_root_folders_structure()
     
@@ -135,7 +170,14 @@ def get_file_structure(path_array):
     except Exception as e:
         return [{"*error": "Failed to parse PowerShell output", "*details": str(e), "*raw": result.stdout.strip()}]
 
-def zip_folder_and_files(paths):
+def zip_folder_and_files(paths: list) -> io.BytesIO:
+    """
+    Create a zip file from all the specified paths.
+    Args:
+        paths (list): A list of file or folder paths to include in the zip.
+    Returns:
+        io.BytesIO: A BytesIO object containing the zip file data.
+    """
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
         for path in paths:
@@ -152,11 +194,20 @@ def zip_folder_and_files(paths):
     return zip_buffer
 
 def send_chunks(paths, data_channel):
+    """
+    Send the contents of the specified paths as chunks over the data channel.
+
+    Args:
+        paths (list): A list of file or folder paths to zip and send.
+        data_channel: The channel to send the data over.
+    Yields:
+        dict: A dictionary containing the chunk metadata.
+    """
     zip_data = zip_folder_and_files(paths).read()
     total_size = len(zip_data)
 
     data_channel.send(json.dumps({"type": "zip_start", "size": total_size}))
-    print(f"📦 Sending zip of size {get_readable_size(total_size)}")
+    print(f"[+] Sending zip of size {get_readable_size(total_size)}")
 
     for i in range(0, total_size, CHUNK_SIZE):
         chunk = zip_data[i:i + CHUNK_SIZE]
@@ -168,19 +219,24 @@ def send_chunks(paths, data_channel):
         })
 
     data_channel.send(json.dumps({"type": "zip_end"}))
-    print("✅ ZIP transfer completed")
+    print("[+] ZIP transfer completed")
 
-def delete_files(paths):
+def delete_files(paths: list) -> None:
+    """
+    Delete the specified files or folders.
+    Args:
+        paths (list): A list of file or folder paths to delete.
+    """
     for path in paths:
         try:
             if os.path.isfile(path) or os.path.islink(path):
                 os.remove(path)
-                print(f"Deleted file: {path}")
+                print(f"[+] Deleted file: {path}")
             elif os.path.isdir(path):
                 shutil.rmtree(path)
-                print(f"Deleted folder: {path}")
+                print(f"[+] Deleted folder: {path}")
             else:
-                print(f"Path does not exist: {path}")
+                print(f"[-] Path does not exist: {path}")
         except Exception as e:
-            print(f"Failed to delete {path}: {e}")
+            print(f"[-] Failed to delete {path}: {e}")
 

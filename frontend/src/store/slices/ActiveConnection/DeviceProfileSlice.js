@@ -1,4 +1,3 @@
-// Create a zustand slice for file management
 import { create } from "zustand";
 
 export const createDeviceProfileSlice = (set) => ({

@@ -1,4 +1,3 @@
-import { get } from "lodash";
 import { create } from "zustand";
 
 export const createDevicesSlice = (set, get) => ({
@@ -29,7 +28,7 @@ export const createDevicesSlice = (set, get) => ({
   },
   addMyDevice: (device) => set((state) => ({ myDevices: [...state.myDevices, device] })),
   getDeviceById: (deviceId, type) => {
-    const state = get(); // Get current state
+    const state = get();
     const devices = type === 'myDevices' ? state.myDevices : state.availableDevices;
     return devices.find(device => 
       device._id === deviceId || 

@@ -61,7 +61,7 @@ const ClientTerminal = () => {
           setIsExecuting(true);
         }
 
-    } else if (data === '\x7f') { // Backspace (ASCII DELETE)
+    } else if (data === '\x7f') { // Backspace
         if (inputBuffer.current.length > 0) {
             inputBuffer.current = inputBuffer.current.slice(0, -1);
             xtermInstance.current.write('\b \b');
@@ -107,8 +107,8 @@ const ClientTerminal = () => {
           cursorBlink: true,
           fontFamily: '"Fira Code", "JetBrains Mono", "Source Code Pro", monospace',
           fontSize: 16,
-          cols: Math.floor(rect.width / 9) || 80, // Estimate columns based on width
-          rows: Math.floor(rect.height / 17) || 24, // Estimate rows based on height
+          cols: Math.floor(rect.width / 9) || 80, // Estimated columns based on width
+          rows: Math.floor(rect.height / 17) || 24, // Estimated rows based on height
           theme: {
             background: '#101012',
             foreground: '#FFFFFF',

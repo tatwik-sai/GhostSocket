@@ -1,16 +1,18 @@
+import os
 import json
 import socketio
-from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate
-import os
 from config import API_BASE
-from controllers.file_controller import get_file_structure, send_chunks, delete_files, get_full_paths
-from controllers.terminal_controller import cmd, cd
 from controllers.resource_controller  import *
-from controllers.remote_controller import handle_keyboard_event, handle_mouse_event
+from controllers.terminal_controller import cmd, cd
 from controllers.webcam_controller import WebcamStreamTrack
 from controllers.screen_controller import ScreenStreamTrack
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate
+from controllers.remote_controller import handle_keyboard_event, handle_mouse_event
+from controllers.file_controller import get_file_structure, send_chunks, delete_files, get_full_paths
+
 
 sio = socketio.AsyncClient()
+static_cpu_info = get_static_cpu_info()
 pc = None
 udp_channel = None
 tcp_channel = None
@@ -18,9 +20,9 @@ file_stream = None
 permissions = None
 
 
-async def pause_track(track_name):  
+async def pause_track(track_name):
     if not pc:
-        print("PeerConnection is not active.")
+        print("[-] PeerConnection is not active.")
         return
 
     for sender in pc.getSenders():
@@ -28,7 +30,7 @@ async def pause_track(track_name):
             if (
                 track_name == "screen" and isinstance(sender.track, ScreenStreamTrack)
             ):
-                print("🖥️ Pausing screen track")
+                print("[#] Pausing screen track")
                 sender.track.pause()
                 await sio.emit("screen_paused")
                 break
@@ -36,14 +38,14 @@ async def pause_track(track_name):
             elif (
                 track_name == "webcam" and isinstance(sender.track, WebcamStreamTrack)
             ):
-                print("📷 Pausing webcam track")
+                print("[#] Pausing webcam track")
                 sender.track.pause()
                 await sio.emit("webcam_paused")
                 break
 
 async def resume_track(track_name):
     if not pc:
-        print("PeerConnection is not active.")
+        print("[-] PeerConnection is not active.")
         return
 
     for sender in pc.getSenders():
@@ -51,7 +53,7 @@ async def resume_track(track_name):
             if (
                 track_name == "screen" and isinstance(sender.track, ScreenStreamTrack)
             ):
-                print("🖥️ Resuming screen track")
+                print("[#] Resuming screen track")
                 sender.track.resume()
                 await sio.emit("screen_resumed")
                 break
@@ -59,18 +61,18 @@ async def resume_track(track_name):
             elif (
                 track_name == "webcam" and isinstance(sender.track, WebcamStreamTrack)
             ):
-                print("📷 Resuming webcam track")
+                print("[#] Resuming webcam track")
                 sender.track.resume()
                 await sio.emit("webcam_resumed")
                 break
 
 def handle_udp_message(message):
-    print("📨 Received from UDP channel:", message)
+    print("[+] Received from UDP channel:", message)
     if isinstance(message, str):
         try:
             message = json.loads(message)
         except json.JSONDecodeError:
-            print(f"Invalid JSON: {message}")
+            print(f"[-] Invalid JSON: {message}")
             return
     if not permissions.get("remoteControl", None):
         return
@@ -81,18 +83,17 @@ def handle_udp_message(message):
     
 def handle_tcp_message(message):
     global file_stream
-    print("📨 Received from TCP channel:", message)
+    print("[+] Received from TCP channel:", message)
     if isinstance(message, str):
         try:
             message = json.loads(message)
         except json.JSONDecodeError:
-            print(f"Invalid JSON: {message}")
+            print(f"[-] Invalid JSON: {message}")
             return
     if permissions.get("fileAccess", None):
         if message.get("type") == "get_files":
             response = get_file_structure(message.get("path", []))
             tcp_channel.send(json.dumps({"type":"get_files_response", "files": response, "path": message.get("path", [])}))
-            print(f"Sent files for path {message.get('path', [])} to browser: {response}")
             return
         elif message.get("type") == "download_files":
             files = message.get("files", [])
@@ -103,17 +104,17 @@ def handle_tcp_message(message):
             tcp_channel.send(next(file_stream))
             return
         elif message.get("type") == "cancel_download":
-            print("Download cancelled by user")
+            print("[#] Download cancelled by user")
             file_stream = None
             return
         elif message.get("type") == "zip_ack":
             try:
                 if file_stream is None:
-                    print("No active file stream to send")
+                    print("[-] No active file stream to send")
                     return
                 tcp_channel.send(next(file_stream))
             except StopIteration:
-                print("✅ All chunks sent successfully")
+                print("[+] All chunks sent successfully")
             return
         elif message.get("type") == "delete_files":
             files = message.get("files", [])
@@ -127,28 +128,26 @@ def handle_tcp_message(message):
     if permissions.get("terminalAccess", None):
         if message.get("type") == "execute_command":
             command = message.get("command", "")
+            print(f"[+] Executing command: {command}")
             if command:
-                print(f"Executing command: {command}")
                 if command.startswith("cd "):
                     path = command[3:].strip()
                     output = cd(path)
                     if output["success"]:
-                        print(f"Changed directory to: {output['path']}")
                         tcp_channel.send(json.dumps({"type": "terminal_cd", "path": output["path"], "command": command}))
                     else:
-                        print(f"Error changing directory: {output['message']}")
+                        print(f"[-] Error changing directory: {output['message']}")
                         tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
                 else:
                     output = cmd(command)
                     if output["success"]:
-                        print(f"Command executed successfully: {output['output']}")
                         tcp_channel.send(json.dumps({"type": "terminal_cmd", "output": output["output"], "command": command}))
                     else:
-                        print(f"Error executing command: {output['message']}")
+                        print(f"[-] Error executing command: {output['message']}")
                         tcp_channel.send(json.dumps({"type": "terminal_error", "message": output["message"], "command": command}))
                         print(1)
             else:
-                print("No command provided to execute")
+                print("[-] No command provided to execute")
             return
         elif message.get("type") == "get_user_and_path":
             tcp_channel.send(json.dumps({
@@ -204,17 +203,17 @@ def handle_tcp_message(message):
 
 @sio.event
 async def connect():
-    print("✅ Connected to signaling server")
+    print("[+] Connected to signaling server")
 
 @sio.on("initiate-webrtc")
 async def initiate_webrtc():
     global pc, udp_channel, tcp_channel, handle_udp_message, handle_tcp_message
     pc = RTCPeerConnection()
-    print("▶️ Received start signal from viewer")
+    print("[+] Received start signal from viewer")
     @pc.on("icecandidate")
     async def on_icecandidate(candidate):
         if candidate:
-            print("🧊 Sending ICE candidate to viewer")
+            print("[+] Sending ICE candidate to viewer")
             await sio.emit("webrtc-ice-candidate", {
                 "ice": {
                     "candidate": candidate.candidate,
@@ -225,11 +224,11 @@ async def initiate_webrtc():
     
     @pc.on("connectionstatechange")
     async def on_connectionstatechange():
-        print(f"🔗 Connection state: {pc.connectionState}")
-    
+        print(f"[+] Connection state: {pc.connectionState}")
+
     @pc.on("iceconnectionstatechange")
     async def on_iceconnectionstatechange():
-        print(f"🧊 ICE connection state: {pc.iceConnectionState}")
+        print(f"[+] ICE connection state: {pc.iceConnectionState}")
 
     webcam_track = WebcamStreamTrack()
     screen_track = ScreenStreamTrack()
@@ -241,37 +240,35 @@ async def initiate_webrtc():
 
     @tcp_channel.on("open")
     def on_tcp_open():
-        print("✅ TCP Data channel opened")
+        print("[+] TCP Data channel opened")
 
     @tcp_channel.on("message")
     def on_tcp_message(message):
         handle_tcp_message(message)
-        # tcp_channel.send("Hello from TCP channel!")
 
     @tcp_channel.on("error")
     def on_tcp_error(error):
-        print(f"❌ TCP channel error: {error}")
+        print(f"[-] TCP channel error: {error}")
 
     @tcp_channel.on("close")
     def on_tcp_close():
-        print("❌ TCP channel closed")
+        print("[-] TCP channel closed")
 
     @udp_channel.on("open")
     def on_udp_open():
-        print("✅ UDP Data channel opened")
+        print("[+] UDP Data channel opened")
 
     @udp_channel.on("message")
     def on_udp_message(message):
         handle_udp_message(message)
-        # udp_channel.send("Hello from UDP channel!")
 
     @udp_channel.on("error")
     def on_udp_error(error):
-        print(f"❌ UDP channel error: {error}")
-    
+        print(f"[-] UDP channel error: {error}")
+
     @udp_channel.on("close")
     def on_udp_close():
-        print("❌ UDP channel closed")
+        print("[-] UDP channel closed")
 
     offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
@@ -282,19 +279,19 @@ async def initiate_webrtc():
         "type": pc.localDescription.type,
         }
     })
-    print(f"📨 Sent offer")
+    print(f"[+] Sent offer")
 
 @sio.on("permissions")
 async def on_permissions(data):
     global permissions
     permissions = data.get("permissions", {})
-    print(  permissions)
+    print(f"[+] Received permissions")
 
 @sio.on("stop-webrtc")
 async def stop_webrtc():
     global pc, udp_channel, tcp_channel
-    print("🔴 Received stop signal from viewer")
-    
+    print("[-] Received stop signal from viewer")
+
     if udp_channel:
         udp_channel.close()
         udp_channel = None
@@ -310,38 +307,35 @@ async def stop_webrtc():
 
 @sio.on("webrtc-answer")
 async def on_answer(data):
-    print("✅ Got answer")
+    print("[+] Received answer")
     await pc.setRemoteDescription(RTCSessionDescription(sdp=data["answer"]["sdp"], type=data["answer"]["type"]))
 
 @sio.on("webrtc-ice-candidate")
 async def webrtc_ice_candidate(data):
     global pc
-    print("🧊 Received ICE candidate from browser")
-    
+    print("[+] Received ICE candidate from browser")
+
     if pc and data.get("ice"):
         try:
             ice_data = data["ice"]
             candidate_string = ice_data["candidate"]
             
-            # Parse the candidate string manually
             parts = candidate_string.split()
             
             if len(parts) >= 8:
-                foundation = parts[0].split(':')[1]  # Remove "candidate:" prefix
+                foundation = parts[0].split(':')[1] 
                 component = int(parts[1])
                 protocol = parts[2].lower()
                 priority = int(parts[3])
                 ip = parts[4]
                 port = int(parts[5])
                 
-                # Find the type (host, srflx, relay, etc.)
-                type_value = "host"  # default
+                type_value = "host"
                 for i, part in enumerate(parts):
                     if part == "typ" and i + 1 < len(parts):
                         type_value = parts[i + 1]
                         break
                 
-                # Create RTCIceCandidate with parsed values
                 candidate = RTCIceCandidate(
                     component=component,
                     foundation=foundation,
@@ -357,24 +351,23 @@ async def webrtc_ice_candidate(data):
                 candidate.sdpMLineIndex = ice_data.get("sdpMLineIndex")
                 
                 await pc.addIceCandidate(candidate)
-                print("✅ Added ICE candidate from browser")
+                print("[+] Added ICE candidate from browser")
             else:
-                print(f"⚠️ Invalid candidate format: {candidate_string}")
-                
+                print(f"[-] Invalid candidate format: {candidate_string}")
+
         except Exception as e:
-            print(f"❌ Failed to add ICE candidate: {e}")
+            print(f"[-] Failed to add ICE candidate: {e}")
             print(f"Raw candidate string: {data['ice']['candidate']}")
             
-            # Check if it's an end-of-candidates signal
             if not data['ice']['candidate'].strip():
-                print("🧊 End of ICE candidates")
+                print("[-] End of ICE candidates")
                 return
     else:
-        print("⚠️ No peer connection or invalid ICE candidate data")
+        print("[-] No peer connection or invalid ICE candidate data")
 
 @sio.on("from-user")
 async def from_user(data):
-    print(f"📨 Received message from user: {data['message']}")
+    print(f"[+] Received message from user: {data['message']}")
     if data["message"] == "pause_screen":
         await pause_track("screen")
     elif data["message"] == "resume_screen":

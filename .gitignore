@@ -45,4 +45,18 @@ __pycache__/
 *.pyc
 dist/
 *.log
-webtrc-env/
+webrtc-env/
+
+# Building the Application
+test/
+app.build/
+app.dist/
+app.onefile-build/
+build/
+dist/
+app.exe
+app.spec
+error.log
+GhostSocket_Setup.exe
+setup.iss
+setup.py

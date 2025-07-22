@@ -9,12 +9,14 @@ import win32ui
 import win32con
 
 class ScreenStreamTrack(VideoStreamTrack):
+    """ A video stream track that captures the screen. """
     paused = False
     def __init__(self):
         super().__init__()
         self.is_screen_track = True
 
-    async def recv(self):
+    async def recv(self) -> VideoFrame:
+        """ Return's the next video frame. """
         if self.paused:
             pts, time_base = await self.next_timestamp()
             tiny_frame = np.zeros((1, 1, 3), np.uint8)
@@ -32,18 +34,20 @@ class ScreenStreamTrack(VideoStreamTrack):
         frame.pts = pts
         frame.time_base = time_base
         return frame
-    
-    def capture_screen(self):
+
+    def capture_screen(self) -> np.ndarray:
+        """Captures the entire screen."""
         try:
             screenshot = ImageGrab.grab()
             img = np.array(screenshot)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             return img
         except Exception as e:
-            print(f"Failed to capture screen: {e}")
+            print(f"[-] Failed to capture screen: {e}")
             return None
     
-    def capture_screen_with_cursor(self):
+    def capture_screen_with_cursor(self) -> np.ndarray:
+        """Captures the entire screen including the cursor."""
         try:
             hdesktop = win32gui.GetDesktopWindow()
             width = win32api.GetSystemMetrics(win32con.SM_CXSCREEN)
@@ -67,7 +71,7 @@ class ScreenStreamTrack(VideoStreamTrack):
                     
                     win32gui.DrawIcon(mem_dc.GetSafeHdc(), cursor_x, cursor_y, cursor_handle)
             except Exception as cursor_error:
-                print(f"Could not draw cursor: {cursor_error}")
+                print(f"[-] Could not draw cursor: {cursor_error}")
             
             bmpstr = screenshot.GetBitmapBits(True)
             img = np.frombuffer(bmpstr, dtype='uint8')
@@ -79,7 +83,7 @@ class ScreenStreamTrack(VideoStreamTrack):
             return img
             
         except Exception as e:
-            print(f"Failed to capture with cursor: {e}")
+            print(f"[-] Failed to capture with cursor: {e}")
             screenshot = ImageGrab.grab()
             img = np.array(screenshot)
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -88,12 +92,12 @@ class ScreenStreamTrack(VideoStreamTrack):
     @classmethod
     def pause(cls):
         cls.paused = True
-        print("Screen track paused")
+        print("[#] Screen track paused")
     
     @classmethod
     def resume(cls):
         cls.paused = False
-        print("Screen track resumed")
+        print("[#] Screen track resumed")
 
     def stop(self):
         super().stop()

@@ -37,7 +37,6 @@ const NavigationBar = () => {
             <ClipLoader
             color={"#FFFFFF80"}
             loading={true}
-            // cssOverride={override}
             size={20}
             aria-label="Loading Spinner"
             data-testid="loader"

@@ -2,9 +2,13 @@ import { Router } from "express";
 import { getDeviceInfo, getMyDevices, getOtherDevices, updateName, uplodFile, getUploads, deleteDevice} from "../controllers/DeviceController.js";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
 import multer from "multer";
+import fs from "fs";
 
 
 const deviceRoutes = Router()
+if (!fs.existsSync("./uploads")) {
+    fs.mkdirSync("./uploads", { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "./uploads"),

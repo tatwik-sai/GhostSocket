@@ -1,5 +1,4 @@
 "use client";
-import { SocketProvider } from "@/context/SocketContext";
 import Image from "next/image";
 import { navItems } from "./nav_items";
 import Link from "next/link";
@@ -33,30 +32,30 @@ export default function ConsoleLayout({ children }) {
   return (
         <div className="flex w-[100vw] h-[100vh]">
             <div className="flex flex-col w-[250px] md:w-[280px] bg-dark-3">
-                <div className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-10">
+                <Link href={"/"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-10 cursor-pointer">
                   <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
                   <h1 className="text-2xl font-bold text-white">GhostSocket</h1>                                  
-                </div>
+                </Link>
                 {isLoaded ? (
                 <div className="flex items-center gap-3 mb-10 pr-5 pl-3 cursor-pointer" 
                 onClick={() => openUserProfile({
                   appearance: {
                       baseTheme: "dark",
                       variables: {
-                          colorPrimary: "#6C28D9", // Your blue color
-                          colorBackground: "#1F1F22", // Match your bg-dark-1
-                          colorInputBackground: "#ffffff1a", // Match your bg-dark-3
+                          colorPrimary: "#6C28D9", 
+                          colorBackground: "#1F1F22",
+                          colorInputBackground: "#ffffff1a",
                           colorInputText: "#ffffff",
                           colorText: "#ffffff",
-                          colorTextSecondary: "#a1a1a1", // More subtle gray
+                          colorTextSecondary: "#a1a1a1",
                           colorShimmer: "#ffffff",
                           colorAlphaShade: "rgba(255, 255, 255, 0.05)",
                           borderRadius: "5px",
                           fontFamily: "inherit",
-                          colorDanger: "#ef4444", // Red for delete/danger actions
-                          colorSuccess: "#10b981", // Green for success states
-                          colorWarning: "#f59e0b", // Orange for warnings
-                      }     
+                          colorDanger: "#ef4444",
+                          colorSuccess: "#10b981",
+                          colorWarning: "#f59e0b",
+                      }
                   },
               })}>
                   <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={55} height={55} className="rounded-full object-cover"/>

@@ -1,4 +1,5 @@
-API_BASE = "http://localhost:8747/app"
+SERVER_URL = "http://localhost:8747"
+API_BASE = f"{SERVER_URL}/app"
 CHECK_USER_URL = f"{API_BASE}/check-user"
 VERIFY_OTP_URL = f"{API_BASE}/verify-otp"
 VERIFY_PASSWORD_URL = f"{API_BASE}/verify-password"

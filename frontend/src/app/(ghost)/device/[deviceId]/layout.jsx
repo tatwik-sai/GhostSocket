@@ -12,8 +12,6 @@ import { useStreamsAndConnectionStore } from '@/store/slices/ActiveConnection/St
 import { useTerminalStore } from '@/store/slices/ActiveConnection/TerminalSlice';
 import { getReadableSize } from '@/utils/utilities';
 import { useResourcesStore } from '@/store/slices/ActiveConnection/ResourcesSlice';
-import dynamic from 'next/dynamic';
-import { add, set } from 'lodash';
 import { FaWindows } from 'react-icons/fa';
 import { useAuth } from '@clerk/clerk-react';
 import { useDeviceProfileStore } from '@/store/slices/ActiveConnection/DeviceProfileSlice';
@@ -45,7 +43,7 @@ const ControlPanelLayout = ({children}) => {
     const {peerConnection, setAudioStream , setScreenStream, setWebcamStream, 
         setPeerConnection, setTcpDataChannel, setUdpDataChannel, resetStreamsAndConnection} = useStreamsAndConnectionStore()
     
-    const {xtermInstance, setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName, resetTerminal} = useTerminalStore();
+    const {setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName, resetTerminal} = useTerminalStore();
 
     const {setStaticCPUInfo, setDynamicCPUInfo, setStaticMemoryInfo, setDynamicMemoryInfo,
          addToCPUChartData, addToMemoryChartData ,setProcessesList, resetResources} = useResourcesStore();
@@ -90,9 +88,7 @@ const ControlPanelLayout = ({children}) => {
             }
         }, 1000), [])
 
-    const initializeWebRTC = () => {
-        console.log("🔧 Initializing WebRTC connection");
-        
+    const initializeWebRTC = () => {        
         // Close existing connection if it exists
         if (peerConnection) {
             peerConnection.close();
@@ -108,10 +104,10 @@ const ControlPanelLayout = ({children}) => {
         // Set it in the store
         setPeerConnection(newPeerConnection);
         
-        // Add ICE candidate handler - THIS WAS MISSING!
+        // Addding ICE candidate handler
         newPeerConnection.onicecandidate = (event) => {
             if (event.candidate && socket?.current) {
-                console.log("🧊 Sending ICE candidate to device");
+                console.log("Sending ICE candidate to device");
                 socket.current.emit("webrtc-ice-candidate", {
                     deviceId,
                     ice: {
@@ -121,25 +117,25 @@ const ControlPanelLayout = ({children}) => {
                     }
                 });
             } else if (!event.candidate) {
-                console.log("🧊 ICE gathering completed");
+                console.log("ICE gathering completed");
             }
         };
                 
-        // Set up track handler on the new connection (not the state variable)
+        // Set up track handler on the new connection
         newPeerConnection.ontrack = (event) => {
-            console.log("📺 Received track from device", event.track.kind);
+            console.log("Received track from device", event.track.kind);
             if (event.track.kind === "video") {
                 const stream = new MediaStream([event.track]);
                 const currentState = useStreamsAndConnectionStore.getState();
                 if (!currentState.screenStream) {
-                    console.log("🖥️ Setting screen video");
+                    console.log("Setting screen video");
                     setScreenStream(stream);
                 } else if (!currentState.webcamStream) {
-                    console.log("📹 Setting webcam video");
+                    console.log("Setting webcam video");
                     setWebcamStream(stream);
                 }
             } else if (event.track.kind === "audio") {
-                console.log("🔊 Setting audio stream");
+                console.log("Setting audio stream");
                 const stream = new MediaStream([event.track]);
                 setAudioStream(stream);
             }
@@ -149,10 +145,10 @@ const ControlPanelLayout = ({children}) => {
         newPeerConnection.onconnectionstatechange = () => {
             console.log("🔗 Connection State:", newPeerConnection.connectionState);
             if (newPeerConnection.connectionState === "connected") {
-                console.log("✅ WebRTC fully connected");
+                console.log("WebRTC fully connected");
                 setConnectButtonState({inProcess: false, text: "Disconnect"});
             } else if (newPeerConnection.connectionState === "disconnected" || newPeerConnection.connectionState === "failed") {
-                console.log("❌ WebRTC disconnected or failed");
+                console.log("WebRTC disconnected or failed");
                 setConnectButtonState({inProcess: false, text: "Connect"});
                 // Clear video sources
                 setScreenStream(null);
@@ -164,14 +160,14 @@ const ControlPanelLayout = ({children}) => {
         // Set up data channel handler
         newPeerConnection.ondatachannel = (event) => {
             const dChannel = event.channel;
-            console.log(`📡 Received data channel: ${dChannel.label}`);
+            console.log(`Received data channel: ${dChannel.label}`);
             
             if (dChannel.label === "tcp") {
-                console.log("📡 TCP Data channel established");
+                console.log("TCP Data channel established");
                 setTcpDataChannel(dChannel);
                 
                 dChannel.onopen = () => {
-                    console.log("✅ TCP Data channel open");
+                    console.log("TCP Data channel open");
                     dChannel.send(JSON.stringify({ type: 'get_user_and_path'}));
                 };
                 
@@ -179,7 +175,6 @@ const ControlPanelLayout = ({children}) => {
                     try {
                         const parsed_data = JSON.parse(e.data);
                         const {xtermInstance} = useTerminalStore.getState();
-                        const {tcpDataChannel} = useStreamsAndConnectionStore.getState();
                         
                         if (parsed_data.type === "get_files_response") {
                             addFilesToPath(parsed_data.path, parsed_data.files);
@@ -192,7 +187,7 @@ const ControlPanelLayout = ({children}) => {
                             toast.success("Files deleted successfully");
                         }
                         else if (parsed_data.type === "zip_start") {
-                            console.log("📦 ZIP download started, size:", parsed_data.size);
+                            console.log("ZIP download started, size:", parsed_data.size);
                             setDownloadFileSize(getReadableSize(parsed_data.size));
                             window.zipDownload = {
                                 buffer: new Uint8Array(parsed_data.size),
@@ -207,7 +202,7 @@ const ControlPanelLayout = ({children}) => {
                         } 
                         else if (parsed_data.type === "zip_chunk") {
                             if (!window.zipDownload) {
-                                console.error("❌ Received chunk but no download initialized");
+                                console.error("Received chunk but no download initialized");
                                 return;
                             }
                             
@@ -236,24 +231,22 @@ const ControlPanelLayout = ({children}) => {
                                 
                                 const progress = (window.zipDownload.receivedBytes / window.zipDownload.totalSize) * 100;
                                 setDownloadProgress(Math.round(progress));
-                                console.log(`📦 Download progress: ${progress.toFixed(1)}%`);
+                                console.log(`Download progress: ${progress.toFixed(1)}%`);
                             } catch (error) {
-                                console.error("❌ Error processing chunk:", error);
+                                console.error("Error processing chunk:", error);
                                 toast.error("Error processing download chunk");
                             }
                         } 
                         else if (parsed_data.type === "zip_end") {
-                            console.log("📦 ZIP download completed");
+                            console.log("ZIP download completed");
                             
                             if (window.zipDownload) {
                                 const downloadTime = (Date.now() - window.zipDownload.startTime) / 1000;
                                 const speed = (window.zipDownload.totalSize / downloadTime / 1024).toFixed(1);
-                                
-                                console.log(`📦 Download stats: ${downloadTime.toFixed(1)}s, ${speed} KB/s, ${window.zipDownload.chunksReceived} chunks`);
-                                
+                                                                
                                 // Verify we received all data
                                 if (window.zipDownload.receivedBytes !== window.zipDownload.totalSize) {
-                                    console.warn(`⚠️ Size mismatch: expected ${window.zipDownload.totalSize}, got ${window.zipDownload.receivedBytes}`);
+                                    console.warn(`Size mismatch: expected ${window.zipDownload.totalSize}, got ${window.zipDownload.receivedBytes}`);
                                     toast.warning("Download may be incomplete");
                                 }
                                 
@@ -277,7 +270,7 @@ const ControlPanelLayout = ({children}) => {
                             setIsDownloading(false);
                         }
                         else if (parsed_data.type === "zip_error") {
-                            console.error("❌ Server reported zip error:", parsed_data.message);
+                            console.error("Server reported zip error:", parsed_data.message);
                             toast.error(`Download failed: ${parsed_data.message}`);
                             setIsDownloading(false);
                             if (window.zipDownload) {
@@ -352,13 +345,11 @@ const ControlPanelLayout = ({children}) => {
                             setIsExecuting(false);
                         }
                         else if (parsed_data.type === "user_and_path") {
-                            console.log('Received user and path:', parsed_data);
                             setSystemUserName(parsed_data.user);
                             setCurrentPath(parsed_data.path);
                         }
                         else if (parsed_data.type === "static_cpu_info") {
                             setStaticCPUInfo(parsed_data.cpu_info);
-                            console.log("****Received static CPU info:", parsed_data.cpu_info);
                         }
                         else if (parsed_data.type === "dynamic_cpu_info") {
                             const {dynamicCPUInfo} = useResourcesStore.getState();
@@ -376,13 +367,11 @@ const ControlPanelLayout = ({children}) => {
                         }
                         else if (parsed_data.type === "static_memory_info") {
                             setStaticMemoryInfo(parsed_data.memory_info);
-                            console.log("Received static memory info:", parsed_data.info);
                         }
                         else if (parsed_data.type === "dynamic_memory_info") {
                             setDynamicMemoryInfo(parsed_data.memory_info);
                             addToMemoryChartData(parsed_data.memory_info.utilization);
                             debouncedGetMemoryInfo();
-                            console.log("Received dynamic memory info:", parsed_data.info);
                         }
                         else if (parsed_data.type === "processes") {
                             const processes = parsed_data.processes;
@@ -395,13 +384,13 @@ const ControlPanelLayout = ({children}) => {
                         }
                         
                     } catch (error) {
-                        console.error("❌ Error parsing TCP message:", error);
+                        console.error("Error parsing TCP message:", error);
                         toast.error("Error processing server message");
                     }
                 };
                 
                 dChannel.onerror = (error) => {
-                    console.error("❌ TCP Data channel error:", error);
+                    console.error("TCP Data channel error:", error);
                     toast.error("Data transfer failed");
                     setIsDownloading(false);
                     if (window.zipDownload) {
@@ -410,11 +399,11 @@ const ControlPanelLayout = ({children}) => {
                 };
 
                 dChannel.onclose = () => {
-                    console.log("❌ TCP Data channel closed");
+                    console.log("TCP Data channel closed");
                     setTcpDataChannel(null);
                     setIsDownloading(false);
                     if (window.zipDownload) {
-                        console.log("⚠️ Download interrupted - channel closed");
+                        console.log("Download interrupted - channel closed");
                         delete window.zipDownload;
                     }
                 };
@@ -425,7 +414,6 @@ const ControlPanelLayout = ({children}) => {
 
                 dChannel.onopen = () => {
                     console.log("UDP Data channel open");
-                    // dChannel.send("Hello from UDP browser");
                 };
 
                 dChannel.onmessage = (e) => {
@@ -441,7 +429,7 @@ const ControlPanelLayout = ({children}) => {
 
         // Set up ICE connection state handler
         newPeerConnection.oniceconnectionstatechange = () => {
-            console.log("🧊 ICE Connection State:", newPeerConnection.iceConnectionState);
+            console.log("ICE Connection State:", newPeerConnection.iceConnectionState);
         };
         
         // Return the new connection for immediate use
@@ -451,10 +439,10 @@ const ControlPanelLayout = ({children}) => {
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
 
-        console.log("🚀 Setting up socket listeners");
+        console.log("Setting up socket listeners");
 
         const handleWebRTCOffer = async (data) => {
-            console.log("📩 Received WebRTC offer from device", data);
+            console.log("Received WebRTC offer from device", data);
             try {
                 let currentPeerConnection = peerConnection;
                 
@@ -471,27 +459,27 @@ const ControlPanelLayout = ({children}) => {
                     deviceId,
                     answer: currentPeerConnection.localDescription,
                 });
-                console.log("📤 Sent WebRTC answer to device");
+                console.log("Sent WebRTC answer to device");
             } catch (error) {
-                console.error("❌ Error handling WebRTC offer:", error);
+                console.error("Error handling WebRTC offer:", error);
                 setConnectButtonState({inProcess: false, text: "Connect"});
             }
         };
 
         const handleICECandidate = async (data) => {
-            console.log("🧊 Received ICE candidate from device");
+            console.log("Received ICE candidate from device");
             try {
                 if (peerConnection && data.ice) {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.ice));
-                    console.log("✅ Added ICE candidate from device");
+                    console.log("Added ICE candidate from device");
                 }
             } catch (error) {
-                console.error("❌ Failed to add ICE candidate:", error);
+                console.error("Failed to add ICE candidate:", error);
             }
         };
 
         const handleStopWebRTC = (deviceIssue = false) => {
-            console.log("🔌 Stopping WebRTC connection");
+            console.log("Stopping WebRTC connection");
             setScreenStream(null);
             setWebcamStream(null);
             setAudioStream(null);
@@ -524,7 +512,7 @@ const ControlPanelLayout = ({children}) => {
                 }
             }));
             setPermissions(updatedPermissions);
-            console.log("📜 Received permissions from device:", updatedPermissions);
+            console.log("Received permissions from device:", updatedPermissions);
 
         })
         socket.current.on("error", (data) => {
@@ -604,7 +592,7 @@ const ControlPanelLayout = ({children}) => {
         }
 
         if (peerConnection?.connectionState === "connected") {
-            console.log("🔌 Disconnecting from stream");
+            console.log("Disconnecting from stream");
             socket.current.emit("stop-webrtc");
             setConnectButtonState({inProcess: true, text: "Disconnecting..."});
             
@@ -617,7 +605,7 @@ const ControlPanelLayout = ({children}) => {
             }
             
         } else {
-            console.log("🚀 Requesting stream start for device:", deviceId);
+            console.log("Requesting stream start for device:", deviceId);
             
             // Initialize and get the new connection
             const newConnection = initializeWebRTC();

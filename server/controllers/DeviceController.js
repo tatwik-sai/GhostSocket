@@ -1,13 +1,10 @@
 import DBDevice from "../models/DevicesModel.js";
 import DBUserDeviceLinks from "../models/UserDeviceLinksModel.js";
 import DBUploads from "../models/UploadsModel.js";
-import { cp } from "fs";
-import { arch } from "os";
 import DBSessions from "../models/SessionModel.js";
 
 
-
-const getMyDevices = async (req, res) => {
+export const getMyDevices = async (req, res) => {
   try {
     const { userId } = req.auth;
     const myDevices = await DBUserDeviceLinks.find({ userId, role: "owner" })
@@ -37,7 +34,7 @@ const getMyDevices = async (req, res) => {
   }
 }
 
-const getOtherDevices = async (req, res) => {
+export const getOtherDevices = async (req, res) => {
   try {
     const { userId } = req.auth;
     const myDevices = await DBUserDeviceLinks.find({ userId, role: "user" })
@@ -67,7 +64,7 @@ const getOtherDevices = async (req, res) => {
   }
 }
 
-const updateName = async (req, res) => {
+export const updateName = async (req, res) => {
   const { linkId } = req.params;
   const { name } = req.body;
   try {
@@ -79,7 +76,7 @@ const updateName = async (req, res) => {
   }
 }
 
-const getDeviceInfo = async (req, res) => {
+export const getDeviceInfo = async (req, res) => {
   const { deviceId } = req.params;
   const { userId } = req.auth;
   try {
@@ -113,7 +110,7 @@ const getDeviceInfo = async (req, res) => {
   }
 }
 
-const uplodFile = async (req, res) => {
+export const uplodFile = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -131,7 +128,7 @@ const uplodFile = async (req, res) => {
   }
 }
 
-const getUploads = async (req, res) => {
+export const getUploads = async (req, res) => {
   try{
     if (!req.query.type) {
       return res.status(400).json({ error: "type query parameters is required" });
@@ -148,7 +145,7 @@ const getUploads = async (req, res) => {
   }
 }
 
-const deleteDevice = async (req, res) => {
+export const deleteDevice = async (req, res) => {
   const { deviceId } = req.params;
   const { userId } = req.auth;
   try {
@@ -173,14 +170,4 @@ const deleteDevice = async (req, res) => {
     console.error("Error deleting device:", error);
     res.status(500).json({ error: "Failed to delete device" });
   }
-}
-
-export {
-  getMyDevices,
-  getOtherDevices,
-  updateName,
-  getDeviceInfo,
-  uplodFile,
-  getUploads,
-  deleteDevice
 }

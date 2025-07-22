@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import nodemailer from 'nodemailer';
 import DBOTP from '../models/OtpModel.js';
 import DBDevice from '../models/DevicesModel.js';
-import DBUserDeviceLinks, { permissionsSchema } from '../models/UserDeviceLinksModel.js';
+import DBUserDeviceLinks from '../models/UserDeviceLinksModel.js';
 import { clerkClient } from '../utils/ClerkClient.js'
 import DBUser from "../models/UserModel.js";
 import DBSessions from "../models/SessionModel.js";
@@ -10,6 +10,33 @@ import { io, userDeviceManager } from "../socket.js";
 
 
 dotenv.config();
+
+const generate_html = (otp) => `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
+      <div style="background-color: #6C28D9; color: white; padding: 20px; text-align: center;">
+        <h1 style="margin: 0;">GhostSocket</h1>
+        <p style="margin: 5px 0 0;">Secure Verification</p>
+      </div>
+      <div style="padding: 30px;">
+        <p style="font-size: 16px; color: #333;">Hello,</p>
+        <p style="font-size: 16px; color: #333;">
+          Your One-Time Password (OTP) is:
+        </p>
+        <div style="background-color: #f3e8ff; border-left: 5px solid #6a0dad; padding: 15px; margin: 20px 0; text-align: center;">
+          <span style="font-size: 24px; font-weight: bold; color: #6a0dad;">${otp}</span>
+        </div>
+        <p style="font-size: 14px; color: #666;">
+          This OTP is valid for the next <strong>5 minutes</strong>. Please do not share it with anyone.
+        </p>
+        <p style="font-size: 14px; color: #999; margin-top: 40px;">
+          - GhostSocket Security<br>
+        </p>
+      </div>
+      <div style="background-color: #f9f9f9; padding: 15px; text-align: center; font-size: 12px; color: #aaa;">
+        If you didn’t request this, you can safely ignore this email.
+      </div>
+    </div>
+  `;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -26,11 +53,12 @@ export const checkUser = async (req, res) => {
   try {
     const { email } = req.body;
 
+    // Check if the email is exists
     const users = await clerkClient.users.getUserList({ emailAddress: [email] });
     if (users.length === 0 || !users.data || !users.data[0]) {
       return res.status(404).json({ message: "User not found" });
     }
-
+    // Check if the user has Google OAuth linked
     const user = users.data[0];
     const userData = await clerkClient.users.getUser(user.id);
     const externalAccounts = userData.externalAccounts;
@@ -40,6 +68,7 @@ export const checkUser = async (req, res) => {
     );
 
     if (hasGoogleAuth) {
+      // If the user has Google OAuth linked, send an OTP to the email
       const otp = await sendOtp(email, user.id);
       if (otp.success) {
         return res.status(200).json({ type: "otp", oauth: "google" });
@@ -47,6 +76,7 @@ export const checkUser = async (req, res) => {
         return res.status(500).json({ message: "Error sending OTP" });
       }
     } else {
+      // If the user does not have Google OAuth linked, return email_password type
       return res.status(200).json({ type: "email_password" });
     }
   } catch (err) {
@@ -58,10 +88,12 @@ export const checkUser = async (req, res) => {
 export async function resendOtp(req, res) {
   try {
     const { email } = req.body;
+    // Check if the email is exists
     const users = await clerkClient.users.getUserList({ emailAddress: [email] });
     if (users.length === 0 || !users.data || !users.data[0]) {
       return res.status(404).json({ message: "User not found" });
     }
+    // Send OTP
     const userId = users.data[0].id;
     const otp = await sendOtp(email, userId);
     if (otp.success) {
@@ -80,11 +112,12 @@ export async function sendOtp(email, userId) {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: 'GhostSocket OTP Code',
-    text: `Your OTP code is: ${otp}. It will expire in 5 minutes.`,
+  from: process.env.EMAIL_USER,
+  to: email,
+  subject: 'Your GhostSocket OTP Code',
+  html: generate_html(otp),
   };
+
 
   try {
     await transporter.sendMail(mailOptions);
@@ -295,7 +328,6 @@ export const savePermissions = async (req, res) => {
     const activeLink = await DBUserDeviceLinks.findOne({ deviceId, active: true });
     if (activeLink && activeLink.sessionKey) {
       const session = await DBSessions.findOne({ _id: activeLink.sessionKey });
-      console.log("Session found:", session);
       const sessionPermissions = session.permissions;
       for (const permission of sessionPermissions) {
         const [key, value] = Object.entries(permission)[0];

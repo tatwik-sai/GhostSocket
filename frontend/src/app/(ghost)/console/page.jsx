@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect } from 'react'
-import { useAuth, UserButton, useUser } from '@clerk/nextjs'
+import { useAuth, useUser } from '@clerk/nextjs'
 import { apiClient } from '@/lib/apiClient'
 import { useState } from 'react'
 import { IoSearch } from "react-icons/io5";
@@ -20,7 +20,6 @@ export default function DevicesPage() {
   useEffect(() => {
     if (!socket?.current || !isConnected) return;
     socket.current.on("device-status", (data) => {
-      console.log("Device online event received:", data);
       updateDeviceOnlineStatus(data.deviceId, data.status === "online");
     });
 
@@ -40,30 +39,10 @@ export default function DevicesPage() {
       const myDevicesData = await apiClient.get("/devices/my", authHeaders);
       const otherDevicesData = await apiClient.get("/devices/other", authHeaders);
       setMyDevices(myDevicesData.data);
-      console.log("My Devices:", myDevicesData.data);
       setOtherDevices(otherDevicesData.data);
     }
     fetchData()
   }, [setMyDevices, setOtherDevices, user]);
-
-  const handleClick = async () => {
-    if(!user) return;
-    const clerk_token = await getToken();
-
-    try {
-      const response = await apiClient.get("/protected",
-        {
-          headers: {
-            Authorization: `Bearer ${clerk_token}`,
-          },
-        }
-      );
-
-      console.log("Response from backend:", response.data);
-    } catch (err) {
-      console.error("Error contacting backend:", err.response?.data || err);
-    }
-  };
 
   const filteredMyDevices = myDevices.filter(device =>
     device.name.toLowerCase().includes(searchMy.toLowerCase()) ||
@@ -79,7 +58,6 @@ export default function DevicesPage() {
 
   return (
   <div className="h-[100vh] md:p-4 space-y-15">
-    {/* <button onClick={handleClick}>Hello</button> */}
     <div className="flex-col flex-1">
       <div className="flex justify-between mt-4 mb-3 pl-4">
       <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>

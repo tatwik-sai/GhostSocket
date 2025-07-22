@@ -1,8 +1,6 @@
 "use client"
 import { useResourcesStore } from '@/store/slices/ActiveConnection/ResourcesSlice';
 import { useStreamsAndConnectionStore } from '@/store/slices/ActiveConnection/StreamsAndConnectionSlice';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
-import { Scroll } from 'lucide-react';
 import React, {useEffect} from 'react'
 import { IoSearch } from 'react-icons/io5';
 

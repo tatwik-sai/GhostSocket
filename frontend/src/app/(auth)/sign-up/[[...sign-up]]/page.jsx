@@ -21,10 +21,10 @@ export default function SignUpPage() {
         <SignUp redirectUrl={{ afterSignUp: "/post-signup" }}
         appearance={{
           layout: {
-            socialButtonsVariant: "block", // MUST be block for full width
+            socialButtonsVariant: "block",
           },
            variables: {
-             colorPrimary: "#EF4444", // Tailwind red-500
+             colorPrimary: "#EF4444",
              colorBackground: "#19191C",
              colorText: "#FFFFFF",
              colorTextSecondary: "#6B7280",

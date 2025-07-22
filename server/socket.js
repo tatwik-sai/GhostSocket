@@ -10,7 +10,7 @@ const userDeviceManager = new UserDeviceManager();
 const setupSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: "http://localhost:3000",
+            origin: process.env.ORIGIN,
             credentials: true
         }
     })
@@ -30,12 +30,10 @@ const setupSocket = (server) => {
         socket.on("disconnect", async () => {
           isConnected = false;
           console.log(`User disconnected: ${userId}, Socket ID: ${socket.id}`);
-          // correct this latter
           const devId = userDeviceManager.getDeviceIdByUserId(userId);
           if (devId) {
             io.to(userDeviceManager.getDeviceSocketIdByUserId(userId)).emit("stop-webrtc");
             userDeviceManager.deleteUserSocketAndConnection(userId);
-            console.log("***********************************")
             await DBUserDeviceLinks.findOneAndUpdate({ userId, deviceId: devId }, { active: false })
             await DBDevice.findByIdAndUpdate(devId, { inUse: false })
             return;
@@ -57,7 +55,6 @@ const setupSocket = (server) => {
             return;
           }
           if (device.status !== "online") {
-            console.log(1)
             socket.emit("error", {message: `Device is not online`});
             return;
           }
@@ -75,7 +72,6 @@ const setupSocket = (server) => {
               return acc;
           }, {});
           // Emit an event to the device to initiate WebRTC
-          console.log("&&&&&&&&&&&&&&&&&&&&&", permissions)
           socket.to(deviceSocketId).emit("initiate-webrtc");
           socket.to(deviceSocketId).emit("permissions", {permissions})
           socket.emit("permissions", {permissions});
@@ -106,13 +102,11 @@ const setupSocket = (server) => {
           if (!isConnected) return;
           console.log(`User ${userId} sent WebRTC answer to device ${data.deviceId}`);
           const deviceSocketId = userDeviceManager.getDeviceSocketIdByUserId(userId);
-          const devId = userDeviceManager.getDeviceIdByUserId(userId);
           if (deviceSocketId) {
             io.to(deviceSocketId).emit("webrtc-answer", {
               answer: data.answer
             });
           } else {
-            console.log(2)
             socket.emit("error", {message: `Device is not Connected`});
           }
         });
@@ -128,7 +122,6 @@ const setupSocket = (server) => {
               ice: data.ice
             });
           } else {
-            console.log(3)
             socket.emit("error", {message: `Device is not Connected`});
           }
         });
@@ -142,7 +135,6 @@ const setupSocket = (server) => {
           if (deviceSocketId) {
             io.to(deviceSocketId).emit("from-user", data);
           } else {
-            console.log(4)
             socket.emit("error", {message: `Device is not Conncted`});
           }
         });
@@ -155,7 +147,6 @@ const setupSocket = (server) => {
         // Update the device status to online
         await DBDevice.findByIdAndUpdate(deviceId, { status: "online" }, { new: true })
         const userIds = await DBUserDeviceLinks.distinct('userId', {deviceId});
-        console.log("++++++++++++++++", userIds)
         for (const userId of userIds) {
           if (userDeviceManager.userSocketMap.has(userId)) {
             const userSocketId = userDeviceManager.userSocketMap.get(userId);
@@ -206,8 +197,6 @@ const setupSocket = (server) => {
         socket.on("webrtc-offer", async (data) => {
           const uId = userDeviceManager.getUserIdByDeviceId(deviceId);
           const userSocketId = userDeviceManager.getUserSocketIdByDeviceId(deviceId);
-          console.log("***", uId, userSocketId)
-          // console.log(`Device ${deviceId} sent WebRTC offer to user ${uId}`);
           if (userSocketId) {
             io.to(userSocketId).emit("webrtc-offer", {
               offer: data.offer

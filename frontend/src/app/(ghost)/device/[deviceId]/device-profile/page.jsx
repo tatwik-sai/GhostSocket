@@ -11,8 +11,6 @@ import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DevicePro
 import { apiClient } from "@/lib/apiClient";
 import { permissionDesriptions } from "@/utils/constants";
 import { toast } from "sonner";
-import { set } from "lodash";
-
 
 const DeviceProfilePage = () => {
   const { deviceId } = useParams();
@@ -39,7 +37,6 @@ const DeviceProfilePage = () => {
         };
         const response = await apiClient.get(`/sessions/connected-sessions/${deviceId}`, authHeaders);
         setSessionsData(response.data);
-        console.log("Connected Sessions Data:", response.data);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching session data:", error);
@@ -57,7 +54,6 @@ const DeviceProfilePage = () => {
         },
       };
       const response = await apiClient.delete(`/sessions/${sessionKey}`, authHeaders);
-      console.log("Session terminated successfully:", response.data);
       setSessionsData((prevSessions) => prevSessions.map(session => {
         if (session.sessionKey === sessionKey) {
           return { ...session, status: 'terminated' };
@@ -73,7 +69,6 @@ const DeviceProfilePage = () => {
 
   const handleCheckBox = (checked, sessionIndex, permissionIndex) => {
     if (sessionsData[sessionIndex].status !== 'active') {
-      console.log(1)
       return;
     }
     const devicePermissions = permissions.map((permission) => {
@@ -84,19 +79,13 @@ const DeviceProfilePage = () => {
     let sessionPermissions = sessionsData[sessionIndex].permissions;
     const permissionKey = Object.keys(sessionPermissions[permissionIndex])[0];
     const permissionValue = sessionPermissions[permissionIndex][permissionKey];
-    // what ever the case is if the particular permission is unchecked in device permissions it should be always unchecked in session permissions and dont change the device permissions at all
-    // if remote control is checked in session permissions check everything if remotecontrol is unchecked in session permissions uncheck everything
-    // when remotecontrol is allowed and some other option is unchecked in session permissions the that option and remote control both should be unchecked in session permissions
-    // do all these changes in session permissions and set the sessiondata while only changeing sessionPermissions and kepping everything else same
     if (!devicePermissions[permissionIndex][permissionKey]) {
       return;
     }
 
     if (permissionKey === 'remoteControl') {
       sessionPermissions = sessionPermissions.map((perm, i) => {
-        console.log(perm)
         const key = Object.keys(perm)[0];
-        console.log(key)
         return {[key]: checked}
       })
     } else if (sessionPermissions[0]["remoteControl"] && !checked) {
@@ -139,7 +128,6 @@ const DeviceProfilePage = () => {
         },
       };
       const response = await apiClient.put(`/sessions/update-permissions`, { sessionKey ,permissions: sessionPermissions }, authHeaders);
-      console.log("Permissions updated successfully:", response.data);
       toast.success("Permissions updated successfully.");
     } catch (error) {
       console.error("Error updating permissions:", error);
@@ -295,8 +283,6 @@ const DeviceProfilePage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {session.status === 'active' && <Button className="bg-primary-red hover:scale-105 transition-all duration-300 cursor-pointer hover:bg-primary-red-hover font-semibold mb-5" onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}>Kill Session</Button>}
-                    {/* <Button className="bg-primary-red hover:bg-primary-red-hover font-semibold">Remove Access</Button>
-                    <Button className="bg-blue-600 hover:bg-blue-700 font-semibold">Revoke Access</Button> */}
                   </div>
                 </div>
 

@@ -82,7 +82,7 @@ export default function HeroPage()   {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative pt-25 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(135deg,_hsl(263_70%_50.4%_/_0.1),_hsl(280_70%_60%_/_0.1))] opacity-50"></div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">

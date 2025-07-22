@@ -1,6 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
 import Image from "next/image";
-import { Suspense } from "react";
 import { ClerkLoaded, ClerkLoading } from '@clerk/nextjs'
 
 
@@ -26,10 +25,10 @@ export default function SignInPage() {
           <SignIn 
           appearance={{
             layout: {
-              socialButtonsVariant: "block", // MUST be block for full width
+              socialButtonsVariant: "block",
             },
             variables: {
-              colorPrimary: "#EF4444", // Tailwind red-500
+              colorPrimary: "#EF4444",
               colorBackground: "#19191C",
               colorText: "#FFFFFF",
               colorTextSecondary: "#6B7280",
