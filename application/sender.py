@@ -14,7 +14,8 @@ from controllers.file_controller import get_file_structure, send_chunks, delete_
 sio = socketio.AsyncClient()
 ice_servers = [
     RTCIceServer("stun:stun.l.google.com:19302"),
-    # RTCIceServer("turn:yourdomain.com:3478", username="user", credential="pass")
+    RTCIceServer("turn:openrelay.metered.ca:80", username="openrelayproject", credential="openrelayproject")
+
 ]
 config = RTCConfiguration(ice_servers)
 
