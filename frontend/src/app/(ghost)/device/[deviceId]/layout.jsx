@@ -110,11 +110,7 @@ const ControlPanelLayout = ({children}) => {
                 console.log("Sending ICE candidate to device");
                 socket.current.emit("webrtc-ice-candidate", {
                     deviceId,
-                    ice: {
-                        candidate: event.candidate.candidate,
-                        sdpMLineIndex: event.candidate.sdpMLineIndex,
-                        sdpMid: event.candidate.sdpMid,
-                    }
+                    ice: event.candidate,
                 });
             } else if (!event.candidate) {
                 console.log("ICE gathering completed");

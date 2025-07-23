@@ -6,12 +6,19 @@ from controllers.resource_controller  import *
 from controllers.terminal_controller import cmd, cd
 from controllers.webcam_controller import WebcamStreamTrack
 from controllers.screen_controller import ScreenStreamTrack
-from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate
+from aiortc import RTCPeerConnection, RTCSessionDescription, RTCIceCandidate, RTCConfiguration, RTCIceServer
 from controllers.remote_controller import handle_keyboard_event, handle_mouse_event
 from controllers.file_controller import get_file_structure, send_chunks, delete_files, get_full_paths
 
 
 sio = socketio.AsyncClient()
+ice_servers = [
+    RTCIceServer("stun:stun.l.google.com:19302"),
+    # RTCIceServer("turn:yourdomain.com:3478", username="user", credential="pass")
+]
+config = RTCConfiguration(ice_servers)
+
+
 static_cpu_info = get_static_cpu_info()
 pc = None
 udp_channel = None
@@ -19,6 +26,36 @@ tcp_channel = None
 file_stream = None
 permissions = None
 
+def parse_ice_candidate(ice):
+    candidate_str = ice.get("candidate")
+    parts = candidate_str.split()
+    if len(parts) < 8:
+        raise ValueError("Invalid ICE candidate string")
+    foundation = parts[0].split(":")[1] if ":" in parts[0] else parts[0]
+    component = int(parts[1])
+    protocol = parts[2].lower()
+    priority = int(parts[3])
+    ip = parts[4]
+    port = int(parts[5])
+    # Find type
+    type_value = None
+    for i, part in enumerate(parts):
+        if part == "typ" and i + 1 < len(parts):
+            type_value = parts[i + 1]
+            break
+    sdpMid = ice.get("sdpMid")
+    sdpMLineIndex = ice.get("sdpMLineIndex")
+    return RTCIceCandidate(
+        foundation=foundation,
+        component=component,
+        protocol=protocol,
+        priority=priority,
+        ip=ip,
+        port=port,
+        type=type_value,
+        sdpMid=sdpMid,
+        sdpMLineIndex=sdpMLineIndex
+    )
 
 async def pause_track(track_name):
     if not pc:
@@ -208,18 +245,15 @@ async def connect():
 @sio.on("initiate-webrtc")
 async def initiate_webrtc():
     global pc, udp_channel, tcp_channel, handle_udp_message, handle_tcp_message
-    pc = RTCPeerConnection()
+    pc = RTCPeerConnection(configuration=config)
     print("[+] Received start signal from viewer")
     @pc.on("icecandidate")
     async def on_icecandidate(candidate):
+        print("{++} ICE candidate generated")
         if candidate:
             print("[+] Sending ICE candidate to viewer")
             await sio.emit("webrtc-ice-candidate", {
-                "ice": {
-                    "candidate": candidate.candidate,
-                    "sdpMLineIndex": candidate.sdpMLineIndex,
-                    "sdpMid": candidate.sdpMid,
-                }
+                "ice": candidate
             })
     
     @pc.on("connectionstatechange")
@@ -317,48 +351,12 @@ async def webrtc_ice_candidate(data):
 
     if pc and data.get("ice"):
         try:
-            ice_data = data["ice"]
-            candidate_string = ice_data["candidate"]
-            
-            parts = candidate_string.split()
-            
-            if len(parts) >= 8:
-                foundation = parts[0].split(':')[1] 
-                component = int(parts[1])
-                protocol = parts[2].lower()
-                priority = int(parts[3])
-                ip = parts[4]
-                port = int(parts[5])
-                
-                type_value = "host"
-                for i, part in enumerate(parts):
-                    if part == "typ" and i + 1 < len(parts):
-                        type_value = parts[i + 1]
-                        break
-                
-                candidate = RTCIceCandidate(
-                    component=component,
-                    foundation=foundation,
-                    ip=ip,
-                    port=port,
-                    priority=priority,
-                    protocol=protocol,
-                    type=type_value
-                )
-                
-                # Set the SDP fields
-                candidate.sdpMid = ice_data.get("sdpMid")
-                candidate.sdpMLineIndex = ice_data.get("sdpMLineIndex")
-                
-                await pc.addIceCandidate(candidate)
-                print("[+] Added ICE candidate from browser")
-            else:
-                print(f"[-] Invalid candidate format: {candidate_string}")
-
+            candidate = parse_ice_candidate(data["ice"])
+            await pc.addIceCandidate(candidate)
+            print("[+] Added ICE candidate from browser")
         except Exception as e:
             print(f"[-] Failed to add ICE candidate: {e}")
             print(f"Raw candidate string: {data['ice']['candidate']}")
-            
             if not data['ice']['candidate'].strip():
                 print("[-] End of ICE candidates")
                 return
