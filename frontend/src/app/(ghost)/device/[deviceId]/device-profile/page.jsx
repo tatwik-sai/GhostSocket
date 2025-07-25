@@ -10,6 +10,12 @@ import { useAuth } from "@clerk/nextjs";
 import { useDeviceProfileStore } from "@/store/slices/ActiveConnection/DeviceProfileSlice";
 import { apiClient } from "@/lib/apiClient";
 import { permissionDesriptions } from "@/utils/constants";
+import { MdDelete } from "react-icons/md";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { toast } from "sonner";
 
 const DeviceProfilePage = () => {
@@ -144,13 +150,13 @@ const DeviceProfilePage = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">Loading...</div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-1"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[100vh] p-4 pb-0 pr-0">
+    <div className="flex flex-1 flex-col h-full p-4 pb-0 pr-2">
       <div className="text-white text-3xl font-bold mb-2">
         Device Profile
       </div>
@@ -217,17 +223,17 @@ const DeviceProfilePage = () => {
         </div>
 
         {/* Permissions and Actions */}
-        <div className="flex flex-col bg-dark-3 p-1 mt-4 rounded-xl">
+        <div className="flex flex-col bg-dark-3 p-1 mt-4 w-full rounded-xl">
           <h2 className="text-xl font-bold m-4 pb-2 border-[#ffffff1a] border-b">Allowed Actions on This System</h2>
           <div className="p-3 text-gray-500">You currently have the following permissions granted on this device.<br/>
           These permissions define the level of access and control available to you while interacting with this system.<br/>
           If you require additional capabilities request the permissions or modify them directly from the device by an authorized administrator.
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2">
+          <div className="flex flex-col">
             
             <div className="flex flex-col justify-start gap-3 p-3">
-              {permissions?.filter((permission) => permission.value.allowed).map((permission) => (
-                <Label key={permission.key} className="hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 dark:has-[[aria-checked=true]]:border-purple-1/50 dark:has-[[aria-checked=true]]:bg-purple-1/20">
+              {permissions?.filter((permission) => permission.value.allowed).map((permission) => (  
+                <Label key={permission.key} className="hover:bg-accent/50 max-w-200 flex  items-start gap-3 rounded-lg border p-3 dark:has-[[aria-checked=true]]:border-purple-1/50 dark:has-[[aria-checked=true]]:bg-purple-1/20">
                   <Checkbox
                     id="toggle-2"
                     defaultChecked
@@ -263,14 +269,14 @@ const DeviceProfilePage = () => {
         {/* Other users with access */}
         { sessionsData.length > 0 &&
         <div className="flex flex-col bg-dark-3 p-1 mt-4 rounded-xl">
-            <h2 className="text-xl font-bold m-4 pb-2 border-[#ffffff1a] border-b">Other users with Ascess</h2>
+            <h2 className="text-xl font-bold m-4 pb-2 border-[#ffffff1a] border-b">Other users with Access</h2>
             <div className="overflow-y-auto custom-scrollbar max-h-210">
                 {sessionsData.map((session, sessionIndex) => (
               <div className="flex flex-col justify-center bg-dark-4/70 p-4 pb-5 rounded-xl ml-4 mb-3" key={session.sessionKey}>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col justify-center pb-6">
                     <div className="flex items-center justify-center gap-2">
-                      <p className="text-xl font-bold pt-2">{session.joinedUserName}</p>
+                      <p className="text-xl font-bold pt-2 truncate w-50">{session.joinedUserName}</p>
                       <Badge className={`${session.status === 'active'?
                          'bg-purple-1': 
                          (session.status === 'completed' ?
@@ -282,7 +288,21 @@ const DeviceProfilePage = () => {
                     <p className="text-xs text-gray-500">Access Granted: {session.accessedDate}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {session.status === 'active' && <Button className="bg-primary-red hover:scale-105 transition-all duration-300 cursor-pointer hover:bg-primary-red-hover font-semibold mb-5" onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}>Kill Session</Button>}
+                    {session.status === 'active' &&
+                    <Button className="bg-primary-red hidden sm:block hover:scale-105 transition-all duration-300 cursor-pointer hover:bg-primary-red-hover font-semibold mb-5" 
+                    onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}>Kill Session</Button>}
+
+                    {session.status === 'active' &&
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <MdDelete className="text-primary-red text-xl sm:hidden hover:scale-115 transition-all duration-300 cursor-pointer font-semibold mb-5" 
+                        onClick={() => handleKillSession(session.sessionKey)} variant={"ghost"}></MdDelete>
+                      </TooltipTrigger>
+                      <TooltipContent className={"bg-dark-3"}>
+                        <p>Kill Session</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    }
                   </div>
                 </div>
 

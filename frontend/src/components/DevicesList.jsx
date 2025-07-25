@@ -125,7 +125,7 @@ const DevicesList = ({type, devices}) => {
 
   return (
     <>
-        <div className="flex justify-start items-center gap-2 mb-2 pl-4">
+      <div className="flex justify-start items-center gap-2 mb-2 pl-4">
         <button onClick={() => scroll("left")} className="bg-dark-4 hover:bg-zinc-700 p-2 rounded-md active:scale-90 transition-all duration-100">
           <ChevronLeft className="h-5 w-5 text-white"/>
         </button>
@@ -135,102 +135,104 @@ const DevicesList = ({type, devices}) => {
       </div>
 
       {/* Scroll */}
-      <div className="w-full rounded-md overflow-x-auto p-2 hide-scroll-bar" ref={scrollRef}>
-        <div className="flex w-max space-x-4 p-2" style={{ scrollBehavior: "smooth" }}>
+      <div className="w-full rounded-md overflow-x-auto p-2 h-full hide-scroll-bar" ref={scrollRef}>
+        <div className="flex w-max space-x-4 p-2 h-full" style={{ scrollBehavior: "smooth" }}>
           {devices.length !== 0 && devices.map((device) => (
-            <div key={device.deviceId} className="bg-dark-3 flex-col p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105 transition-all duration-200">
-              <div className="flex justify-between items-center gap-25">
-                <div className="flex gap-2 items-center">
-                  {device.os?.toLowerCase().includes("ubuntu") ?
-                    <FaUbuntu className="w-6 h-6" /> : <FaWindows className="w-6 h-6" />}
-                  {editingId === device.deviceId ? 
-                  (<input ref={nameInputRef} defaultValue={device.name} onBlur={(e) => {setEditingId(null)}}
-                  placeholder='Enter device name'
-                  className="w-full px-2 py-1 text-white bg-zinc-900 placeholder-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-dark-5"
-                   autoFocus  onKeyDown={(e) => {e.key === "Enter" && saveEditedName(device._id)}} onClick={(e) => e.stopPropagation()}/>) : ( <>
-                  <p className="font-semi-bold text-lg text-ellipsis w-[150px] whitespace-nowrap overflow-hidden">{device.name}</p>
-                  <div className='cursor-pointer p-1' onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingId(device.deviceId);
-                    setTimeout(() => {
-                      nameInputRef.current?.select();
-                    }, 0);
-                    }}>
-                    <MdModeEdit className="opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-95 transition-all duration-300"  
-                  />
-                  </div>
-                  </>
-                  )}
-                </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <FiMoreVertical className="cursor-pointer w-5 h-5 opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-90 transition-all duration-300"  onClick={(e) => {e.stopPropagation()}}/>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-dark-3 border-dark-4 text-white shadow-none outline-none ring-0"  onClick={(e) => {e.stopPropagation()}}>
-                      <DropdownMenuLabel className="font-semibold weight-medium">
-                        Actions
-                      </DropdownMenuLabel>  
-                      <DropdownMenuSeparator className="bg-gray-600 h-[1px]" />
-
-                      {type === "myDevices" && <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setNewSessionDialog(device.deviceId)}>
-                        <div className='flex gap-2 items-center justify-start'>
-                          <IoMdAddCircle/>
-                          <span>New Session</span>
-                        </div>
-                      </DropdownMenuItem>}
-
-                      <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => {
-                        setEditingId(device.deviceId);
-                        setTimeout(() => {
-                          nameInputRef.current?.select();
-                        }, 0);
+            <div key={device.deviceId} className="bg-dark-3 flex flex-col gap-4 justify-between  p-3 rounded-xl border-dark-4 border-[1px] hover:scale-105 transition-all duration-200">
+              <div className='flex-col flex-1'>
+                <div className="flex justify-between items-center gap-10 sm:gap-20">
+                  <div className="flex gap-2 items-center">
+                    {device.os?.toLowerCase().includes("ubuntu") ?
+                      <FaUbuntu className="w-6 h-6" /> : <FaWindows className="w-6 h-6" />}
+                    {editingId === device.deviceId ? 
+                    (<input ref={nameInputRef} defaultValue={device.name} onBlur={(e) => {setEditingId(null)}}
+                    placeholder='Enter device name'
+                    className="w-full px-2 py-1 text-white bg-zinc-900 placeholder-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-dark-5"
+                    autoFocus  onKeyDown={(e) => {e.key === "Enter" && saveEditedName(device._id)}} onClick={(e) => e.stopPropagation()}/>) : ( <>
+                    <p className="font-semi-bold text-lg text-ellipsis w-[150px] whitespace-nowrap overflow-hidden">{device.name}</p>
+                    <div className='cursor-pointer p-1' onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(device.deviceId);
+                      setTimeout(() => {
+                        nameInputRef.current?.select();
+                      }, 0);
                       }}>
-                        <div className='flex gap-2 items-center justify-start'>
-                          <MdModeEdit/>
-                          <span>Rename</span>
-                        </div>
-                      </DropdownMenuItem>
+                      <MdModeEdit className="opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-95 transition-all duration-300"  
+                    />
+                    </div>
+                    </>
+                    )}
+                  </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <FiMoreVertical className="cursor-pointer w-5 h-5 opacity-40 hover:scale-[1.15] hover:opacity-100 active:scale-90 transition-all duration-300"  onClick={(e) => {e.stopPropagation()}}/>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-dark-3 border-dark-4 text-white shadow-none outline-none ring-0"  onClick={(e) => {e.stopPropagation()}}>
+                        <DropdownMenuLabel className="font-semibold weight-medium">
+                          Actions
+                        </DropdownMenuLabel>  
+                        <DropdownMenuSeparator className="bg-gray-600 h-[1px]" />
 
-                      <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => {router.push(`/console/activity?deviceId=${device.deviceId}`)}}>
-                        <div className='flex gap-2 items-center justify-start'>
-                          <MdHistory />
-                          <span>My Activity</span>
-                        </div>
-                      </DropdownMenuItem>
-                      
-                      
-                      {type === "myDevices" && <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setDropDialog(device.deviceId)}>
-                        <div className='flex gap-2 items-center justify-start'>
-                          <IoRemoveCircle />
+                        {type === "myDevices" && <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setNewSessionDialog(device.deviceId)}>
+                          <div className='flex gap-2 items-center justify-start'>
+                            <IoMdAddCircle/>
+                            <span>New Session</span>
+                          </div>
+                        </DropdownMenuItem>}
 
-                          <span>Drop All Sessions</span>
-                        </div>
-                      </DropdownMenuItem>}
+                        <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => {
+                          setEditingId(device.deviceId);
+                          setTimeout(() => {
+                            nameInputRef.current?.select();
+                          }, 0);
+                        }}>
+                          <div className='flex gap-2 items-center justify-start'>
+                            <MdModeEdit/>
+                            <span>Rename</span>
+                          </div>
+                        </DropdownMenuItem>
 
-                      <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setDeleteDialog(device.deviceId)}>
-                        <div className='flex gap-2 items-center justify-start' >
-                          <MdDelete />
-                          <span>Delete</span>
-                        </div>
-                      </DropdownMenuItem>
+                        <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => {router.push(`/console/activity?deviceId=${device.deviceId}`)}}>
+                          <div className='flex gap-2 items-center justify-start'>
+                            <MdHistory />
+                            <span>My Activity</span>
+                          </div>
+                        </DropdownMenuItem>
+                        
+                        
+                        {type === "myDevices" && <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setDropDialog(device.deviceId)}>
+                          <div className='flex gap-2 items-center justify-start'>
+                            <IoRemoveCircle />
 
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-              </div>
-              <div className="flex gap-1 items-center justify-start pl-8">
-                <div className={`w-2 h-2 rounded-full ${statusColors[device.status]}`} />
-                <p className="text-sm text-gray-400">{device.status}</p>
-              </div>
-              <div className="flex flex-col pt-4 gap-1">
-                <p className="text-sm text-gray-400">{device.accessLevel}</p>
-                <p className="text-sm text-gray-400">{`IP ${device.ip}`}</p>
-                <p className="text-sm text-gray-400">{`${device.os}`}</p>
-                <div className="flex gap-1 items-center justify-start">
-                  <CiGlobe className="w-4 h-4"/>
-                  <p className="text-sm text-gray-400">{device.location}</p>
+                            <span>Drop All Sessions</span>
+                          </div>
+                        </DropdownMenuItem>}
+
+                        <DropdownMenuItem className="hover:bg-dark-5 focus:bg-dark-5" onClick={(e) => setDeleteDialog(device.deviceId)}>
+                          <div className='flex gap-2 items-center justify-start' >
+                            <MdDelete />
+                            <span>Delete</span>
+                          </div>
+                        </DropdownMenuItem>
+
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="flex gap-1 items-center justify-start pl-8">
+                  <div className={`w-2 h-2 rounded-full ${statusColors[device.status]}`} />
+                  <p className="text-sm text-gray-400">{device.status}</p>
+                </div>
+                <div className="flex flex-col pt-4 gap-1">
+                  <p className="text-sm text-gray-400">{device.accessLevel}</p>
+                  <p className="text-sm text-gray-400">{`IP ${device.ip}`}</p>
+                  <p className="text-sm text-gray-400">{`${device.os}`}</p>
+                  <div className="flex gap-1 items-center justify-start">
+                    <CiGlobe className="w-4 h-4"/>
+                    <p className="text-sm text-gray-400">{device.location}</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-23">
+              <div className="flex justify-between items-center">
                 <div className="flex gap-2">
                   <Button className="purple-primary-button font-semibold"
                   onClick={(e) => handleLaunch(device.deviceId, e)}>Launch</Button>

@@ -59,7 +59,6 @@ const FilePage = () => {
       const isFileCard = event.target.closest('[data-file-card]');
       if (containerRef.current && containerRef.current.contains(event.target) && !isFileCard
         && !optionsRef.current.contains(event.target)) {
-        console.log("Clicked outside file cards");
         setSelectedFiles([]);
       }
     };
@@ -69,7 +68,6 @@ const FilePage = () => {
   }, [setSelectedFiles]);
 
   useEffect(() => {
-    console.log("Tcp Data Channel: ", tcpDataChannel)
     if(!tcpDataChannel) return;
     if (tcpDataChannel.readyState !== "open") return
     tcpDataChannel.send(JSON.stringify({type: "get_files", path: currentFilePath}));

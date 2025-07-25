@@ -22,6 +22,10 @@ const setupSocket = (server) => {
         const decoded = await verifyToken(token, {secretKey: process.env.CLERK_SECRET_KEY});
         const userId = decoded.sub;
         
+        if (userDeviceManager.userSocketMap.has(userId)) {
+          socket.emit("error", {message: `You are already in a session quit it to start a new one`});
+          return;
+        }
         userDeviceManager.addUserSocket(userId, socket.id);
         console.log(`User connected: ${userId}, Socket ID: ${socket.id}`);
 

@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton"
 import { useClerk } from "@clerk/clerk-react";
+import { IoLogOutSharp } from "react-icons/io5";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { RiAccountCircleLine } from "react-icons/ri";
 
 
 function UserSkeleton() {
@@ -28,13 +35,16 @@ export default function ConsoleLayout({ children }) {
   const pathname = usePathname();
   const {isLoaded, user} = useUser();
   const { openUserProfile } = useClerk();
-  
+
   return (
-        <div className="flex w-[100vw] h-[100vh]">
-            <div className="flex flex-col w-[250px] md:w-[280px] bg-dark-3">
+    <>
+        <div className="flex flex-col md:flex-row w-[100vw] h-[100vh]">
+            {/* Sidebar */}
+            <div className="hidden md:flex flex-col border-r   border-white/10  w-[250px] md:w-[280px] bg-dark-2">
                 <Link href={"/"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-10 cursor-pointer">
-                  <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
-                  <h1 className="text-2xl font-bold text-white">GhostSocket</h1>                                  
+                  <Image src="/logo.svg" className="" alt="GhostSocket" width={45} height={45} />
+                  <h1 className="text-2xl font-bold text-white">Ghost</h1>
+                  <h1 className="text-2xl font-bold text-purple-1">Socket</h1>                                
                 </Link>
                 {isLoaded ? (
                 <div className="flex items-center gap-3 mb-10 pr-5 pl-3 cursor-pointer" 
@@ -43,7 +53,7 @@ export default function ConsoleLayout({ children }) {
                       baseTheme: "dark",
                       variables: {
                           colorPrimary: "#6C28D9", 
-                          colorBackground: "#1F1F22",
+                          colorBackground: "#101010",
                           colorInputBackground: "#ffffff1a",
                           colorInputText: "#ffffff",
                           colorText: "#ffffff",
@@ -93,12 +103,118 @@ export default function ConsoleLayout({ children }) {
                     <span className="text-white text-md font-medium">Logout</span>
                   </Button>
                 </div>
-              
+                  
             </div>
-            <div className="w-[1px] h-full bg-white/10"></div>
-            <div className="flex-1 bg-dark-1 overflow-x-hidden">
+
+            {/* Top Bar */}
+            <div className="bg-dark-2 w-full flex md:hidden border-b border-white/10 justify-between">
+              <Link href={"/"} className="flex items-center gap-[2px]  pr-10 pl-2 py-2  cursor-pointer">
+                <Image src="/logo.svg" className="" alt="GhostSocket" width={40} height={40} />
+                <h1 className="text-2xl font-bold text-white">Ghost</h1>
+                <h1 className="text-2xl font-bold text-purple-1">Socket</h1>                                
+              </Link>
+              <div className="flex items-center gap-2 pr-2">
+                  {/* <IoLogOutSharp className="text-purple-1 text-3xl cursor-pointer" onClick={() => signOut()} /> */}
+                  {/* <div className="flex items-center gap-3 cursor-pointer" 
+                    onClick={() => openUserProfile({
+                      appearance: {
+                          baseTheme: "dark",
+                          variables: {
+                              colorPrimary: "#6C28D9", 
+                              colorBackground: "#101010",
+                              colorInputBackground: "#ffffff1a",
+                              colorInputText: "#ffffff",
+                              colorText: "#ffffff",
+                              colorTextSecondary: "#a1a1a1",
+                              colorShimmer: "#ffffff",
+                              colorAlphaShade: "rgba(255, 255, 255, 0.05)",
+                              borderRadius: "5px",
+                              fontFamily: "inherit",
+                              colorDanger: "#ef4444",
+                              colorSuccess: "#10b981",
+                              colorWarning: "#f59e0b",
+                          }
+                      },
+                    })}>
+                      <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={40} height={40} className="rounded-full object-cover"/>
+                  </div> */}
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={40} height={40} className="rounded-full cursor-pointer object-cover"/>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 bg-dark-3 border-dark-5 shadow-lg rounded-xl flex flex-col">
+                      <div className="flex gap-2 border-b pb-2 border-white/10 items-center">
+                        <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={40} height={40} className="rounded-full object-cover"/>
+                        <div className="flex flex-col">
+                          <h3 className="body-bold text-md text-white overflow-hidden text-ellipsis w-[200px] whitespace-nowrap">
+                            {user && (user.fullName ? user.fullName : user.primaryEmailAddress.emailAddress)}
+                            </h3>
+                          <h3 className="opacity-50 text-light-3 overflow-hidden text-ellipsis w-[200px] whitespace-nowrap text-sm">{user && user.primaryEmailAddress.emailAddress}</h3>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col mt-2">
+                        <div className="flex gap-2 hover:bg-white/10 cursor-pointer items-center p-2 rounded-md" 
+                          onClick={() => openUserProfile({
+                            appearance: {
+                                baseTheme: "dark",
+                                variables: {
+                                    colorPrimary: "#6C28D9", 
+                                    colorBackground: "#101010",
+                                    colorInputBackground: "#ffffff1a",
+                                    colorInputText: "#ffffff",
+                                    colorText: "#ffffff",
+                                    colorTextSecondary: "#a1a1a1",
+                                    colorShimmer: "#ffffff",
+                                    colorAlphaShade: "rgba(255, 255, 255, 0.05)",
+                                    borderRadius: "5px",
+                                    fontFamily: "inherit",
+                                    colorDanger: "#ef4444",
+                                    colorSuccess: "#10b981",
+                                    colorWarning: "#f59e0b",
+                                }
+                            },
+                          })}
+                        >
+                          <RiAccountCircleLine className="text-white text-2xl"/>
+                          <span className="text-white text-md">My Profile</span>
+                        </div>
+                        <div className="flex gap-2 hover:bg-white/10 cursor-pointer items-center p-2 rounded-md" onClick={() => signOut()}>
+                          <IoLogOutSharp className="text-white text-2xl"/>
+                          <span className="text-white text-md">Logout</span>
+                        </div>
+                      </div>
+                      
+                    </PopoverContent>
+                  </Popover>
+
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 bg-dark-1 ">
                   {children}
             </div>
+            
+            {/* Bottom Bar */}
+            <div className="bg-dark-2 w-full md:hidden border-t border-white/10 flex justify-around items-center">
+              {navItems.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`flex flex-col gap-1 items-center rounded-lg p-2 px-3 transition-colors ${
+                          pathname === item.href
+                            ? "bg-purple-1 text-white"
+                            : "hover:bg-white/10"
+                        }`}
+                      >
+                        <Image src={item.imgURL} alt={item.name} width={28} height={28} className={`${pathname === item.href ? "invert brightness-0" : ""}`}/>
+                      </Link>
+                  ))}
+            </div>
         </div>
+        
+    </>
     );
 }

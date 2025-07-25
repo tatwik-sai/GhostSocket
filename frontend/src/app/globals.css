@@ -1,6 +1,20 @@
 @import "tailwindcss";
 @import 'xterm/css/xterm.css';
 
+@layer utilities {
+  .animate-bounce-more {
+    animation: bounce-more 1s infinite;
+  }
+  @keyframes bounce-more {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.8rem); /* increase bounce height */
+    }
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

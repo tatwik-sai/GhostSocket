@@ -203,7 +203,7 @@ const ClientTerminal = () => {
       <div className=" bg-[#101012]  rounded-lg overflow-hidden relative w-full h-full">
         {!isReady && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#171717] z-10">
-            <p className="text-white/60">Initializing terminal...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-1"></div>
           </div>
         )}
         <div

@@ -1,4 +1,4 @@
 {
-  "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js",
-  "/(ghost)/device/[deviceId]/remote-control/page": "app/(ghost)/device/[deviceId]/remote-control/page.js"
+  "/(ghost)/device/[deviceId]/remote-control/page": "app/(ghost)/device/[deviceId]/remote-control/page.js",
+  "/(ghost)/device/[deviceId]/webcam-feed/page": "app/(ghost)/device/[deviceId]/webcam-feed/page.js"
 }

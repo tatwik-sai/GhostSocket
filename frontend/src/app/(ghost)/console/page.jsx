@@ -57,10 +57,10 @@ export default function DevicesPage() {
   );
 
   return (
-  <div className="h-[100vh] md:p-4 space-y-15">
-    <div className="flex-col flex-1">
-      <div className="flex justify-between mt-4 mb-3 pl-4">
-      <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>
+  <div className="flex flex-col justify-between lg:p-4 h-full">
+    <div className="flex flex-col flex-1 bg-dark-1">
+      <div className="flex justify-between w-full mt-2 lg:mt-4 mb-3 p-2 md:pl-4">
+        <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>
         <div className="relative w-70">
           <input
             type="text"
@@ -77,8 +77,8 @@ export default function DevicesPage() {
       <DevicesList type="myDevices" devices={filteredMyDevices} />
     </div>
     
-    <div className="flex-col flex-1">
-      <div className="flex justify-between mt-4 mb-3 pl-4">
+    <div className="flex flex-col flex-1 bg-dark-1">
+      <div className="flex justify-between mt-2 lg:mt-4 mb-3 p-2 md:pl-4">
       <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">Other Devices</h2>
         <div className="relative w-70">
           <input

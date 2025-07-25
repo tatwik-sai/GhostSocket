@@ -27,7 +27,8 @@ export default function HeroPage()   {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-[2px] ml-0">
                 <Image src="/logo.svg" className="" alt="GhostSocket" width={45} height={45} />
-                <h1 className="text-2xl font-bold text-white">GhostSocket</h1>
+                <h1 className="text-2xl font-bold text-white">Ghost</h1>
+                <h1 className="text-2xl font-bold text-purple-1">Socket</h1>
             </div>
             <div className="flex items-center gap-4">
                 <div className="hidden md:flex items-center space-x-6">
@@ -55,7 +56,7 @@ export default function HeroPage()   {
                     </Button>
 
                     <Button asChild
-                        className="hidden md:flex border border-[#ffffff1a] hover:border-purple-1/50 hover:bg-purple-1/10"
+                        className="hidden xs:hidden md:flex border border-[#ffffff1a] hover:border-purple-1/50 hover:bg-purple-1/10"
                     >
                         <a 
                             href="https://github.com/tatwik-sai/GhostSocket" 
@@ -67,10 +68,16 @@ export default function HeroPage()   {
                             Star on GitHub
                         </a>
                     </Button>
-                    <form action={launchConsoleAction}>
+                    <form action={launchConsoleAction} className="hidden md:flex">
                         <Button  type="submit"
                         className="purple-primary-button">
                             Launch Console
+                        </Button>
+                    </form>
+                    <form action={launchConsoleAction} className="flex md:hidden">
+                        <Button  type="submit"
+                        className="purple-primary-button">
+                            Console
                         </Button>
                     </form>
                 </div>
@@ -284,7 +291,7 @@ export default function HeroPage()   {
             <p className="text-lg text-white/80 mb-8">
               Get started with Ghost Socket by downloading the Application.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col items-center sm:flex-row gap-4 justify-center">
               <DownloadButton theme="dark"/>
             </div>
           </div>
