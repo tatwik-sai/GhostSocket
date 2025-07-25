@@ -156,7 +156,7 @@ const DeviceProfilePage = () => {
   }
 
   return (
-    <div className="flex flex-1 flex-col h-full p-4 pb-0 pr-2">
+    <div className="flex flex-1 flex-col h-full p-2 sm:p-4 pb-0 pr-2">
       <div className="text-white text-3xl font-bold mb-2">
         Device Profile
       </div>

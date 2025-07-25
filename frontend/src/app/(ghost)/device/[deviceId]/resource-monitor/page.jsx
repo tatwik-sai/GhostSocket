@@ -51,7 +51,7 @@ const ResourceMonitorPage = () => {
         }
     }, [setResourceActive])
   return (
-    <div className="flex flex-col h-[100vh] p-3 pb-0 pr-0">
+    <div className="flex flex-col h-[100vh] p-2 sm:p-3 pb-0 pr-0">
         <div className="text-white text-3xl font-bold mb-2 shrink-0">
             Resource Monitor
         </div>

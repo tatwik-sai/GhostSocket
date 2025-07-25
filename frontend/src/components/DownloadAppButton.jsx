@@ -6,8 +6,8 @@ import { Button } from "./ui/button";
 export default function DownloadButton({theme="purple"}) {
   const handleDownload = () => {
     const link = document.createElement('a');
-    link.href = '/application/ghost-setup.exe';
-    link.download = 'ghost-setup.exe';
+    link.href = process.env.NEXT_PUBLIC_APPLICATION_URL;
+    link.download = 'GhostSocketSetup.exe';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

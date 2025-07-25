@@ -1,4 +1,13 @@
 {
+  "/(auth)/sign-in/[[...sign-in]]/page": "app/(auth)/sign-in/[[...sign-in]]/page.js",
+  "/(ghost)/console/page": "app/(ghost)/console/page.js",
+  "/(ghost)/console/sessions/page": "app/(ghost)/console/sessions/page.js",
+  "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js",
+  "/(ghost)/device/[deviceId]/files/page": "app/(ghost)/device/[deviceId]/files/page.js",
   "/(ghost)/device/[deviceId]/remote-control/page": "app/(ghost)/device/[deviceId]/remote-control/page.js",
-  "/(ghost)/device/[deviceId]/webcam-feed/page": "app/(ghost)/device/[deviceId]/webcam-feed/page.js"
+  "/(ghost)/device/[deviceId]/resource-monitor/page": "app/(ghost)/device/[deviceId]/resource-monitor/page.js",
+  "/(ghost)/device/[deviceId]/terminal/page": "app/(ghost)/device/[deviceId]/terminal/page.js",
+  "/(ghost)/device/[deviceId]/webcam-feed/page": "app/(ghost)/device/[deviceId]/webcam-feed/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js"
 }

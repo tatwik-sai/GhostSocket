@@ -239,8 +239,16 @@ export async function terminateSession(req, res) {
         }
         // Update the session to mark it as terminated
         await DBSessions.updateOne({ _id: sessionKey }, { $set: { terminated: true } });
-        // If the session has a joinedUserId, we also need to terminate their session            
+        // If the session has a joinedUserId, we also need to terminate their session
+        const activeDeviceLink = await DBUserDeviceLinks.findOne({ sessionKey, active: true });
         await DBUserDeviceLinks.deleteOne({ sessionKey });
+
+        if (activeDeviceLink) {
+            const userSocketId = userDeviceManager.getUserSocketIdByDeviceId(activeDeviceLink.deviceId);
+            if (userSocketId) {
+                io.to(userSocketId).emit("sessionTerminated", { sessionKey });
+            }
+        }
 
         res.status(200).json({ message: "Session terminated successfully." });
     } catch (error) {

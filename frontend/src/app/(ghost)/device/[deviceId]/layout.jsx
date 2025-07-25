@@ -20,8 +20,7 @@ import { useWebCamStore } from '@/store/slices/ActiveConnection/WebCamStore';
 import { useRemoteControlStore } from '@/store/slices/ActiveConnection/RemoteControlSlice';
 import { permissionDesriptions } from '@/utils/constants';
 import Image from 'next/image';
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import { useRouter } from 'next/navigation';
 import { IoMenu } from "react-icons/io5";
 import {
     Sheet,
@@ -45,6 +44,7 @@ const ControlPanelLayout = ({ children }) => {
     const { socket, isConnected: isSocketConnected } = useSocket();
     const connectBtn = useRef(null);
     const { getToken } = useAuth();
+    const router = useRouter();
     const [connectButtonState, setConnectButtonState,] = useState({ text: "Connect", inProcess: false })
 
     const { deviceInfo, permissions, setDeviceInfo, setPermissions, resetDeviceProfile } = useDeviceProfileStore();
@@ -508,10 +508,15 @@ const ControlPanelLayout = ({ children }) => {
         };
 
         // Socket event listeners
+
         socket.current.on("webrtc-offer", handleWebRTCOffer);
         socket.current.on("webrtc-ice-candidate", handleICECandidate);
         socket.current.on("stopped-webrtc", handleStopWebRTC);
         socket.current.on("stop-webrtc", () => handleStopWebRTC(true));
+        socket.current.on("sessionTerminated", () => {
+            router.push("/console");
+            toast.error("Session terminated by the Host");
+        });
         socket.current.on("permissions", (data) => {
             const updatedPermissions = Object.entries(data.permissions).map(([key, allowed]) => ({
                 key: key,
@@ -714,10 +719,10 @@ const ControlPanelLayout = ({ children }) => {
 
                 {/* Mobile Header */}
                 <div className='flex md:hidden justify-between items-center bg-dark-2 border-b border-[#2a2a2a] h-20 w-full'>
-                    <div className='flex items-center pl-3'>
+                    <div className='flex items-center'>
                         <Sheet>
                             <SheetTrigger asChild>
-                                <IoMenu className='text-3xl hover:bg-white/10 cursor-pointer rounded p-1' />
+                                <IoMenu className='text-4xl hover:bg-white/10 cursor-pointer rounded p-1' />
                             </SheetTrigger>
                             <SheetContent side='left' className='bg-dark-3 border-none w-70'>
                                 <SheetHeader>

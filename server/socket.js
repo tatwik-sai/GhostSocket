@@ -57,6 +57,10 @@ const setupSocket = (server) => {
             socket.emit("error", {message: `You dont have permissions for this device`});
             return;
           }
+          if (userDeviceManager.areConnected(userId, data.deviceId)) {
+            socket.emit("error", {message: `Already in a session with this device quit it to start a new one`});
+            return;
+          }
           if (device.status !== "online") {
             socket.emit("error", {message: `Device is not online`});
             return;

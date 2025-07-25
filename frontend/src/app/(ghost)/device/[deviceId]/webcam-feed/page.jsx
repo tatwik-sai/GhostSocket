@@ -130,7 +130,7 @@ const WebCamPage = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen p-3 pb-0 pr-0">
+        <div className="flex flex-col h-screen p-2 sm:p-3 pb-0 pr-0">
             <div className="text-white text-3xl font-bold mb-2">WebCam Feed</div>
 
             <div className="flex flex-col lg:flex-row flex-1 min-h-0 w-full overflow-hidden gap-2">

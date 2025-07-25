@@ -7,13 +7,23 @@ import { Button } from "@/components/ui/button";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { Skeleton } from "@/components/ui/skeleton"
 import { useClerk } from "@clerk/clerk-react";
-import { IoLogOutSharp } from "react-icons/io5";
+import { IoLogOutSharp, IoMenu } from "react-icons/io5";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { RiAccountCircleLine } from "react-icons/ri";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 
 function UserSkeleton() {
@@ -108,37 +118,48 @@ export default function ConsoleLayout({ children }) {
 
             {/* Top Bar */}
             <div className="bg-dark-2 w-full flex md:hidden border-b border-white/10 justify-between">
-              <Link href={"/"} className="flex items-center gap-[2px]  pr-10 pl-2 py-2  cursor-pointer">
-                <Image src="/logo.svg" className="" alt="GhostSocket" width={40} height={40} />
-                <h1 className="text-2xl font-bold text-white">Ghost</h1>
-                <h1 className="text-2xl font-bold text-purple-1">Socket</h1>                                
-              </Link>
+                <div className="flex items-center">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                        <IoMenu className='text-4xl hover:bg-white/10 cursor-pointer rounded p-1' />
+                    </SheetTrigger>
+                    <SheetContent side="left" className='bg-dark-3 border-none w-70'>
+                      <SheetHeader>
+                        <SheetTitle>Ghost Menu</SheetTitle>
+                      </SheetHeader>
+                      <ul className="flex flex-col gap-3 mr-2 ml-2 mt-2 flex-1">
+                        {navItems.map((item) => (
+                          <li key={item.name}>
+                            <SheetClose asChild>
+                              <Link
+                                href={item.href}
+                                className={`flex gap-3 items-center rounded-lg p-2 transition-colors ${
+                                  pathname === item.href
+                                    ? "bg-purple-1 text-white"
+                                    : "hover:bg-white/10"
+                                }`}
+                              >
+                                <Image src={item.imgURL} alt={item.name} width={28} height={28} className={`${pathname === item.href ? "invert brightness-0" : ""}`}/>
+                                <span className="text-white text-md font-medium">{item.name}</span>
+                              </Link>
+                            </SheetClose>
+                          </li>
+                        ))}
+                      </ul>
+                      <SheetFooter>
+                        <SheetClose asChild>
+                          <Button className={"bg-dark-4 hover:bg-dark-5/50"}>Close</Button>
+                        </SheetClose>
+                      </SheetFooter>
+                    </SheetContent>
+                  </Sheet>
+                  <Link href={"/"} className="flex items-center gap-[2px]  pr-10 py-2  cursor-pointer">
+                    <Image src="/logo.svg" className="" alt="GhostSocket" width={40} height={40} />
+                    <h1 className="text-2xl font-bold text-white">Ghost</h1>
+                    <h1 className="text-2xl font-bold text-purple-1">Socket</h1>                                
+                  </Link>
+                </div>
               <div className="flex items-center gap-2 pr-2">
-                  {/* <IoLogOutSharp className="text-purple-1 text-3xl cursor-pointer" onClick={() => signOut()} /> */}
-                  {/* <div className="flex items-center gap-3 cursor-pointer" 
-                    onClick={() => openUserProfile({
-                      appearance: {
-                          baseTheme: "dark",
-                          variables: {
-                              colorPrimary: "#6C28D9", 
-                              colorBackground: "#101010",
-                              colorInputBackground: "#ffffff1a",
-                              colorInputText: "#ffffff",
-                              colorText: "#ffffff",
-                              colorTextSecondary: "#a1a1a1",
-                              colorShimmer: "#ffffff",
-                              colorAlphaShade: "rgba(255, 255, 255, 0.05)",
-                              borderRadius: "5px",
-                              fontFamily: "inherit",
-                              colorDanger: "#ef4444",
-                              colorSuccess: "#10b981",
-                              colorWarning: "#f59e0b",
-                          }
-                      },
-                    })}>
-                      <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={40} height={40} className="rounded-full object-cover"/>
-                  </div> */}
-                  
                   <Popover>
                     <PopoverTrigger asChild>
                       <Image src={user ? user.imageUrl : "/default-profile.png"} alt="profile" width={40} height={40} className="rounded-full cursor-pointer object-cover"/>
@@ -198,7 +219,7 @@ export default function ConsoleLayout({ children }) {
             </div>
             
             {/* Bottom Bar */}
-            <div className="bg-dark-2 w-full md:hidden border-t border-white/10 flex justify-around items-center">
+            {/* <div className="bg-dark-2 w-full md:hidden border-t border-white/10 flex justify-around items-center">
               {navItems.map((item) => (
                       <Link
                         key={item.name}
@@ -212,7 +233,7 @@ export default function ConsoleLayout({ children }) {
                         <Image src={item.imgURL} alt={item.name} width={28} height={28} className={`${pathname === item.href ? "invert brightness-0" : ""}`}/>
                       </Link>
                   ))}
-            </div>
+            </div> */}
         </div>
         
     </>

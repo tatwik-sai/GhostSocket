@@ -110,7 +110,7 @@ export default function HeroPage()   {
                     className="hidden py-5 md:flex border border-[#ffffff1a] hover:border-purple-1/50 hover:bg-purple-1/10"
                 >
                     <a 
-                        href="https://youtube.com/watch?v=demo" 
+                        href={process.env.NEXT_PUBLIC_DEMO_URL} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-2"
