@@ -243,7 +243,6 @@
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
     --animate-bounce: bounce 1s infinite;
     --blur-xs: 4px;
-    --blur-sm: 8px;
     --blur-md: 12px;
     --aspect-video: 16 / 9;
     --default-transition-duration: .15s;
@@ -886,7 +885,7 @@
     height: 1px;
   }
 
-  .h-\[15px\] {
+  .h-\[15\], .h-\[15px\] {
     height: 15px;
   }
 
@@ -1026,10 +1025,6 @@
     width: calc(var(--spacing) * 40);
   }
 
-  .w-50 {
-    width: calc(var(--spacing) * 50);
-  }
-
   .w-60 {
     width: calc(var(--spacing) * 60);
   }
@@ -1044,10 +1039,6 @@
 
   .w-80 {
     width: calc(var(--spacing) * 80);
-  }
-
-  .w-\[1px\] {
-    width: 1px;
   }
 
   .w-\[10\%\] {
@@ -1132,6 +1123,10 @@
 
   .max-w-35 {
     max-width: calc(var(--spacing) * 35);
+  }
+
+  .max-w-50 {
+    max-width: calc(var(--spacing) * 50);
   }
 
   .max-w-80 {
@@ -1406,10 +1401,6 @@
 
   .gap-\[2px\] {
     gap: 2px;
-  }
-
-  .gap-\[6px\] {
-    gap: 6px;
   }
 
   :where(.space-y-1 > :not(:last-child)) {
@@ -1740,16 +1731,6 @@
     }
   }
 
-  .bg-black\/30 {
-    background-color: #0000004d;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-black\/30 {
-      background-color: color-mix(in oklab, var(--color-black) 30%, transparent);
-    }
-  }
-
   .bg-black\/50 {
     background-color: #00000080;
   }
@@ -1802,16 +1783,6 @@
 
   .bg-dark-5 {
     background-color: var(--color-dark-5);
-  }
-
-  .bg-dark-5\/70 {
-    background-color: #2b2b2bb3;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-dark-5\/70 {
-      background-color: color-mix(in oklab, var(--color-dark-5) 70%, transparent);
-    }
   }
 
   .bg-gray-500 {
@@ -2198,10 +2169,6 @@
 
   .pl-9 {
     padding-left: calc(var(--spacing) * 9);
-  }
-
-  .pl-12 {
-    padding-left: calc(var(--spacing) * 12);
   }
 
   .text-center {
@@ -2624,11 +2591,6 @@
     backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
   }
 
-  .backdrop-blur-sm {
-    --tw-backdrop-blur: blur(var(--blur-sm));
-    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
-  }
-
   .backdrop-blur-xs {
     --tw-backdrop-blur: blur(var(--blur-xs));
     backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
@@ -2887,12 +2849,6 @@
       .hover\:bg-dark-5\/50:hover {
         background-color: color-mix(in oklab, var(--color-dark-5) 50%, transparent);
       }
-    }
-  }
-
-  @media (hover: hover) {
-    .hover\:bg-dark-5\/100:hover {
-      background-color: var(--color-dark-5);
     }
   }
 

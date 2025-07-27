@@ -32,6 +32,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const ControlPanelLayout = ({ children }) => {
@@ -100,6 +101,25 @@ const ControlPanelLayout = ({ children }) => {
                 tcpDataChannel.send(JSON.stringify({ type: "get_dynamic_memory_info" }));
             }
         }, 1000), [])
+
+    const handleStopWebRTC = (deviceIssue = false) => {
+        console.log("Stopping WebRTC connection");
+        setScreenStream(null);
+        setWebcamStream(null);
+        setAudioStream(null);
+        setTcpDataChannel(null);
+        setUdpDataChannel(null);
+
+        if (peerConnection) {
+            peerConnection.close();
+            setPeerConnection(null);
+        }
+
+        if (deviceIssue) {
+            toast.error("Device disconnected or unavailable");
+        }
+        setConnectButtonState({ inProcess: false, text: "Connect" });
+    };
 
     const initializeWebRTC = () => {
         // Close existing connection if it exists
@@ -488,25 +508,6 @@ const ControlPanelLayout = ({ children }) => {
             }
         };
 
-        const handleStopWebRTC = (deviceIssue = false) => {
-            console.log("Stopping WebRTC connection");
-            setScreenStream(null);
-            setWebcamStream(null);
-            setAudioStream(null);
-            setTcpDataChannel(null);
-            setUdpDataChannel(null);
-
-            if (peerConnection) {
-                peerConnection.close();
-                setPeerConnection(null);
-            }
-
-            if (deviceIssue) {
-                toast.error("Device disconnected or unavailable");
-            }
-            setConnectButtonState({ inProcess: false, text: "Connect" });
-        };
-
         // Socket event listeners
 
         socket.current.on("webrtc-offer", handleWebRTCOffer);
@@ -581,6 +582,14 @@ const ControlPanelLayout = ({ children }) => {
         }
         if (deviceInfo && permissions) return;
         fetchDeviceData();
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            socket.current.emit("stop-webrtc");
+            handleStopWebRTC();
+            count.current = 0;
+        }
     }, [])
 
     useEffect(() => {
@@ -719,13 +728,19 @@ const ControlPanelLayout = ({ children }) => {
                             <div className='h-[1px] bg-dark-5 mt-1' />
                             <div className="flex items-center gap-2 pb-2">
                                 <FaWindows className="text-4xl text-blue-500 mr-0" />
-                                <div className="flex justify-center flex-col">
+                                {deviceInfo ? <div className="flex justify-center flex-col">
                                     <h2 className="font-semibold text-xl overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.name}</h2>
                                     <div className="flex items-center gap-1">
                                         <div className={`w-2 h-2 rounded-full ${statusColors[deviceInfo?.status]}`} />
                                         <p className="text-gray-500 text-sm overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.os}</p>
                                     </div>
                                 </div>
+                                :(
+                                    <div className="flex justify-center flex-col gap-1">
+                                        <Skeleton className="w-[150px] h-[20px] bg-white/10" />
+                                        <Skeleton className="w-[200px] h-[15] bg-white/10" />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

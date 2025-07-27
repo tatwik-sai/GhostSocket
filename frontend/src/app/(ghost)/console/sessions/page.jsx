@@ -10,12 +10,14 @@ import { useAuth } from '@clerk/clerk-react';
 import { permissionDesriptions } from '@/utils/constants';
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { useRouter } from 'next/navigation';
 
 const SessionsPage = () => {
   const [sessionKey, setSessionKey] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [sessionOption, setSessionOption] = useState('all');
   const { getToken } = useAuth();
+  const router = useRouter();
   const [sessionsData, setSessionsData] = useState([]);
   const [ showDetailsId, setShowDetailsId ] = useState(null);
   
@@ -85,7 +87,7 @@ const SessionsPage = () => {
   const handleJoinSession = async () => {
     if (!sessionKey.trim()) {
       toast.error('Please enter a session ID', {
-        variant: "destructive", // Note: it's "variant", not "variants"
+        variant: "destructive",
       });
       return;
     }
@@ -104,6 +106,7 @@ const SessionsPage = () => {
       if (response.status === 200) {
         toast.success('Joined the session successfully');
         setSessionKey('');
+        router.push(`/device/${response.data.deviceId}/device-profile`);
       } else {
         toast.error(response.data?.message || 'Failed to join the session', {
           variant: "destructive",

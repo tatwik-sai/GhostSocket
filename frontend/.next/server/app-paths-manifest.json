@@ -1,10 +1,5 @@
 {
-  "/(ghost)/console/activity/page": "app/(ghost)/console/activity/page.js",
   "/(ghost)/console/page": "app/(ghost)/console/page.js",
   "/(ghost)/console/sessions/page": "app/(ghost)/console/sessions/page.js",
-  "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js",
-  "/(ghost)/device/[deviceId]/resource-monitor/page": "app/(ghost)/device/[deviceId]/resource-monitor/page.js",
-  "/(ghost)/device/[deviceId]/webcam-feed/page": "app/(ghost)/device/[deviceId]/webcam-feed/page.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js"
+  "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js"
 }

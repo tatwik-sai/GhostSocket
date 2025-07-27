@@ -102,7 +102,7 @@ export async function joinSession(req, res) {
         await DBSessions.updateOne({ _id: sessionKey }, { 
             $set: { joinedUserId: userId, accessedDate: new Date() },
         });
-        res.status(200).json({ message: "Joined Session Sucessfully."});
+        res.status(200).json({ message: "Joined Session Sucessfully.", deviceId: session.deviceId });
     } catch (error) {
         console.error("Error joining session:", error);
         res.status(500).json({ error: "Failed to join session" });

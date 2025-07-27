@@ -275,8 +275,8 @@ const DeviceProfilePage = () => {
               <div className="flex flex-col justify-center bg-dark-4/70 p-4 pb-5 rounded-xl ml-4 mb-3" key={session.sessionKey}>
                 <div className="flex justify-between items-center">
                   <div className="flex flex-col justify-center pb-6">
-                    <div className="flex items-center justify-center gap-2">
-                      <p className="text-xl font-bold pt-2 truncate w-50">{session.joinedUserName}</p>
+                    <div className="flex items-center justify-start gap-2">
+                      <p className="text-xl font-bold pt-2 truncate max-w-50">{session.joinedUserName}</p>
                       <Badge className={`${session.status === 'active'?
                          'bg-purple-1': 
                          (session.status === 'completed' ?

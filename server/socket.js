@@ -58,6 +58,7 @@ const setupSocket = (server) => {
           const device = await DBDevice.findById(data.deviceId);
           const userDeviceLink = await DBUserDeviceLinks.findOne({ userId, deviceId: data.deviceId });
           if (!userDeviceLink) {
+            console.log("**************")
             socket.emit("error", {message: `You dont have permissions for this device`});
             return;
           }
@@ -152,7 +153,7 @@ const setupSocket = (server) => {
           if (deviceSocketId) {
             io.to(deviceSocketId).emit("from-user", data);
           } else {
-            socket.emit("error", {message: `Device is not Conncted`});
+            socket.emit("error", {message: `Device is not Connected`});
           }
         });
 
