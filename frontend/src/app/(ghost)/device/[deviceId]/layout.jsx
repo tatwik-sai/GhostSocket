@@ -59,7 +59,7 @@ const ControlPanelLayout = ({ children }) => {
     const { setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName, resetTerminal } = useTerminalStore();
 
     const { setStaticCPUInfo, setDynamicCPUInfo, setStaticMemoryInfo, setDynamicMemoryInfo,
-        addToCPUChartData, addToMemoryChartData, setProcessesList, resetResources } = useResourcesStore();
+        addToCPUChartData, addToMemoryChartData, setProcessesList, resetResources, resetCPUChartData, resetMemoryChartData } = useResourcesStore();
 
     const { resetWebCam } = useWebCamStore()
     const { resetRemoteControl } = useRemoteControlStore();
@@ -549,7 +549,7 @@ const ControlPanelLayout = ({ children }) => {
             }
         };
 
-    }, [socket, isSocketConnected, deviceId, peerConnection]);
+    }, [socket, isSocketConnected, deviceId]);
 
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
@@ -610,6 +610,19 @@ const ControlPanelLayout = ({ children }) => {
             console.log("Disconnecting from stream");
             socket.current.emit("stop-webrtc");
             setConnectButtonState({ inProcess: true, text: "Disconnecting..." });
+            setTimeout(() => {
+                setScreenStream(null);
+                setWebcamStream(null);
+                setAudioStream(null);
+                setTcpDataChannel(null);
+                setUdpDataChannel(null);
+
+                if (peerConnection) {
+                    peerConnection.close();
+                    setPeerConnection(null);
+                }
+                setConnectButtonState({ inProcess: false, text: "Connect" });
+            }, 1000);
 
             setScreenStream(null);
             setWebcamStream(null);
@@ -621,7 +634,8 @@ const ControlPanelLayout = ({ children }) => {
 
         } else {
             console.log("Requesting stream start for device:", deviceId);
-
+            resetCPUChartData();
+            resetMemoryChartData();
             // Initialize and get the new connection
             const newConnection = initializeWebRTC();
 
@@ -659,15 +673,15 @@ const ControlPanelLayout = ({ children }) => {
 
     return (
         <>
-            <div className='flex flex-col md:flex-row bg-dark-3 h-[100vh]'>
+            <div className='flex flex-col md:flex-row bg-dark-3 h-screen w-full'>
                 {/* Sidebar */}
-                <div className='hidden md:flex flex-col justify-between border-r border-[#2a2a2a] items-start h-full w-60 md:w-70'>
+                <div className='hidden md:flex flex-col justify-between border-r border-[#2a2a2a] items-start h-screen w-60 md:w-70'>
                     <Link href={"/console"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-6">
                         <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
                         <h1 className="text-2xl font-bold text-white">Ghost</h1>
                         <h1 className="text-2xl font-bold text-purple-1">Socket</h1>
                     </Link>
-                    <div className="flex flex-col justify-between w-full  p-2 h-full">
+                    <div className="flex flex-col justify-between w-full p-2 h-full">
                         <div className='flex flex-col h-full'>
                             <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
                                 {navItems.map((item) => {

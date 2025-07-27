@@ -45,6 +45,7 @@ export default function ConsoleLayout({ children }) {
   const pathname = usePathname();
   const {isLoaded, user} = useUser();
   const { openUserProfile } = useClerk();
+  
 
   return (
     <>

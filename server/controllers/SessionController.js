@@ -257,6 +257,10 @@ export async function terminateSession(req, res) {
     }
 }
 
+export async function dropAllSessions(req, res) {
+    
+}
+
 export async function updatePermissions(req, res) {
     const { sessionKey, permissions } = req.body;
     const userId = req.auth.userId;

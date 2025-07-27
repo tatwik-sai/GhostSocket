@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
-import { createSession, joinSession, getSessions, connectedSessions, terminateSession, updatePermissions} from "../controllers/SessionController.js";
+import { createSession, joinSession, getSessions, connectedSessions, terminateSession, updatePermissions, dropAllSessions} from "../controllers/SessionController.js";
 
 
 const sessionRoutes = Router()
@@ -11,5 +11,6 @@ sessionRoutes.get("/get-sessions", ClerkExpressRequireAuth(), getSessions);
 sessionRoutes.get("/connected-sessions/:deviceId", ClerkExpressRequireAuth(), connectedSessions);
 sessionRoutes.put("/update-permissions", ClerkExpressRequireAuth(), updatePermissions)
 sessionRoutes.delete("/:sessionKey", ClerkExpressRequireAuth(), terminateSession);
+sessionRoutes.delete("/drop-all", ClerkExpressRequireAuth(), dropAllSessions)
 
 export default sessionRoutes;

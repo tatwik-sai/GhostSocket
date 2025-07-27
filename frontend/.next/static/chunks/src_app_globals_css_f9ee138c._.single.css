@@ -148,6 +148,7 @@
     --animate-spin: spin 1s linear infinite;
     --animate-pulse: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
     --animate-bounce: bounce 1s infinite;
+    --blur-xs: 4px;
     --blur-sm: 8px;
     --blur-md: 12px;
     --aspect-video: 16 / 9;
@@ -951,6 +952,10 @@
     width: calc(var(--spacing) * 80);
   }
 
+  .w-\[1px\] {
+    width: 1px;
+  }
+
   .w-\[10\%\] {
     width: 10%;
   }
@@ -1309,6 +1314,10 @@
     gap: 2px;
   }
 
+  .gap-\[6px\] {
+    gap: 6px;
+  }
+
   :where(.space-y-1 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));
@@ -1615,12 +1624,36 @@
     background-color: #171717;
   }
 
+  .bg-\[\#ffffff1a\] {
+    background-color: #ffffff1a;
+  }
+
   .bg-background {
     background-color: var(--background);
   }
 
   .bg-black {
     background-color: var(--color-black);
+  }
+
+  .bg-black\/10 {
+    background-color: #0000001a;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-black\/10 {
+      background-color: color-mix(in oklab, var(--color-black) 10%, transparent);
+    }
+  }
+
+  .bg-black\/30 {
+    background-color: #0000004d;
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-black\/30 {
+      background-color: color-mix(in oklab, var(--color-black) 30%, transparent);
+    }
   }
 
   .bg-black\/50 {
@@ -1673,28 +1706,8 @@
     }
   }
 
-  .bg-dark-4\/90 {
-    background-color: #1f1f22e6;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-dark-4\/90 {
-      background-color: color-mix(in oklab, var(--color-dark-4) 90%, transparent);
-    }
-  }
-
   .bg-dark-5 {
     background-color: var(--color-dark-5);
-  }
-
-  .bg-dark-5\/0 {
-    background-color: #0000;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-dark-5\/0 {
-      background-color: color-mix(in oklab, var(--color-dark-5) 0%, transparent);
-    }
   }
 
   .bg-dark-5\/70 {
@@ -1704,16 +1717,6 @@
   @supports (color: color-mix(in lab, red, red)) {
     .bg-dark-5\/70 {
       background-color: color-mix(in oklab, var(--color-dark-5) 70%, transparent);
-    }
-  }
-
-  .bg-dark-5\/90 {
-    background-color: #2b2b2be6;
-  }
-
-  @supports (color: color-mix(in lab, red, red)) {
-    .bg-dark-5\/90 {
-      background-color: color-mix(in oklab, var(--color-dark-5) 90%, transparent);
     }
   }
 
@@ -2532,6 +2535,11 @@
     backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
   }
 
+  .backdrop-blur-xs {
+    --tw-backdrop-blur: blur(var(--blur-xs));
+    backdrop-filter: var(--tw-backdrop-blur, ) var(--tw-backdrop-brightness, ) var(--tw-backdrop-contrast, ) var(--tw-backdrop-grayscale, ) var(--tw-backdrop-hue-rotate, ) var(--tw-backdrop-invert, ) var(--tw-backdrop-opacity, ) var(--tw-backdrop-saturate, ) var(--tw-backdrop-sepia, );
+  }
+
   .transition {
     transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, visibility, content-visibility, overlay, pointer-events;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
@@ -2766,12 +2774,6 @@
 
   @media (hover: hover) {
     .hover\:bg-dark-4:hover {
-      background-color: var(--color-dark-4);
-    }
-  }
-
-  @media (hover: hover) {
-    .hover\:bg-dark-4\/100:hover {
       background-color: var(--color-dark-4);
     }
   }

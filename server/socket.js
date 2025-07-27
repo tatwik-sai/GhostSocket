@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import DBDevice from "./models/DevicesModel.js";
 import UserDeviceManager from "./utils/UserDeviceManager.js";
 import DBUserDeviceLinks from "./models/UserDeviceLinksModel.js";
+import { set } from "mongoose";
+
 dotenv.config();
 let io = null;
 const userDeviceManager = new UserDeviceManager();
@@ -21,11 +23,12 @@ const setupSocket = (server) => {
         // Verify the token and get user ID and add it to the userSocketMap
         const decoded = await verifyToken(token, {secretKey: process.env.CLERK_SECRET_KEY});
         const userId = decoded.sub;
-        
+
         if (userDeviceManager.userSocketMap.has(userId)) {
-          socket.emit("error", {message: `You are already in a session quit it to start a new one`});
+          socket.emit("multiple-connection", {message: `You are already using this account from another device`});
           return;
         }
+
         userDeviceManager.addUserSocket(userId, socket.id);
         console.log(`User connected: ${userId}, Socket ID: ${socket.id}`);
 
@@ -42,15 +45,16 @@ const setupSocket = (server) => {
             return;
           }
           userDeviceManager.deleteUserSocketOnly(userId);
+          userDeviceManager.deleteConnectionByUserId(userId);
         });
 
         // Start a WebRTC session with a device
         socket.on("initiate-webrtc", async (data) => {
+          console.log(`User ${userId} requested to start a session with ${data.deviceId}`);
           if (!isConnected) {
             console.log(`Ignoring initiate-webrtc from disconnected user ${userId}`);
             return;
           }
-          console.log(`User ${userId} requested to start a session with ${data.deviceId}`);
           const device = await DBDevice.findById(data.deviceId);
           const userDeviceLink = await DBUserDeviceLinks.findOne({ userId, deviceId: data.deviceId });
           if (!userDeviceLink) {
@@ -102,6 +106,12 @@ const setupSocket = (server) => {
           await DBUserDeviceLinks.findByIdAndUpdate(userDeviceLink._id, { active: false });
           console.log(`Device ${devId} is no longer in use`);
           socket.to(deviceSocketId).emit("stop-webrtc");
+          setTimeout(() => {
+            if (userDeviceManager.areConnected(userId, devId)) {
+              console.log("Forcing disconnection for user:", userId);
+              userDeviceManager.deleteConnectionByUserId(userId);
+            }
+          }, 900);
         });
 
         // Forward the answer to device
@@ -198,6 +208,7 @@ const setupSocket = (server) => {
           } else {
             console.error(`User ${uId} is not connected`);
           }
+          userDeviceManager.deleteConnectionByUserId(uId);
         });
 
         // Forward the WebRTC offer to the user

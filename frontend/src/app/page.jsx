@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FaInstagram, FaLinkedinIn, FaYoutube } from "react-icons/fa";
 import { Monitor, Shield, Zap, Globe, Lock, Play, Check, Link, Cable, MousePointerClick } from "lucide-react";
 import heroImage from "../../public/hero.png";
 import Image from "next/image";
@@ -8,6 +8,8 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { FaGithub, FaRegStar } from "react-icons/fa";
 import DownloadButton from "@/components/DownloadAppButton";
+import { IoLogoLinkedin } from "react-icons/io5";
+import { BsTwitterX } from "react-icons/bs";
 
 export default function HeroPage()   {
     async function launchConsoleAction() {
@@ -300,13 +302,25 @@ export default function HeroPage()   {
 
       {/* Footer */}
       <footer className="py-12 bg-[#27272a33]">
-        <div className="container mx-auto px-4">
-            <div className="border-t border-[#ffffff1a] m pt-8">
+        <div className="container mx-auto px-4 flex flex-col items-center justify-center">
+            <div className="flex gap-10 items-center w-full">
+              <div className="h-[1px] w-full bg-[#ffffff1a]"></div>
+              <div className="flex justify-around items-center gap-5">
+                <a href="https://www.linkedin.com/in/tatwik-sai-molleti-0aa96931a/" target="_blank" rel="noopener noreferrer"><IoLogoLinkedin className="text-3xl" /></a>
+                <a href="https://github.com/tatwik-sai" target="_blank" rel="noopener noreferrer"><FaGithub className="text-3xl" /></a>
+                <a href="https://www.youtube.com/@tatwik1042" target="_blank" rel="noopener noreferrer"><FaYoutube className="text-3xl" /></a>
+                <a href="https://www.instagram.com/tatwik_sai?igsh=ZGpmdHVxYmt5eXl1" target="_blank" rel="noopener noreferrer"><FaInstagram className="text-3xl" /></a>
+                <a href="https://x.com/TatwikSai" target="_blank" rel="noopener noreferrer"><BsTwitterX className="text-3xl" /></a>
+
+              </div>
+              <div className="h-[1px] w-full bg-[#ffffff1a]"></div>
+            </div>
+            <div className="pt-8 text-center">
               <div className="flex items-center gap-[2px] ml-0">
                 <Image src="/logo.svg" className="" alt="GhostSocket" width={45} height={45} />
                 <h1 className="text-2xl font-bold text-white">GhostSocket</h1>
               </div>
-              <p className="text-sm text-gray-400 pl-12">&copy; 2025 Ghost Socket.</p>
+              <p className="text-sm text-gray-400">Copyright &copy; 2025 Ghost Socket.</p>
             </div>
         </div>
       </footer>

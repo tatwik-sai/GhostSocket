@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "@clerk/nextjs";
 import { HOST } from "@/utils/constants";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const SocketContext = createContext(null);
 
@@ -14,6 +16,7 @@ export const SocketProvider = ({ children }) => {
   const socket = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
   const { getToken } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const connectSocket = async () => {
@@ -40,8 +43,11 @@ export const SocketProvider = ({ children }) => {
           setIsConnected(false);
         });
 
-        socket.current.on("connect_error", (error) => {
-          console.error("Socket connection error:", error);
+        socket.current.on("multiple-connection", (error) => {
+          console.error("Same user connected from another device");
+          toast.error(error.message || "You are already using this account from another device");
+          // router.push("/");
+          socket.current.disconnect();
           setIsConnected(false);
         });
 

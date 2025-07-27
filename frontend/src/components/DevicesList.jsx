@@ -91,10 +91,11 @@ const DevicesList = ({type, devices}) => {
     router.push(`/device/${deviceId}/device-profile`);
   };
 
-  const handleDropAllSessions = (deviceId) => {
-  }
-
-  const handleMyActivity = (deviceId) => {
+  const handleDropAllSessions = async (deviceId) => {
+    toast.error("This function is still under development", {
+      description: "Please try again later",
+    });
+    setDropDialog(null);
   }
 
   const handleDeleteDevice = async (deviceId) => {
@@ -105,10 +106,18 @@ const DevicesList = ({type, devices}) => {
       },
     };
     try {
-      await apiClient.delete(`/devices/${deviceId}`, authHeaders);
-      toast("Device deleted successfully", {
-        variant: "success"
-      });
+      const res = await apiClient.delete(`/devices/${deviceId}`, authHeaders);
+      if (res.status === 200) {
+        toast("Device deleted successfully", {
+          variant: "success"
+        });
+      } else {
+        toast("Failed to delete device", {
+          variant: "destructive"
+        });
+        setDeleteDialog(null);
+        return;
+      }
       setDeleteDialog(null);
       if (type === "myDevices") {
         useDevicesStore.getState().removeMyDevice(deviceId);
@@ -237,8 +246,6 @@ const DevicesList = ({type, devices}) => {
                   <Button className="purple-primary-button font-semibold"
                   onClick={(e) => handleLaunch(device.deviceId, e)}>Launch</Button>
                   
-                  <Button className="bg-dark-5/70 hover:bg-dark-5/100 active:scale-90 transition-all duration-100"
-                   onClick={(e) => e.stopPropagation()}>Manage</Button>
                 </div>
                 <div className='p-1' onClick={(e) => {e.stopPropagation(); setDeleteDialog(device.deviceId)}} >
                     <MdDelete  className="h-5 w-5 cursor-pointer hover:text-red-500 hover:scale-[1.25] active:scale-90 transition-all duration-100"/>
@@ -268,10 +275,10 @@ const DevicesList = ({type, devices}) => {
       {dropDialog &&
       <Dialog onClose={() => setDropDialog(null)}>
           <h2 className="text-lg font-bold mb-2">Drop All Sessions</h2>
-          <p className='text-sm'>Are you sure you want to drop all sessions for this device?</p>
+          <p className='text-sm'>Are you sure you want to delete all sessions associated with this device?</p>
           <div className="flex justify-end mt-4">
             <Button className="mr-2 font-bold  bg-dark-5 hover:bg-dark-4" onClick={() => setDropDialog(null)}>Cancel</Button>
-            <Button className="bg-primary-red hover:bg-primary-red-hover font-bold" onClick={() => handleDropAllSessions(dropDialog)}>Drop</Button>
+            <Button className="bg-primary-red hover:bg-primary-red-hover font-bold" onClick={() => handleDropAllSessions(dropDialog)}>Delete</Button>
           </div>
       </Dialog>
       }

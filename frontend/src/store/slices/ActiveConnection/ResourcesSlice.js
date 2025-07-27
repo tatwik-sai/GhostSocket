@@ -37,6 +37,8 @@ export const createResourcesSlice = (set) => ({
   setDynamicCPUInfo: (info) => set({ dynamicCPUInfo: info }),
   setStaticMemoryInfo: (info) => set({ staticMemoryInfo: info }),
   setDynamicMemoryInfo: (info) => set({ dynamicMemoryInfo: info }),
+  resetCPUChartData: () => set({ cpuChartData: [...Array(100).fill({usage: 0})] }),
+  resetMemoryChartData: () => set({ memoryChartData: [...Array(100).fill({usage: 0})] }), 
   resetResources: () => set({
     staticCPUInfo: {},
     dynamicCPUInfo: {},

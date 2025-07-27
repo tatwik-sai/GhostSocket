@@ -13,6 +13,7 @@ from storage import Storage
 from PIL import Image, ImageDraw
 from sender import connect_socket
 from async_requests import post_data
+import asyncio
 from componets.toast import Toast
 from PIL import Image, ImageDraw
 from componets.loading import LoadingPage
@@ -278,7 +279,13 @@ class OtpPage(ctk.CTkFrame):
 
     async def resend_otp(self):
         self.resend_button.configure(state="disabled", text="Resending OTP...")
-        status, data = await post_data(RESEND_OTP_URL, {"email": self.email})
+        status, data = None, None
+        try:
+            status, data = await post_data(RESEND_OTP_URL, {"email": self.email})
+        except Exception as e:
+            self.toast.show("Error resending OTP", type="error")
+            self.resend_button.configure(state="normal", text="Resend OTP")
+            return
         if status == 200:
             self.toast.show(data["message"], type="success")
         else:
@@ -406,7 +413,6 @@ class HomePage(ctk.CTkFrame):
 
     def create_page(self):
         async_loop.run_coroutine(connect_socket(uuid))
-        print("[+] Connected to socket server")
         top_controls = ctk.CTkFrame(self, fg_color="transparent")
         top_controls.pack(fill="x", pady=10, padx=20)
 
@@ -552,7 +558,14 @@ class HomePage(ctk.CTkFrame):
     async def save_selection(self):
         self.save_button.configure(state="disabled", text="Saving...")
         selected = {item: True if var.get() == "on" else False for item, var in self.selection_vars}
-        status, data = await post_data(SAVE_PERMISSIONS_URL, {"deviceId": uuid, "permissions": selected})
+        status, data = None, None
+        try:
+            status, data = await post_data(SAVE_PERMISSIONS_URL, {"deviceId": uuid, "permissions": selected})
+        except Exception as e:
+            self.toast.show("Error saving permissions", type="error")
+            self.save_button.configure(state="normal", text="Save Changes")
+            return
+
         if status == 200:
             self.toast.show(data["message"], type="success")
         else:
@@ -564,7 +577,14 @@ class HomePage(ctk.CTkFrame):
 
     async def logout(self):
         self.logout_button.configure(state="disabled")
-        status, data = await post_data(LOGOUT_APP_URL, {"deviceId": uuid})
+        status, data = None, None
+        try:
+            status, data = await post_data(LOGOUT_APP_URL, {"deviceId": uuid})
+        except Exception as e:
+            self.toast.show("Error logging out", type="error")
+            self.logout_button.configure(state="normal")
+            return
+
         if status == 200:
             self.toast.show(data["message"], type="success")
             storeage.add_data({"loggedIn": False})
@@ -575,11 +595,18 @@ class HomePage(ctk.CTkFrame):
 
 async def show_home_page(app):
     try:
-        print("[+] Posting device info to server")
         device_info = get_system_info()
-        status, data = await post_data(UPDATE_DEVICE_INFO_URL, {"deviceInfo": device_info, "deviceId": uuid})
-        print("[+] Fetching user data")
-        status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
+        while True:
+            try:
+                print("[+] Posting device info to server")
+                status, data = await post_data(UPDATE_DEVICE_INFO_URL, {"deviceInfo": device_info, "deviceId": uuid})
+                print("[+] Fetching user data")
+                status, data = await post_data(GET_USER_DATA_URL, {"deviceId": uuid})
+                break
+            except Exception as e:
+                print(f"[-] Error fetching user data: {e}")
+                await asyncio.sleep(5)
+
         if status == 404 and data.get("type") == "deleted":
             print("[-] Device not found or deleted, redirecting to login page")
             app.pages[LoadingPage].toast.show("Device not found or deleted", type="error")
