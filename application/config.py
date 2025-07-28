@@ -1,5 +1,5 @@
-# SERVER_URL = "https://ghostsocket.onrender.com"
-SERVER_URL = "http://localhost:8747"
+SERVER_URL = "https://ghostsocket.onrender.com"
+# SERVER_URL = "http://localhost:8747"
 API_BASE = f"{SERVER_URL}/app"
 CHECK_USER_URL = f"{API_BASE}/check-user"
 VERIFY_OTP_URL = f"{API_BASE}/verify-otp"

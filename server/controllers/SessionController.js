@@ -5,9 +5,9 @@ import DBUser from "../models/UserModel.js";
 import { io, userDeviceManager } from "../socket.js";
 
 const formatDate = (date) => {
-        const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return date.toLocaleDateString('en-US', options);
-    }
+    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return date.toLocaleDateString('en-US', options);
+}
 
 
 export async function createSession(req, res) {
@@ -81,7 +81,7 @@ export async function joinSession(req, res) {
         // Check if the user device link already exists
         const userDeviceLink = await DBUserDeviceLinks.findOne({ userId, deviceId: session.deviceId });
         if (userDeviceLink) {
-            return res.status(400).json({ message: "You are already connected to this device." });
+            return res.status(400).json({ message: " connected to this device." });
         }
 
         // Create a new user device link for the user
@@ -99,7 +99,7 @@ export async function joinSession(req, res) {
         });
 
         // Mark the session as used and update the joinedUserId
-        await DBSessions.updateOne({ _id: sessionKey }, { 
+        await DBSessions.updateOne({ _id: sessionKey }, {
             $set: { joinedUserId: userId, accessedDate: new Date() },
         });
         res.status(200).json({ message: "Joined Session Sucessfully.", deviceId: session.deviceId });
@@ -124,7 +124,7 @@ export async function getSessions(req, res) {
             }
             else if (session.expiry && session.expiry < new Date()) {
                 devStatus = "expired"; // Not joined the session and expired
-            }  else if (session.joinedUserId) {
+            } else if (session.joinedUserId) {
                 devStatus = "active"; // Joined the session and not expired
             } else {
                 devStatus = "pending"; // Not joined the session and not expired
@@ -133,20 +133,21 @@ export async function getSessions(req, res) {
             let joinedUserName = "-";
             if (joinedUser) {
                 joinedUserName = !joinedUser.firstName && !joinedUser.lastName ?
-                joinedUser.email :
-                (joinedUser.firstName? joinedUser.firstName + " " : "") + (joinedUser.lastName ? joinedUser.lastName : "");
+                    joinedUser.email :
+                    (joinedUser.firstName ? joinedUser.firstName + " " : "") + (joinedUser.lastName ? joinedUser.lastName : "");
             }
             return ({
-            sessionKey: session._id,
-            deviceName: deviceLink.name,
-            status: devStatus,
-            type: "created",
-            createdAt: formatDate(session.createdAt),
-            joinedUserName: joinedUserName,
-            expiry: session.expiry ? formatDate(new Date(session.expiry)) : "Manual Expiry",
-            permissions: session.permissions,
-        })}))
-        
+                sessionKey: session._id,
+                deviceName: deviceLink.name,
+                status: devStatus,
+                type: "created",
+                createdAt: formatDate(session.createdAt),
+                joinedUserName: joinedUserName,
+                expiry: session.expiry ? formatDate(new Date(session.expiry)) : "Manual Expiry",
+                permissions: session.permissions,
+            })
+        }))
+
         const joinedSessions = await DBSessions.find({ joinedUserId: userId }).sort({ createdAt: -1 });
         const formattedJoinedSessions = await Promise.all(joinedSessions.map(async (session) => {
             const deviceLink = await DBUserDeviceLinks.findOne({ userId, deviceId: session.deviceId });
@@ -161,8 +162,8 @@ export async function getSessions(req, res) {
             }
             const createdUser = await DBUser.findOne({ _id: session.userId });
             const createdUserName = !createdUser.firstName && !createdUser.lastName ?
-            createdUser.email : 
-            (createdUser.firstName? createdUser.firstName + " " : "") + (createdUser.lastName ? createdUser.lastName : "");
+                createdUser.email :
+                (createdUser.firstName ? createdUser.firstName + " " : "") + (createdUser.lastName ? createdUser.lastName : "");
             return ({
                 sessionKey: session._id,
                 deviceName: deviceLink ? deviceLink.name : session.deviceId,
@@ -182,18 +183,18 @@ export async function getSessions(req, res) {
     }
 }
 
-export async function connectedSessions (req, res) {
+export async function connectedSessions(req, res) {
     // Active, Completed, Terminated
     const userId = req.auth.userId;
     const { deviceId } = req.params;
     // get all the sessions that have joineduserid not null and have userid as userId
-    try{
+    try {
         const userDeviceLinks = await DBUserDeviceLinks.find({ userId, deviceId, role: "owner" });
         if (userDeviceLinks.length === 0) {
             return res.status(200).json([]);
         }
         const connectedSessions = await DBSessions.find(
-                { userId: userId, deviceId, joinedUserId: { $ne: null } }).sort({ updatedAt: -1 });
+            { userId: userId, deviceId, joinedUserId: { $ne: null } }).sort({ updatedAt: -1 });
         const formattedSessions = await Promise.all(connectedSessions.map(async (session) => {
             let sessionStatus;
             if (session.terminated) {
@@ -229,7 +230,7 @@ export async function terminateSession(req, res) {
 
     try {
         // Check if the session exists and is not expired
-        const session = await DBSessions.findOne({ _id: sessionKey});
+        const session = await DBSessions.findOne({ _id: sessionKey });
         if (!session || session.terminated) {
             return res.status(404).json({ message: "Session not found or already terminated." });
         }
@@ -258,7 +259,7 @@ export async function terminateSession(req, res) {
 }
 
 export async function dropAllSessions(req, res) {
-    
+
 }
 
 export async function updatePermissions(req, res) {
@@ -300,7 +301,7 @@ export async function updatePermissions(req, res) {
 
         // Instantaneously update the permissions on the device and user if they are connected
         if (session.joinedUserId && userDeviceManager.areConnected(session.joinedUserId, session.deviceId)) {
-            const permissionsToSend = { permissions: Object.fromEntries(Object.entries(updatedPermissions).map(([key, value]) => [key, value.allowed]))}
+            const permissionsToSend = { permissions: Object.fromEntries(Object.entries(updatedPermissions).map(([key, value]) => [key, value.allowed])) }
             const deviceSocketId = userDeviceManager.getDeviceSocketIdByUserId(session.joinedUserId);
             const userSocketId = userDeviceManager.getUserSocketIdByDeviceId(session.deviceId);
 

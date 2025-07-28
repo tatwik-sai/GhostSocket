@@ -58,6 +58,7 @@ export default function DevicesPage() {
 
   return (
   <div className="flex flex-col justify-between lg:p-4 h-full">
+    {/* My Devices */}
     <div className="flex flex-col flex-1 bg-dark-1">
       <div className="flex justify-between w-full mt-2 lg:mt-4 mb-3 p-2 md:pl-4">
         <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">My Devices</h2>
@@ -77,6 +78,7 @@ export default function DevicesPage() {
       <DevicesList type="myDevices" devices={filteredMyDevices} />
     </div>
     
+    {/* Other Devices */}
     <div className="flex flex-col flex-1 bg-dark-1">
       <div className="flex justify-between mt-2 lg:mt-4 mb-3 p-2 md:pl-4">
       <h2 className="text-2xl font-bold pb-2 whitespace-nowrap pr-4">Other Devices</h2>

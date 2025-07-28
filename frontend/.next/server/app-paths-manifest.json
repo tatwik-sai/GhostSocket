@@ -1,5 +1,5 @@
 {
   "/(ghost)/console/page": "app/(ghost)/console/page.js",
-  "/(ghost)/console/sessions/page": "app/(ghost)/console/sessions/page.js",
-  "/(ghost)/device/[deviceId]/device-profile/page": "app/(ghost)/device/[deviceId]/device-profile/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js"
 }

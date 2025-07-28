@@ -19,8 +19,8 @@ const SessionsPage = () => {
   const { getToken } = useAuth();
   const router = useRouter();
   const [sessionsData, setSessionsData] = useState([]);
-  const [ showDetailsId, setShowDetailsId ] = useState(null);
-  
+  const [showDetailsId, setShowDetailsId] = useState(null);
+
   const sessionOptions = [
     { value: 'all', label: 'All' },
     { value: 'joined', label: 'Joined' },
@@ -29,7 +29,7 @@ const SessionsPage = () => {
     { value: 'active', label: 'Active' },
     { value: 'completed', label: 'Completed' },
     { value: 'terminated', label: 'Terminated' },
-    { value: 'pending', label: 'Pending'}
+    { value: 'pending', label: 'Pending' }
   ];
 
   useEffect(() => {
@@ -91,7 +91,7 @@ const SessionsPage = () => {
       });
       return;
     }
-    
+
     try {
       const sessionKeyFormatted = sessionKey.replace(/-/g, '').toLowerCase();
       const clerk_token = await getToken();
@@ -100,9 +100,9 @@ const SessionsPage = () => {
           Authorization: `Bearer ${clerk_token}`,
         },
       };
-      
+
       const response = await apiClient.post('/sessions/join', { sessionKey: sessionKeyFormatted }, authHeaders);
-      
+
       if (response.status === 200) {
         toast.success('Joined the session successfully');
         setSessionKey('');
@@ -114,7 +114,7 @@ const SessionsPage = () => {
       }
     } catch (error) {
       console.error('Join session error:', error);
-      
+
       // Handle different error types
       if (error.response) {
         // Server responded with error status
@@ -174,10 +174,10 @@ const SessionsPage = () => {
   };
 
   const filteredSessions = sessionsData.filter(session => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       session.sessionKey.toLowerCase().includes(searchTerm.toLowerCase()) ||
       session.deviceName.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchesFilter = true;
     if (sessionOption !== 'all') {
       if (sessionOption === 'joined' || sessionOption === 'created') {
@@ -186,201 +186,200 @@ const SessionsPage = () => {
         matchesFilter = session.status === sessionOption;
       }
     }
-    
+
     return matchesSearch && matchesFilter;
   });
 
   return (
     <div className="text-white flex flex-col h-full p-2 sm:p-4ma pb-1 pr-2">
-          {/* Header */}
-          <div className="mb-5">
-            <h1 className="text-2xl font-bold mb-0">Sessions</h1>
-          </div>
+      {/* Header */}
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold mb-0">Sessions</h1>
+      </div>
 
-          {/* Join Session Section */}
-          <div className="bg-dark-3 rounded-lg p-2 mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 max-w-2xl">
+      {/* Join Session Section */}
+      <div className="bg-dark-3 rounded-lg p-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 max-w-2xl">
+          <input
+            type="text"
+            placeholder="Enter your session key(XXXX-XXXX-XXXX-XXXX-XXXX-XXXX)"
+            value={sessionKey}
+            onChange={handleInputChange}
+            className="flex-1 bg-dark-4 border border-dark-5 ring-0 focus:outline-none rounded-lg px-2 py-2 text-white text-sm placeholder-gray-400 font-mono tracking-wide"
+          />
+          <button
+            onClick={handleJoinSession}
+            className="bg-purple-1 transition-all duration-200 hover:scale-103 h-9 max-w-30 rounded-md px-4 text-sm text-white font-semibold"
+          >
+            Join Session
+          </button>
+        </div>
+      </div>
+
+      {/* Sessions */}
+      <div className="bg-dark-3 rounded-lg p-2 sm:p-4">
+        {/* Header with Filters and Search */}
+        <div className='flex justify-between pb-4'>
+          <div className='flex items-center gap-4'>
+            <h2 className="text-xl font-semibold hidden lg:block">Previous Sessions ({filteredSessions.length})</h2>
+            <h2 className="text-xl font-semibold block lg:hidden">History</h2>
+          </div>
+          <div className='flex items-center gap-1 sm:gap-2'>
+            {/* Filter  */}
+            <Listbox value={sessionOption} onChange={handleSessionOptionChange}>
+              <div className="relative">
+                <ListboxButton className="relative w-full min-w-26 p-0.5 border border-dark-5 rounded-md bg-dark-4 text-gray-100 outline-none ring-0 text-left">
+                  <div className="flex items-center">
+                    <IoFilterOutline className="w-4 h-4 text-gray-400 mr-2" />
+                    <p className='text-sm opacity-60'>
+                      {sessionOptions.find(option => option.value === sessionOption)?.label}
+                    </p>
+                  </div>
+                </ListboxButton>
+                <Transition
+                  as={Fragment}
+                  leave="transition ease-in duration-100"
+                  leaveFrom="opacity-100"
+                  leaveTo="opacity-0"
+                >
+                  <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md outline-none bg-dark-5 shadow-lg z-50">
+                    {sessionOptions.map((option) => (
+                      <ListboxOption
+                        key={option.value}
+                        className={({ active }) =>
+                          `relative cursor-pointer select-none py-0.5 px-4 ${active ? 'bg-dark-4 text-gray-100' : 'text-gray-300'
+                          } first:rounded-t-md last:rounded-b-md`
+                        }
+                        value={option.value}
+                      >
+                        {({ selected }) => (
+                          <>
+                            <span className='text-sm'>
+                              {option.label}
+                            </span>
+                            {selected ? (
+                              <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                                <Check className="h-4 w-4" aria-hidden="true" />
+                              </span>
+                            ) : null}
+                          </>
+                        )}
+                      </ListboxOption>
+                    ))}
+                  </ListboxOptions>
+                </Transition>
+              </div>
+            </Listbox>
+            {/* Search Bar */}
+            <div className="relative ">
               <input
                 type="text"
-                placeholder="Enter your session key(XXXX-XXXX-XXXX-XXXX-XXXX-XXXX)"
-                value={sessionKey}
-                onChange={handleInputChange}
-                className="flex-1 bg-dark-4 border border-dark-5 ring-0 focus:outline-none rounded-lg px-2 py-2 text-white text-sm placeholder-gray-400 font-mono tracking-wide"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-dark-4 h-10 p-2 w-full text-sm focus:outline-none pl-9 rounded-lg focus:ring-2 focus:ring-white/30"
               />
-              <button
-                onClick={handleJoinSession}
-                className="bg-purple-1 transition-all duration-200 hover:scale-103 h-9 max-w-30 rounded-md px-4 text-sm text-white font-semibold"
-              >
-                Join Session
-              </button>
+              <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+                <IoSearch className="h-5 w-5 items-center justify-center" />
+              </span>
             </div>
           </div>
+        </div>
 
-          {/* Sessions */}
-          <div className="bg-dark-3 rounded-lg p-2 sm:p-4">
-            <div className='flex justify-between pb-4'>
-              <div className='flex items-center gap-4'>
-                <h2 className="text-xl font-semibold hidden lg:block">Previous Sessions ({filteredSessions.length})</h2>
-                <h2 className="text-xl font-semibold block lg:hidden">History</h2>
-              </div>
-              <div className='flex items-center gap-1 sm:gap-2'>
-                {/* Filter  */}
-                <Listbox value={sessionOption} onChange={handleSessionOptionChange}>
-                  <div className="relative">
-                    <ListboxButton className="relative w-full min-w-26 p-0.5 border border-dark-5 rounded-md bg-dark-4 text-gray-100 outline-none ring-0 text-left">
-                      <div className="flex items-center">
-                        <IoFilterOutline className="w-4 h-4 text-gray-400 mr-2" />
-                        <p className='text-sm opacity-60'>
-                          {sessionOptions.find(option => option.value === sessionOption)?.label}
-                        </p>
-                      </div>
-                    </ListboxButton>
-                    <Transition
-                      as={Fragment}
-                      leave="transition ease-in duration-100"
-                      leaveFrom="opacity-100"
-                      leaveTo="opacity-0"
-                    >
-                      <ListboxOptions className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md outline-none bg-dark-5 shadow-lg z-50">
-                        {sessionOptions.map((option) => (
-                          <ListboxOption
-                            key={option.value}
-                            className={({ active }) =>
-                              `relative cursor-pointer select-none py-0.5 px-4 ${
-                                active ? 'bg-dark-4 text-gray-100' : 'text-gray-300'
-                              } first:rounded-t-md last:rounded-b-md`
-                            }
-                            value={option.value}
-                          >
-                            {({ selected }) => (
-                              <>
-                                <span className='text-sm'>
-                                  {option.label}
-                                </span>
-                                {selected ? (
-                                  <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-                                    <Check className="h-4 w-4" aria-hidden="true" />
-                                  </span>
-                                ) : null}
-                              </>
-                            )}
-                          </ListboxOption>
-                        ))}
-                      </ListboxOptions>
-                    </Transition>
-                  </div>
-                </Listbox>
-                {/* Search Bar */}
-                <div className="relative ">
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchTerm} 
-                    onChange={(e) => setSearchTerm(e.target.value)}  
-                    className="bg-dark-4 h-10 p-2 w-full text-sm focus:outline-none pl-9 rounded-lg focus:ring-2 focus:ring-white/30"
-                  />
-                  <span className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <IoSearch className="h-5 w-5 items-center justify-center" />
-                  </span>
-                </div>
-                </div>
+        {/* Sessions List */}
+        <div className='overflow-y-auto max-h-[calc(100vh-355px)] md:max-h-[calc(100vh-220px)] custom-scrollbar'>
+          {filteredSessions.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No sessions found matching your criteria</p>
             </div>
-            
-            <div className='overflow-y-auto max-h-[calc(100vh-355px)] md:max-h-[calc(100vh-220px)] custom-scrollbar'>
-              {filteredSessions.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No sessions found matching your criteria</p>
-                </div>
-              ) : (
-                <div className="space-y-2 sm:space-y-4">
-                  {filteredSessions.map((session) => (
-                    <div key={session.sessionKey} className="bg-dark-4/70 rounded-lg p-2 sm:p-4 hover:bg-gray-650 transition-colors duration-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            {/* Session Key and Tags */}
-                            <div className="flex flex-col sm:flex-row items-start gap-3 mb-2">
-                              <span className="font-mono text-sm bg-dark-5 px-3 py-1 rounded">
-                                {session.sessionKey}
-                              </span>
-                              {/* Tags */}
-                              <div className='flex items-center gap-2'>
-                                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
-                                  <div className="flex items-center justify-center gap-1 min-h-[16px]">
-                                    {getStatusIcon(session.status)}
-                                    {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
-                                  </div>
-                                </span>
-                                <span className={`px-2 py-1 rounded text-xs ${session.type === 'created' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-500/10 text-blue-400'}`}>
-                                  {session.type === 'created' ? 'Created' : 'Joined'}
-                                </span>
+          ) : (
+            <div className="space-y-2 sm:space-y-4">
+              {filteredSessions.map((session) => (
+                <div key={session.sessionKey} className="bg-dark-4/70 rounded-lg p-2 sm:p-4 hover:bg-gray-650 transition-colors duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        {/* Session Key and Tags */}
+                        <div className="flex flex-col sm:flex-row items-start gap-3 mb-2">
+                          <span className="font-mono text-sm bg-dark-5 px-3 py-1 rounded">
+                            {session.sessionKey}
+                          </span>
+                          {/* Tags */}
+                          <div className='flex items-center gap-2'>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(session.status)}`}>
+                              <div className="flex items-center justify-center gap-1 min-h-[16px]">
+                                {getStatusIcon(session.status)}
+                                {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
                               </div>
-                            </div>
-
-                            {/* Details Button */}
-                            {/* regardless i want this button to stick to top */}
-                            <div className="flex gap-2 ml-4 flex-start">
-                              <button className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300
-                              text-white px-4 py-2 rounded-md text-sm font-medium"
-                              onClick={() => setShowDetailsId(showDetailsId === session.sessionKey ? null : session.sessionKey)}>
-                                Details
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Session Details */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-300">
-                            <div>
-                              <span className="text-gray-400">Device</span>
-                              <p className="font-bold">{session.deviceName}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">{session.joinedUserName ? "Joined By": "Created By"}</span>
-                              <p className="font-bold">{session.joinedUserName ? session.joinedUserName : session.createdUserName}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Created</span>
-                              <p className="font-bold">{session.createdAt}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400">Expiry</span>
-                              <p className="font-bold">{session.expiry}</p>
-                            </div>
+                            </span>
+                            <span className={`px-2 py-1 rounded text-xs ${session.type === 'created' ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                              {session.type === 'created' ? 'Created' : 'Joined'}
+                            </span>
                           </div>
                         </div>
-                        
-                        
+
+                        {/* Details Button */}
+                        <div className="flex gap-2 ml-4 flex-start">
+                          <button className="bg-white/20 hover:bg-white/30 active:scale-95 transition-all duration-300
+                              text-white px-4 py-2 rounded-md text-sm font-medium"
+                            onClick={() => setShowDetailsId(showDetailsId === session.sessionKey ? null : session.sessionKey)}>
+                            Details
+                          </button>
+                        </div>
                       </div>
-                      {/* Permissions */}
-                      <div className={`transition-all duration-300 ease-in-out overflow-hidden transform ${
-                        showDetailsId === session.sessionKey 
-                          ? 'max-h-96 opacity-100 translate-y-0 pt-4' 
-                          : 'max-h-0 opacity-0 -translate-y-2 pt-0'
-                      }`}>
-                        <div className="transition-all duration-300 ease-in-out">
-                          <h2 className="text-md font-semibold text-gray-300 mb-3">Permissions:</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {session.permissions?.map((permission) => {  
-                              const [key, value] = Object.entries(permission)[0];
-                              return (
-                                <div key={key} className="flex items-center gap-3">
-                                  <Checkbox checked={value} className="data-[state=checked]:bg-purple-1 data-[state=checked]:border-purple-1/90 border-white/50 border-[1px]"/>
-                                  <Label className="text-sm">{permissionDesriptions[key].shortDescription}</Label>
-                                </div>
-                              );
-                            })}
-                          </div>
+
+                      {/* Session Details */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-300">
+                        <div>
+                          <span className="text-gray-400">Device</span>
+                          <p className="font-bold">{session.deviceName}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">{session.joinedUserName ? "Joined By" : "Created By"}</span>
+                          <p className="font-bold">{session.joinedUserName ? session.joinedUserName : session.createdUserName}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Created</span>
+                          <p className="font-bold">{session.createdAt}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-400">Expiry</span>
+                          <p className="font-bold">{session.expiry}</p>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-      </div>
-    )
-  }
 
-  export default SessionsPage
+
+                  </div>
+                  {/* Permissions */}
+                  <div className={`transition-all duration-300 ease-in-out overflow-hidden transform ${showDetailsId === session.sessionKey
+                      ? 'max-h-96 opacity-100 translate-y-0 pt-4'
+                      : 'max-h-0 opacity-0 -translate-y-2 pt-0'
+                    }`}>
+                    <div className="transition-all duration-300 ease-in-out">
+                      <h2 className="text-md font-semibold text-gray-300 mb-3">Permissions:</h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {session.permissions?.map((permission) => {
+                          const [key, value] = Object.entries(permission)[0];
+                          return (
+                            <div key={key} className="flex items-center gap-3">
+                              <Checkbox checked={value} className="data-[state=checked]:bg-purple-1 data-[state=checked]:border-purple-1/90 border-white/50 border-[1px]" />
+                              <Label className="text-sm">{permissionDesriptions[key].shortDescription}</Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default SessionsPage

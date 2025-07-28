@@ -41,19 +41,18 @@ yarn-error.log*
 next-env.d.ts
 
 
-__pycache__/
+__pycache__
 *.pyc
-dist/
+dist
 *.log
-webrtc-env/
+webrtc-env
 
 # Building the Application
-test/
-app.build/
-app.dist/
-app.onefile-build/
-build/
-dist/
+app.build
+app.dist
+app.onefile-build
+build
+dist
 app.exe
 app.spec
 error.log

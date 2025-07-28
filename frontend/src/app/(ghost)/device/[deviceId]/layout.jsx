@@ -26,7 +26,6 @@ import {
     Sheet,
     SheetClose,
     SheetContent,
-    SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
@@ -48,24 +47,20 @@ const ControlPanelLayout = ({ children }) => {
     const router = useRouter();
     const [connectButtonState, setConnectButtonState,] = useState({ text: "Connect", inProcess: false })
 
+    // Store hooks
     const { deviceInfo, permissions, setDeviceInfo, setPermissions, resetDeviceProfile } = useDeviceProfileStore();
-
     const { setIsRefreshing, addFilesToPath, setDownloadProgress,
         setNumDownloadingFiles, setDownloadFileSize, setDownloadedFileSize,
         setIsDownloading, updateFilesToPath, setSelectedFiles, resetFileStore } = useFileStore();
-
     const { peerConnection, setAudioStream, setScreenStream, setWebcamStream,
         setPeerConnection, setTcpDataChannel, setUdpDataChannel, resetStreamsAndConnection } = useStreamsAndConnectionStore()
-
     const { setIsExecuting, setCurrentPath, addToTerminalExecutions, getPrompt, setSystemUserName, resetTerminal } = useTerminalStore();
-
     const { setStaticCPUInfo, setDynamicCPUInfo, setStaticMemoryInfo, setDynamicMemoryInfo,
         addToCPUChartData, addToMemoryChartData, setProcessesList, resetResources, resetCPUChartData, resetMemoryChartData } = useResourcesStore();
-
     const { resetWebCam } = useWebCamStore()
     const { resetRemoteControl } = useRemoteControlStore();
 
-    const count = useRef(0);
+    // Debounced functions for resource updates
     const debouncedGetCPUInfo = useMemo(() =>
         debounce((query) => {
             const { tcpDataChannel } = useStreamsAndConnectionStore.getState();
@@ -102,6 +97,8 @@ const ControlPanelLayout = ({ children }) => {
             }
         }, 1000), [])
 
+
+    // Functions to handle WebRTC Connections
     const handleStopWebRTC = (deviceIssue = false) => {
         console.log("Stopping WebRTC connection");
         setScreenStream(null);
@@ -173,7 +170,7 @@ const ControlPanelLayout = ({ children }) => {
 
         // Set up connection state handler
         newPeerConnection.onconnectionstatechange = () => {
-            console.log("🔗 Connection State:", newPeerConnection.connectionState);
+            console.log("Connection State:", newPeerConnection.connectionState);
             if (newPeerConnection.connectionState === "connected") {
                 console.log("WebRTC fully connected");
                 setConnectButtonState({ inProcess: false, text: "Disconnect" });
@@ -206,17 +203,18 @@ const ControlPanelLayout = ({ children }) => {
                         const parsed_data = JSON.parse(e.data);
                         const { xtermInstance } = useTerminalStore.getState();
 
-                        if (parsed_data.type === "get_files_response") {
+                        // Files
+                        if (parsed_data.type === "get_files_response") {  // Update the received files
                             addFilesToPath(parsed_data.path, parsed_data.files);
                             setIsRefreshing(false);
                         }
-                        else if (parsed_data.type === "delete_files_response") {
+                        else if (parsed_data.type === "delete_files_response") {  // Handle file deletion response
                             setIsRefreshing(false);
                             setSelectedFiles([]);
                             updateFilesToPath(parsed_data.path, parsed_data.files);
                             toast.success("Files deleted successfully");
                         }
-                        else if (parsed_data.type === "zip_start") {
+                        else if (parsed_data.type === "zip_start") { // Start of ZIP download
                             console.log("ZIP download started, size:", parsed_data.size);
                             setDownloadFileSize(getReadableSize(parsed_data.size));
                             window.zipDownload = {
@@ -230,7 +228,7 @@ const ControlPanelLayout = ({ children }) => {
                             setIsDownloading(true);
                             toast.success("Download started");
                         }
-                        else if (parsed_data.type === "zip_chunk") {
+                        else if (parsed_data.type === "zip_chunk") { // Received a chunk of the ZIP file
                             if (!window.zipDownload) {
                                 console.error("Received chunk but no download initialized");
                                 return;
@@ -267,7 +265,7 @@ const ControlPanelLayout = ({ children }) => {
                                 toast.error("Error processing download chunk");
                             }
                         }
-                        else if (parsed_data.type === "zip_end") {
+                        else if (parsed_data.type === "zip_end") { // End of ZIP download
                             console.log("ZIP download completed");
 
                             if (window.zipDownload) {
@@ -285,7 +283,7 @@ const ControlPanelLayout = ({ children }) => {
                                 const url = URL.createObjectURL(blob);
                                 const a = document.createElement('a');
                                 a.href = url;
-                                a.download = 'downloaded_files.zip';
+                                a.download = 'GS_Download_' + new Date().toISOString() + '.zip';
                                 document.body.appendChild(a);
                                 a.click();
                                 document.body.removeChild(a);
@@ -299,7 +297,7 @@ const ControlPanelLayout = ({ children }) => {
                             setDownloadProgress(0);
                             setIsDownloading(false);
                         }
-                        else if (parsed_data.type === "zip_error") {
+                        else if (parsed_data.type === "zip_error") { // Handle ZIP download error
                             console.error("Server reported zip error:", parsed_data.message);
                             toast.error(`Download failed: ${parsed_data.message}`);
                             setIsDownloading(false);
@@ -307,6 +305,7 @@ const ControlPanelLayout = ({ children }) => {
                                 delete window.zipDownload;
                             }
                         }
+                        // Terminal
                         else if (parsed_data.type === "terminal_cd") {
                             setCurrentPath(parsed_data.path);
                             addToTerminalExecutions({
@@ -378,6 +377,7 @@ const ControlPanelLayout = ({ children }) => {
                             setSystemUserName(parsed_data.user);
                             setCurrentPath(parsed_data.path);
                         }
+                        // Resources
                         else if (parsed_data.type === "static_cpu_info") {
                             setStaticCPUInfo(parsed_data.cpu_info);
                         }
@@ -385,8 +385,6 @@ const ControlPanelLayout = ({ children }) => {
                             const { dynamicCPUInfo } = useResourcesStore.getState();
                             setDynamicCPUInfo({ ...dynamicCPUInfo, ...parsed_data.cpu_info });
                             addToCPUChartData(parsed_data.cpu_info.utilization);
-                            console.log("Count: ", count.current);
-                            count.current++;
                             debouncedGetCPUInfo()
                         }
                         else if (parsed_data.type === "threads_and_handles") {
@@ -466,6 +464,79 @@ const ControlPanelLayout = ({ children }) => {
         return newPeerConnection;
     };
 
+    // Function to handle connect/disconnect button
+    const handleConnect = () => {
+        if (!socket?.current || !isSocketConnected) {
+            console.error("Socket not connected");
+            return;
+        }
+
+        if (peerConnection?.connectionState === "connected") {
+            console.log("Disconnecting from stream");
+            socket.current.emit("stop-webrtc");
+            setConnectButtonState({ inProcess: true, text: "Disconnecting..." });
+            setTimeout(() => {
+                setScreenStream(null);
+                setWebcamStream(null);
+                setAudioStream(null);
+                setTcpDataChannel(null);
+                setUdpDataChannel(null);
+
+                if (peerConnection) {
+                    peerConnection.close();
+                    setPeerConnection(null);
+                }
+                setConnectButtonState({ inProcess: false, text: "Connect" });
+            }, 1000);
+
+            setScreenStream(null);
+            setWebcamStream(null);
+
+            if (peerConnection) {
+                peerConnection.close();
+                setPeerConnection(null);
+            }
+
+        } else {
+            console.log("Requesting stream start for device:", deviceId);
+            resetCPUChartData();
+            resetMemoryChartData();
+            // Initialize and get the new connection
+            initializeWebRTC();
+
+            socket.current.emit("initiate-webrtc", {
+                deviceId,
+            });
+            setConnectButtonState({ inProcess: true, text: "Connecting..." });
+        }
+    };
+
+    const defineNavItem = (item) => {
+        let path = `/device/${deviceId}${item.href}`
+        let disabled = false
+        if (!permissions && item.id !== "profile") {
+            disabled = true;
+            path = "#";
+        } else if (item.id === "remoteControl" && !permissions[0].value.allowed && !permissions[1].value.allowed) {
+            disabled = true;
+            path = "#";
+        } else if (item.id === "terminalAccess" && !permissions[2].value.allowed) {
+            disabled = true;
+            path = "#"
+        } else if (item.id === "fileAccess" && !permissions[3].value.allowed) {
+            disabled = true;
+            path = "#"
+        } else if (item.id === "webcamFeed" && !permissions[4].value.allowed) {
+            disabled = true
+            path = "#"
+        } else if (item.id === "resourceMonitor" && !permissions[5].value.allowed) {
+            disabled = true
+            path = "#"
+        }
+        return { path, disabled }
+    }
+
+    // WebRTC and Socket event listeners
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
 
@@ -552,6 +623,7 @@ const ControlPanelLayout = ({ children }) => {
 
     }, [socket, isSocketConnected, deviceId]);
 
+    // Realtime device online/offline status updates
     useEffect(() => {
         if (!socket?.current || !isSocketConnected) return;
         socket.current.on("device-status", (data) => {
@@ -567,6 +639,7 @@ const ControlPanelLayout = ({ children }) => {
         }
     }, [socket.current, isSocketConnected])
 
+    // Fetch device data on mount
     useEffect(() => {
         async function fetchDeviceData() {
             const clerk_token = await getToken();
@@ -584,14 +657,15 @@ const ControlPanelLayout = ({ children }) => {
         fetchDeviceData();
     }, [])
 
+    // Emit stop-webrtc on unmount
     useEffect(() => {
         return () => {
             socket.current.emit("stop-webrtc");
             handleStopWebRTC();
-            count.current = 0;
         }
     }, [])
 
+    // Reset all stores on unmount
     useEffect(() => {
         return () => {
             resetDeviceProfile();
@@ -609,87 +683,18 @@ const ControlPanelLayout = ({ children }) => {
         }
     }, [])
 
-    const handleConnect = () => {
-        if (!socket?.current || !isSocketConnected) {
-            console.error("Socket not connected");
-            return;
-        }
-
-        if (peerConnection?.connectionState === "connected") {
-            console.log("Disconnecting from stream");
-            socket.current.emit("stop-webrtc");
-            setConnectButtonState({ inProcess: true, text: "Disconnecting..." });
-            setTimeout(() => {
-                setScreenStream(null);
-                setWebcamStream(null);
-                setAudioStream(null);
-                setTcpDataChannel(null);
-                setUdpDataChannel(null);
-
-                if (peerConnection) {
-                    peerConnection.close();
-                    setPeerConnection(null);
-                }
-                setConnectButtonState({ inProcess: false, text: "Connect" });
-            }, 1000);
-
-            setScreenStream(null);
-            setWebcamStream(null);
-
-            if (peerConnection) {
-                peerConnection.close();
-                setPeerConnection(null);
-            }
-
-        } else {
-            console.log("Requesting stream start for device:", deviceId);
-            resetCPUChartData();
-            resetMemoryChartData();
-            // Initialize and get the new connection
-            const newConnection = initializeWebRTC();
-
-            socket.current.emit("initiate-webrtc", {
-                deviceId,
-            });
-            setConnectButtonState({ inProcess: true, text: "Connecting..." });
-        }
-    };
-
-    const defineNavItem = (item) => {
-        let path = `/device/${deviceId}${item.href}`
-        let disabled = false
-        if (!permissions && item.id !== "profile") {
-            disabled = true;
-            path = "#";
-        } else if (item.id === "remoteControl" && !permissions[0].value.allowed && !permissions[1].value.allowed) {
-            disabled = true;
-            path = "#";
-        } else if (item.id === "terminalAccess" && !permissions[2].value.allowed) {
-            disabled = true;
-            path = "#"
-        } else if (item.id === "fileAccess" && !permissions[3].value.allowed) {
-            disabled = true;
-            path = "#"
-        } else if (item.id === "webcamFeed" && !permissions[4].value.allowed) {
-            disabled = true
-            path = "#"
-        } else if (item.id === "resourceMonitor" && !permissions[5].value.allowed) {
-            disabled = true
-            path = "#"
-        }
-        return { path, disabled }
-    }
-
     return (
         <>
             <div className='flex flex-col md:flex-row bg-dark-3 h-screen w-full'>
                 {/* Sidebar */}
                 <div className='hidden md:flex flex-col justify-between border-r border-[#2a2a2a] items-start h-screen w-60 md:w-70'>
+                    {/* Logo */}
                     <Link href={"/console"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-6">
                         <Image src="/logo.svg" alt="GhostSocket" width={45} height={45} />
                         <h1 className="text-2xl font-bold text-white">Ghost</h1>
                         <h1 className="text-2xl font-bold text-purple-1">Socket</h1>
                     </Link>
+                    {/* Navigation Items */}
                     <div className="flex flex-col justify-between w-full p-2 h-full">
                         <div className='flex flex-col h-full'>
                             <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
@@ -735,12 +740,12 @@ const ControlPanelLayout = ({ children }) => {
                                         <p className="text-gray-500 text-sm overflow-hidden text-ellipsis w-[150px] md:w-[200px] whitespace-nowrap">{deviceInfo?.os}</p>
                                     </div>
                                 </div>
-                                :(
-                                    <div className="flex justify-center flex-col gap-1">
-                                        <Skeleton className="w-[150px] h-[20px] bg-white/10" />
-                                        <Skeleton className="w-[200px] h-[15] bg-white/10" />
-                                    </div>
-                                )}
+                                    : (
+                                        <div className="flex justify-center flex-col gap-1">
+                                            <Skeleton className="w-[150px] h-[20px] bg-white/10" />
+                                            <Skeleton className="w-[200px] h-[15] bg-white/10" />
+                                        </div>
+                                    )}
                             </div>
                         </div>
                     </div>
@@ -748,7 +753,9 @@ const ControlPanelLayout = ({ children }) => {
 
                 {/* Mobile Header */}
                 <div className='flex md:hidden justify-between items-center bg-dark-2 border-b border-[#2a2a2a] h-20 w-full'>
+                    {/* Logo and Menu */}
                     <div className='flex items-center'>
+                        {/* Mobile Menu Button */}
                         <Sheet>
                             <SheetTrigger asChild>
                                 <IoMenu className='text-4xl hover:bg-white/10 cursor-pointer rounded p-1' />
@@ -759,13 +766,13 @@ const ControlPanelLayout = ({ children }) => {
                                         Ghost Menu
                                     </SheetTitle>
                                 </SheetHeader>
-                                    <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
-                                        {navItems.map((item) => {
-                                            const { path, disabled } = defineNavItem(item);
-                                            return (
-                                                
-                                                <li key={item.name}>
-                                                    <SheetClose asChild>
+                                <ul className="flex flex-col gap-3 mr-2 ml-1 flex-1">
+                                    {navItems.map((item) => {
+                                        const { path, disabled } = defineNavItem(item);
+                                        return (
+
+                                            <li key={item.name}>
+                                                <SheetClose asChild>
                                                     <Link
                                                         href={path}
                                                         className={`flex gap-2 items-center rounded-lg p-2 transition-colors ${pathname === path
@@ -776,12 +783,12 @@ const ControlPanelLayout = ({ children }) => {
                                                         <item.icon size={22} className={`${pathname === path ? "invert brightness-0" : "text-purple-1"}`} />
                                                         <span className="text-white text-md font-medium">{item.name}</span>
                                                     </Link>
-                                                    </SheetClose>
-                                                </li>
-                                                
-                                            )
-                                        })}
-                                    </ul>
+                                                </SheetClose>
+                                            </li>
+
+                                        )
+                                    })}
+                                </ul>
                                 <SheetFooter>
                                     <div className="flex items-center gap-2 pt-3 border-t border-dark-5">
                                         <FaWindows className="text-4xl text-blue-500 mr-0" />
@@ -796,6 +803,7 @@ const ControlPanelLayout = ({ children }) => {
                                 </SheetFooter>
                             </SheetContent>
                         </Sheet>
+                        {/* Logo */}
                         <Link href={"/console"} className="flex items-center gap-[2px] pr-10 py-2">
                             <Image src="/logo.svg" alt="GhostSocket" width={40} height={40} />
                             <h1 className="text-2xl font-bold text-white">Ghost</h1>
@@ -803,6 +811,7 @@ const ControlPanelLayout = ({ children }) => {
                         </Link>
                     </div>
 
+                    {/* Connect Button */}
                     <Button
                         ref={connectBtn}
                         onClick={handleConnect}

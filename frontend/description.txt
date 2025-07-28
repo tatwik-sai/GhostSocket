@@ -2,144 +2,57 @@ BASIC IDEA:
     There are two parts for this project:
     1. Website
     2. A desktop app
-Let us have 2 roles for now:
-    1. Ghost User - who controls others computers via the website
-    2. Ghosted User - who is controlled by the Ghost User via the website(He has to install the desktop app on his computer)
 
-Ghost User who wants to control other computers remotely can first signup into the website with his credentials.
-Ghosted User who wants to be controlled by the Ghost User can first intall the desktop app from the website's home page.
+The website is powered by react with nextjs and the bacend in written in express with mongodb
+The desktop application is written in python using custom tkinter.
 
-For a Ghosted user to be controlled by the Ghost User, he has to give his computer's unique id to the Ghost User.
-And ghosted user can even allow different permissions that the ghost user can get depending on which ghost user will be able to perform only limited operation on ghosted user.
-The Ghost User can then control the Ghosted User's computer via the website.
-
-Ghost User logs into the website and initially there are 2 sections visible to him:
-    where he can see list of ghosted users  who gave ascess to him to control their computer
-    1. Devices for which control ascess isn't expired yet.
-    2. Devices for which he has ascess in the past but it has expired.
-    The Control Section and MyGhosts section are similar to whatsapp's chats section on the left of whatsappweb with search functionality.
+Problem:
+When ever you want to control your desktop remotely from some where or for the repair person to be able to help you fix your pc remotely they need to ascess your cmoputer remotely.
+Or may be you want to keep track of the systems in your company and organise and control them from a single point.
 
 
+Solution:
+GhostSocket solves it! You first signups on the website and then download the desktop app from the ghost socket website on all the computers you want to access remotely and sig nin on the desktop app with the same mail you used for the website signu, The app auto starts on startp.
+In the app you can set the access permisssions thatare allowed from the website.
+Once done you get access to all of the devices in the website under mydevices section you can choose any device and hit the launch button which establishes connection with the device and then you can control the device.
+Now you can coose a specific device and generate a session on it with a expiry or manual expiry you get a sessionkey you can share it with anyone that you want to allow access to control your device the main control is in yur hands you can kill the session at any time and you can restrict the access permisssions to what he gets.
 
 
-$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-🧭 Recommended Sections for the Website Homepage
-1. 🚀 Hero Section
-Clear title + short pitch + CTA (Call to Action)
+Access permissions:
+1 -> Device profile -> Viw the device info like os, usename,location ip and view the permissions provided to you from the app(if you are the owner else view the permissions provided to you by the session creator) and also view the session that are created on this device wth their statuses like active , terminated and modify the session permissions and even terminate any active sessions
+2 -> Files -> Vie all the files like in explores download them and delete them 
+3 -> Terminal -> Execute remote commands
+4 -> Webcamfeed -> view the live webcan feed capture snapshots
+5 -> Screen feed and control -> View the live screen feed capture snap shots and control the mouse and keyboard gestures
+6 -> Resource Monitor -> View live memory and cpu ussage along with running processes
 
-plaintext
-Copy
-Edit
-Title: Control Your Devices From Anywhere 🌐
-Subtitle: Ghost Socket lets you securely view, manage, and control your Windows PCs — remotely, in real time.
-[🔐 Login]  [📥 Download App]
-Include an image, mockup, or animation showing a user controlling a PC from the browser.
+Network Protocols:
+HTTP -> For CURD Operations that dosent require realtime communication
+Socket -> For live data transfer and establishing the webrtc connection as a signalling server
+WebRTC -> For live screen and webcam feed and realtime mouse and keyboard control
 
-2. 🔧 How It Works (3-step onboarding)
-Break it down:
 
-mathematica
-Copy
-Edit
-① Sign in securely with Clerk  
-② Install the Ghost Socket app on your PC  
-③ Remotely access your authorized devices
-Use icons or a horizontal stepper UI.
+Security:
+Everything stored on the website is jwt encrypted and everythoing stored on app is also encrypted
+The complete live stream is end to end encrypted.
+As the complete data of remote ascess is peer to peer it flows from desktop app to browser server stores nothing
 
-3. 📦 Features Section
-Show off your capabilities with modern cards or a grid:
-
-✅ View screen in real time
-
-🎥 Access webcam & mic
-
-⌨️ Execute CMD instructions
-
-🖱️ Send mouse/keyboard input
-
-🔐 Encrypted communication
-
-🧰 Fine-grained permission control
-
-Use cool icons + descriptions.
-
-4. 🖥️ Your Devices Panel (for logged-in users)
-Only if the user is logged in:
-
-List all connected PCs
-
-Show status (online, inactive)
-
-Actions:
-
-[🖥 View]
-
-[⚙️ Manage Permissions]
-
-[❌ Remove]
-
-5. 📦 Install Ghost Socket
-Link to download the desktop app
-
-QR code / button: Download for Windows
-
-Link to docs: How to install and connect your device
-
-6. 🙋‍♂️ About or FAQ
-Answer top questions like:
-
-Is this secure?
-
-How is access managed?
-
-Can I control multiple PCs?
-
-7. 🔐 Auth Buttons (Clerk-powered)
-[🔓 Login with Email / OTP]
-
-[👤 Sign up / Manage Account] (optional: link opens Clerk UI)
-
-8. 🌙 Footer
-Include:
-
-© 2025 Ghost Socket
-
-[GitHub] [Privacy Policy] [Terms]
-
-Socials / Contact
-
-🎨 Bonus: UI/UX Tips
-Stick to a dark theme with neon/glow effects (matches the "ghost" hacker vibe)
-
-Use animated SVGs or Lottie for interaction visuals
-
-If possible, show a live demo panel (mocked interaction with a fake device)
-
-✅ Tech Stack Suggestion
-If you're using Next.js + Tailwind (as you mentioned before), you can:
-
-Use @clerk/nextjs for auth
-
-Use Socket.IO to show real-time device connection status
-
-Add loading skeletons for devices
-
-👉 Want me to generate the actual landing page HTML/React/Next.js code for this layout?
-Just say:
-
-"Yes, generate Ghost Socket homepage in Next.js"
-or
-"Make me the layout in Tailwind + HTML"
-or
-"Show me the devices panel React component"
+Live website -> https://ghost-socket.vercel.app
 
 
 
 
+Now i want you to generate a readme.md file
+expand the getting started section(just add dummy data i will modify it latter)
+
+clone
+i have 3 folders
+application frontend server
+specific version of python required and have a req.txt
+frontend is nextjs used shadcn and tailwind
+backend is express with mongodb
+
+put a note on disabling antivirus and firewall
+and also put a node on use it with caution and only on devces you own
 
 
-// cd command to get files folders and size
-powershell -command "Get-ChildItem | Where-Object {!$_.Attributes.ToString().Contains('Hidden')} | Select-Object Name,@{Name='Type';Expression={if ($_.PSIsContainer) {'Folder'} else {'File'}}},@{Name='Size';Expression={try {if ($_.PSIsContainer) {$s=(Get-ChildItem $_.FullName -Recurse -File -ErrorAction Stop | Measure-Object Length -Sum).Sum} else {$s=$_.Length}; if ($s -lt 1KB) {\"$s Bytes\"} elseif ($s -lt 1MB) {\"{0:N2} KB\" -f ($s/1KB)} elseif ($s -lt 1GB) {\"{0:N2} MB\" -f ($s/1MB)} else {\"{0:N2} GB\" -f ($s/1GB)}} catch {'Access Denied'}}} | Format-Table -AutoSize"
-
-// get all drives
-fsutil fsinfo drives
