@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 19, "column": 0}, "map": {"version":3,"sources":["file:///D:/Projects/ghost_socket/frontend/src/app/%28ghost%29/console/page.jsx"],"sourcesContent":["import React from 'react'\r\nimport { UserButton } from '@clerk/nextjs'\r\n\r\nconst ConsolePage = () => {\r\n  return (\r\n    <div>\r\n        <UserButton />\r\n    </div>\r\n  )\r\n}\r\n\r\nexport default ConsolePage"],"names":[],"mappings":";;;;AAAA;AACA;;;;AAEA,MAAM,cAAc;IAClB,qBACE,8OAAC;kBACG,cAAA,8OAAC,sLAAA,CAAA,aAAU;;;;;;;;;;AAGnB;uCAEe","debugId":null}}]
-}
