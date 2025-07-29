@@ -14,7 +14,7 @@ node_modules
 /frontend/coverage
 
 # next.js
-.next/
+.next
 /frontend/out/
 
 # production
@@ -40,7 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+uploads
 __pycache__
 *.pyc
 dist
