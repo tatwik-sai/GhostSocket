@@ -15,6 +15,7 @@ export default function DevicesPage() {
   const { myDevices, otherDevices, setMyDevices, setOtherDevices, updateDeviceOnlineStatus } = useDevicesStore();
   const [searchMy, setSearchMy] = useState("");
   const [searchOther, setSearchOther] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
   let clerk_token, authHeaders;
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function DevicesPage() {
 
   useEffect(() => {
     async function fetchData() {
+      setIsFetching(true);
       clerk_token = await getToken();
       authHeaders = {
         headers: {
@@ -40,6 +42,7 @@ export default function DevicesPage() {
       const otherDevicesData = await apiClient.get("/devices/other", authHeaders);
       setMyDevices(myDevicesData.data);
       setOtherDevices(otherDevicesData.data);
+      setIsFetching(false);
     }
     fetchData()
   }, [setMyDevices, setOtherDevices, user]);
@@ -75,7 +78,7 @@ export default function DevicesPage() {
           </span>
         </div>
       </div>
-      <DevicesList type="myDevices" devices={filteredMyDevices} />
+      <DevicesList type="myDevices" devices={filteredMyDevices} fetching={isFetching} />
     </div>
     
     {/* Other Devices */}
@@ -95,8 +98,8 @@ export default function DevicesPage() {
           </span>
         </div>
       </div>
-      <DevicesList type="otherDevices" devices={filteredOtherDevices} />  
-    </div>  
+      <DevicesList type="otherDevices" devices={filteredOtherDevices} fetching={isFetching} />
+    </div>
   </div>
   )
 }

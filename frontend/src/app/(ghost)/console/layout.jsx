@@ -49,9 +49,9 @@ export default function ConsoleLayout({ children }) {
 
   return (
     <>
-      <div className="flex flex-col md:flex-row w-[100vw] h-[100vh]">
+      <div className="flex flex-col md:flex-row h-screen w-full">
         {/* Sidebar */}
-        <div className="hidden md:flex flex-col border-r   border-white/10  w-[250px] md:w-[280px] bg-dark-2">
+        <div className="hidden md:flex flex-col border-r h-screen  border-white/10  w-[250px] md:w-[280px] bg-dark-2">
           {/* Logo */}
           <Link href={"/"} className="flex items-center gap-[2px] pr-10 pl-3 pt-5 mb-10 cursor-pointer">
             <Image src="/logo.svg" className="" alt="GhostSocket" width={45} height={45} />
@@ -219,7 +219,7 @@ export default function ConsoleLayout({ children }) {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 bg-dark-1 ">
+        <div className="flex-1 bg-dark-1 overflow-y-auto custom-scrollbar">
           {children}
         </div>
 

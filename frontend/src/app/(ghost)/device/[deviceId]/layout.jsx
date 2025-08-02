@@ -32,6 +32,7 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Skeleton } from '@/components/ui/skeleton';
+import { ClipLoader } from 'react-spinners';
 
 
 const ControlPanelLayout = ({ children }) => {
@@ -474,7 +475,7 @@ const ControlPanelLayout = ({ children }) => {
         if (peerConnection?.connectionState === "connected") {
             console.log("Disconnecting from stream");
             socket.current.emit("stop-webrtc");
-            setConnectButtonState({ inProcess: true, text: "Disconnecting..." });
+            setConnectButtonState({ inProcess: true, text: "Disconnecting" });
             setTimeout(() => {
                 setScreenStream(null);
                 setWebcamStream(null);
@@ -507,7 +508,7 @@ const ControlPanelLayout = ({ children }) => {
             socket.current.emit("initiate-webrtc", {
                 deviceId,
             });
-            setConnectButtonState({ inProcess: true, text: "Connecting..." });
+            setConnectButtonState({ inProcess: true, text: "Connecting" });
         }
     };
 
@@ -728,6 +729,7 @@ const ControlPanelLayout = ({ children }) => {
                             hover:scale-103 items-center cursor-pointer font-semibold disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300`}
                                 disabled={!isSocketConnected || connectButtonState.inProcess}
                             >
+                                {connectButtonState.inProcess && <ClipLoader color={"#ffffff"} loading={true} size={18} aria-label="Loading Spinner" data-testid="loader" />}
                                 {connectButtonState.text}
                             </Button>
                             <div className='h-[1px] bg-dark-5 mt-1' />
@@ -822,6 +824,7 @@ const ControlPanelLayout = ({ children }) => {
                         mr-1 hover:scale-103 items-center cursor-pointer font-semibold disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300`}
                         disabled={!isSocketConnected || connectButtonState.inProcess}
                     >
+                        {connectButtonState.inProcess && <ClipLoader color={"#ffffff"} loading={true} size={18} aria-label="Loading Spinner" data-testid="loader" />}
                         {connectButtonState.text}
                     </Button>
                 </div>
