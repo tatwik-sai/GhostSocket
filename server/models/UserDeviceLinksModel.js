@@ -45,7 +45,6 @@ const userDeviceLinksSchema = new mongoose.Schema({
     userId: {
         type: String,
         required: [true,"user id is required"],
-        unique: true,
     },
     deviceId: {
         type: String,
