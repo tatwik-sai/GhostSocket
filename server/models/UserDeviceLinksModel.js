@@ -69,7 +69,6 @@ const userDeviceLinksSchema = new mongoose.Schema({
     sessionKey: {
         type: String,
         required: false,
-        unique: true,
         default: null,
     },
     expiry: {
