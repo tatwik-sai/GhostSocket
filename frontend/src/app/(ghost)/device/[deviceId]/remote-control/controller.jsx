@@ -126,12 +126,12 @@ export function useMouseTracker({ screenVideo }) {
     const scaleX = sourceWidth / scaledWidth;
     const scaleY = sourceHeight / scaledHeight;
 
-    const clampedX = Math.max(0, Math.min(clickX, scaledWidth - 1));
-    const clampedY = Math.max(0, Math.min(clickY, scaledHeight - 1));
-    return {
-      x: Math.floor(clampedX * scaleX),
-      y: Math.floor(clampedY * scaleY),
+    const finalCoords = {
+      x: Math.floor(clickX * scaleX),
+      y: Math.floor(clickY * scaleY),
     };
+    console.log("Scaled coordinates:", finalCoords, "Original click:", { x, y }, "Scaled dimensions:", scaledScreenDimensions);
+    return finalCoords;
   }
 
   const handleMouseMove = useCallback((e) => {
