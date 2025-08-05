@@ -120,7 +120,6 @@ export function useMouseTracker({ screenVideo }) {
     const { scaledScreenDimensions } = useRemoteControlStore.getState();
     const scaledWidth = scaledScreenDimensions.width;
     const scaledHeight = scaledScreenDimensions.height;
-    console.log("scaledWidth:", scaledWidth, "scaledHeight:", scaledHeight, "left:", scaledScreenDimensions.left, "top:", scaledScreenDimensions.top);
     const clickX = x - scaledScreenDimensions.left;
     const clickY = y - scaledScreenDimensions.top;
     const { width: sourceWidth, height:sourceHeight } = screenDimensions;
@@ -129,7 +128,6 @@ export function useMouseTracker({ screenVideo }) {
 
     const clampedX = Math.max(0, Math.min(clickX, scaledWidth - 1));
     const clampedY = Math.max(0, Math.min(clickY, scaledHeight - 1));
-    console.log("clampedX:", clampedX, "clampedY:", clampedY, "scaleX:", scaleX, "scaleY:", scaleY);
     return {
       x: Math.floor(clampedX * scaleX),
       y: Math.floor(clampedY * scaleY),
