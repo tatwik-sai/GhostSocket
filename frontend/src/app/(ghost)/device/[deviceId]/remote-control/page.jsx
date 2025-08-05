@@ -27,7 +27,7 @@ const RemoteControlPage = () => {
     const { screenStream, peerConnection } = useStreamsAndConnectionStore();
     const { images, addImage, setImages, setScreenDimensions, setScaledScreenDimensions } = useRemoteControlStore()
     const { start: startKeyboard, stop: stopKeyboard } = useKeyboardTracker();
-    const { start: startMouse, stop: stopMouse } = useMouseTracker(screenVideo);
+    const { start: startMouse, stop: stopMouse } = useMouseTracker({screenVideo});
 
     const router = useRouter()
     const { permissions } = useDeviceProfileStore();

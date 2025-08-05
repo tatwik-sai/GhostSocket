@@ -104,7 +104,6 @@ export function useKeyboardTracker() {
 
 export function useMouseTracker({ screenVideo }) {
   const isListening = useRef(false);
-  const { screenDimensions } = useRemoteControlStore();
 
   const send = useCallback((event) => {
     const {udpDataChannel} = useStreamsAndConnectionStore.getState();
@@ -116,23 +115,58 @@ export function useMouseTracker({ screenVideo }) {
     }
   }, []);
 
-  const scaleAndOffset = (x, y) => {
-    const { scaledScreenDimensions } = useRemoteControlStore.getState();
-    const scaledWidth = scaledScreenDimensions.width;
-    const scaledHeight = scaledScreenDimensions.height;
-    const clickX = x - scaledScreenDimensions.left;
-    const clickY = y - scaledScreenDimensions.top;
-    const { width: sourceWidth, height:sourceHeight } = screenDimensions;
-    const scaleX = sourceWidth / scaledWidth;
-    const scaleY = sourceHeight / scaledHeight;
+  const scaleAndOffset = (clientX, clientY) => {
+    if (!screenVideo) {
+      console.warn("screenVideo is not provided");
+      return { x: 0, y: 0 };  
+    }
+    const video = screenVideo.current;
+      if (!video) return { x: 0, y: 0 };
 
-    const finalCoords = {
-      x: Math.floor(clickX * scaleX),
-      y: Math.floor(clickY * scaleY),
+      const rect = video.getBoundingClientRect(); // rendered area on screen
+      const { videoWidth, videoHeight } = video;  // actual resolution of remote screen
+
+      const renderedWidth = rect.width;
+      const renderedHeight = rect.height;
+
+      const aspectVideo = videoWidth / videoHeight;
+      const aspectRendered = renderedWidth / renderedHeight;
+
+      let drawnWidth, drawnHeight, offsetX, offsetY;
+
+      if (aspectVideo > aspectRendered) {
+        // Letterboxing (black bars) top/bottom
+        drawnWidth = renderedWidth;
+        drawnHeight = renderedWidth / aspectVideo;
+        offsetX = 0;
+        offsetY = (renderedHeight - drawnHeight) / 2;
+      } else {
+        // Letterboxing left/right
+        drawnHeight = renderedHeight;
+        drawnWidth = renderedHeight * aspectVideo;
+        offsetY = 0;
+        offsetX = (renderedWidth - drawnWidth) / 2;
+      }
+
+      // Relative click inside drawn area
+      const xInDrawn = clientX - rect.left - offsetX;
+      const yInDrawn = clientY - rect.top - offsetY;
+
+      // Clamp inside the actual video area
+      const clampedX = Math.max(0, Math.min(xInDrawn, drawnWidth));
+      const clampedY = Math.max(0, Math.min(yInDrawn, drawnHeight));
+
+      // Scale to original screen size
+      const scaleX = videoWidth / drawnWidth;
+      const scaleY = videoHeight / drawnHeight;
+
+      console.log("Mouse coordinates:", { x: Math.floor(clampedX * scaleX), y: Math.floor(clampedY * scaleY) });
+      return {
+        x: Math.floor(clampedX * scaleX),
+        y: Math.floor(clampedY * scaleY),
+      };
     };
-    console.log("Scaled coordinates:", finalCoords, "Original click:", { x, y }, "Scaled dimensions:", scaledScreenDimensions);
-    return finalCoords;
-  }
+
 
   const handleMouseMove = useCallback((e) => {
     const { x, y } = scaleAndOffset(e.clientX, e.clientY);
