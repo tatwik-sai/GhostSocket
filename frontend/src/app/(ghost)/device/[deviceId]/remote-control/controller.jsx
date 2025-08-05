@@ -1,4 +1,5 @@
 "use client";
+import { useRemoteControlStore } from "@/store/slices/ActiveConnection/RemoteControlSlice";
 import { useStreamsAndConnectionStore } from "@/store/slices/ActiveConnection/StreamsAndConnectionSlice";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -101,8 +102,9 @@ export function useKeyboardTracker() {
 
 
 
-export function useMouseTracker() {
+export function useMouseTracker({ screenVideo }) {
   const isListening = useRef(false);
+  const { screenDimensions } = useRemoteControlStore();
 
   const send = useCallback((event) => {
     const {udpDataChannel} = useStreamsAndConnectionStore.getState();
@@ -114,36 +116,59 @@ export function useMouseTracker() {
     }
   }, []);
 
+  const scaleAndOffset = (x, y) => {
+    const { scaledScreenDimensions } = useRemoteControlStore.getState();
+    const scaledWidth = scaledScreenDimensions.width;
+    const scaledHeight = scaledScreenDimensions.height;
+    console.log("scaledWidth:", scaledWidth, "scaledHeight:", scaledHeight, "left:", scaledScreenDimensions.left, "top:", scaledScreenDimensions.top);
+    const clickX = x - scaledScreenDimensions.left;
+    const clickY = y - scaledScreenDimensions.top;
+    const { width: sourceWidth, height:sourceHeight } = screenDimensions;
+    const scaleX = sourceWidth / scaledWidth;
+    const scaleY = sourceHeight / scaledHeight;
+
+    const clampedX = Math.max(0, Math.min(clickX, scaledWidth - 1));
+    const clampedY = Math.max(0, Math.min(clickY, scaledHeight - 1));
+    console.log("clampedX:", clampedX, "clampedY:", clampedY, "scaleX:", scaleX, "scaleY:", scaleY);
+    return {
+      x: Math.floor(clampedX * scaleX),
+      y: Math.floor(clampedY * scaleY),
+    };
+  }
+
   const handleMouseMove = useCallback((e) => {
+    const { x, y } = scaleAndOffset(e.clientX, e.clientY);
     send({
       type: "mouse",
       event: "move",
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
     });
   }, [send]);
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
+    const { x, y } = scaleAndOffset(e.clientX, e.clientY);
     send({
       type: "mouse",
       event: "down",
       button: e.button,
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
     });
   }, [send]);
 
   const handleMouseUp = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
+    const { x, y } = scaleAndOffset(e.clientX, e.clientY);
     send({
       type: "mouse",
       event: "up",
       button: e.button,
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
     });
   }, [send]);
 

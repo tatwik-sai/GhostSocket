@@ -25,9 +25,9 @@ const RemoteControlPage = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const { socket, isConnected: isSocketConnected } = useSocket();
     const { screenStream, peerConnection } = useStreamsAndConnectionStore();
-    const { images, addImage, setImages } = useRemoteControlStore()
+    const { images, addImage, setImages, setScreenDimensions, setScaledScreenDimensions } = useRemoteControlStore()
     const { start: startKeyboard, stop: stopKeyboard } = useKeyboardTracker();
-    const { start: startMouse, stop: stopMouse } = useMouseTracker();
+    const { start: startMouse, stop: stopMouse } = useMouseTracker(screenVideo);
 
     const router = useRouter()
     const { permissions } = useDeviceProfileStore();
@@ -79,6 +79,13 @@ const RemoteControlPage = () => {
         if (!socket?.current || !isSocketConnected) return;
         if (screenStream) {
             screenVideo.current.srcObject = screenStream;
+            screenVideo.current.onloadedmetadata = () => {
+                const videoWidth = screenVideo.current.videoWidth;
+                const videoHeight = screenVideo.current.videoHeight;
+                console.log(`Actual video resolution: ${videoWidth}x${videoHeight}`);
+                
+                setScreenDimensions(videoWidth, videoHeight);
+            };
             socket.current.emit("to-device", { message: "pause_webcam" });
         } else {
             screenVideo.current.srcObject = null;
@@ -159,6 +166,7 @@ const RemoteControlPage = () => {
 
     const handleControl = () => {
         const { tcpDataChannel } = useStreamsAndConnectionStore.getState();
+
         if (!tcpDataChannel || !tcpDataChannel.readyState === "open") {
             toast.error("Video stream is not open.", {
                 variant: "destructive"
@@ -169,9 +177,19 @@ const RemoteControlPage = () => {
             setControlling(false);
         } else {
             setControlling(true);
-            screenVideo.current.requestFullscreen()
-            startKeyboard();
-            startMouse();
+            screenVideo.current.requestFullscreen().then(() => {
+                const rect = screenVideo.current.getBoundingClientRect();
+                const displayWidth = rect.width;
+                const displayHeight = rect.height;
+                console.log("Fullscreen dimensions:", displayWidth, displayHeight, "left:", rect.left, "top:", rect.top);
+                setScaledScreenDimensions(displayWidth, displayHeight, rect.left, rect.top);
+                startKeyboard();
+                startMouse();
+            }).catch((err) => {
+                console.error("Fullscreen failed:", err);
+                startKeyboard();
+                startMouse();
+            });
         }
     }
 
