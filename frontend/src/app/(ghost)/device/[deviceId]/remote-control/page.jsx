@@ -206,7 +206,8 @@ const RemoteControlPage = () => {
                                 playsInline
                                 controls
                                 muted
-                                className="w-full h-full object-contain bg-black"
+                                onClick={(e) => e.preventDefault()}
+                                className="w-full h-full object-contain bg-black [&::-webkit-media-controls-play-button]:hidden [&::-webkit-media-controls-start-playback-button]:hidden"
                             />
                         </div>
                     </div>
