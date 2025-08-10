@@ -4,7 +4,9 @@
 GhostSocket is a comprehensive remote desktop solution that allows you to securely access and control your computers from anywhere in the world all from Browser. Perfect for IT support, system administration, or personal remote access needs.
 
 **Website:** [GhostSocket](https://ghost-socket.vercel.app)
-> **Note:** Disable Antivirus and firewall for the application to function properly
+> **Note:**  Disable Antivirus and firewall for the application to function properly.  
+> If you are running this on an organization's Wi-Fi, it might block peer-to-peer traffic, leading to non-functionality.
+
 
 ## Table of Contents
 
@@ -32,7 +34,6 @@ GhostSocket is a comprehensive remote desktop solution that allows you to secure
   - [Important Security Notes](#important-security-notes)
     - [Firewall \& Antivirus Configuration](#firewall--antivirus-configuration)
     - [Usage Warnings](#usage-warnings)
-  - [Project Structure](#project-structure)
   - [Development](#development)
     - [Running in Development Mode](#running-in-development-mode)
     - [Building for Production](#building-for-production)
@@ -239,27 +240,6 @@ GhostSocket is a comprehensive remote desktop solution that allows you to secure
 - **Keep the application updated to the latest security patches**
 - **Use strong, unique passwords for your GhostSocket account**
 
-## Project Structure
-
-```
-ghostsocket/
-├── application/          # Python desktop application
-│   ├── main.py          # Application entry point
-│   ├── requirements.txt # Python dependencies
-│   ├── config.py        # Configuration settings
-│   └── ...
-├── frontend/            # Next.js web application
-│   ├── pages/           # Next.js pages
-│   ├── components/      # React components
-│   ├── package.json     # Node.js dependencies
-│   └── ...
-└── server/              # Express.js backend
-    ├── routes/          # API routes
-    ├── models/          # MongoDB models
-    ├── middleware/      # Express middleware
-    ├── package.json     # Node.js dependencies
-    └── ...
-```
 
 ## Development
 
